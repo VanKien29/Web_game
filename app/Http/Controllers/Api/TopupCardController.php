@@ -8,6 +8,7 @@ use App\Models\Game\TopupTransaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -30,6 +31,13 @@ class TopupCardController extends Controller
         $error = $this->validateCardInput($type, $amount, $seri, $pin);
         if ($error) {
             return response()->json(['ok' => false, 'message' => $error], 422);
+        }
+
+        if (!$this->napGame247Configured()) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Chưa cấu hình API nạp thẻ NapGame247.',
+            ], 503);
         }
 
         $username = strtolower((string) $account->username);
@@ -60,9 +68,27 @@ class TopupCardController extends Controller
                 'status' => 0,
             ]);
 
+            $providerResult = $this->sendNapGame247Card($type, $amount, $seri, $pin, $transId);
+            if (!$providerResult['ok']) {
+                DB::connection('game')->table('trans_log')
+                    ->where('trans_id', $transId)
+                    ->where('status', 0)
+                    ->update(['status' => 2]);
+
+                return response()->json([
+                    'ok' => false,
+                    'message' => $providerResult['message'],
+                    'trans_id' => $transId,
+                ], $providerResult['status']);
+            }
+
+            if ($providerResult['final_status'] !== null) {
+                $this->settleCardTransaction($transId, $providerResult['final_status'], $providerResult['amount']);
+            }
+
             return response()->json([
                 'ok' => true,
-                'message' => 'Đã gửi thẻ, vui lòng chờ hệ thống xử lý.',
+                'message' => $providerResult['message'] ?: 'Đã gửi thẻ, vui lòng chờ hệ thống xử lý.',
                 'trans_id' => $transId,
             ]);
         } catch (\Throwable $e) {
@@ -104,10 +130,7 @@ class TopupCardController extends Controller
     }
 
     /**
-     * POST /api/napgame247/callback — Placeholder callback endpoint for NapGame247.
-     *
-     * This endpoint intentionally does not credit accounts until the partner
-     * documentation provides the exact signature fields and status mapping.
+     * POST /api/napgame247/callback — NapGame247 scratch-card result callback.
      */
     public function napgame247Callback(Request $request): JsonResponse
     {
@@ -116,17 +139,37 @@ class TopupCardController extends Controller
             'payload' => $request->except(['pin', 'code', 'password']),
         ]);
 
-        if (empty(config('services.napgame247.partner_key'))) {
+        if (!$this->napGame247Configured()) {
             return response()->json([
-                'success' => false,
+                'ok' => false,
                 'message' => 'napgame247_not_configured',
             ], 503);
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'callback_signature_not_implemented',
-        ], 501);
+        $payload = $request->all();
+        $transId = trim((string) ($payload['request_id'] ?? $payload['requestId'] ?? $payload['trans_id'] ?? $payload['transId'] ?? ''));
+        $providerStatus = (int) ($payload['status'] ?? 0);
+        $amount = (int) ($payload['amount'] ?? $payload['value'] ?? 0);
+
+        if ($transId === '' || $providerStatus === 0) {
+            return response()->json(['ok' => false, 'message' => 'invalid_payload'], 422);
+        }
+
+        if (!$this->verifyNapGame247Callback($payload)) {
+            return response()->json(['ok' => false, 'message' => 'invalid_signature'], 403);
+        }
+
+        $finalStatus = $this->mapNapGame247Status($providerStatus);
+        if ($finalStatus === 0) {
+            return response()->json(['ok' => true, 'message' => 'pending']);
+        }
+
+        $result = $this->settleCardTransaction($transId, $finalStatus, $amount);
+        if (!$result['ok'] && $result['error'] !== 'not_found') {
+            return response()->json(['ok' => false, 'message' => $result['error']], 409);
+        }
+
+        return response()->json(['ok' => true, 'success' => true]);
     }
 
     /**
@@ -364,5 +407,204 @@ class TopupCardController extends Controller
         }
 
         return substr($value, 0, 4) . str_repeat('*', max(4, $length - 8)) . substr($value, -4);
+    }
+
+    private function napGame247Configured(): bool
+    {
+        $cfg = config('services.napgame247');
+
+        return !empty($cfg['api_url']) && !empty($cfg['partner_id']) && !empty($cfg['partner_key']);
+    }
+
+    private function sendNapGame247Card(string $type, int $amount, string $seri, string $pin, string $transId): array
+    {
+        if (!$this->napGame247Configured()) {
+            return [
+                'ok' => false,
+                'message' => 'Chưa cấu hình API nạp thẻ NapGame247.',
+                'status' => 503,
+                'final_status' => null,
+                'amount' => $amount,
+            ];
+        }
+
+        $cfg = config('services.napgame247');
+        $telco = $this->napGame247Telco($type);
+        $command = 'charging';
+        $payload = [
+            'telco' => $telco,
+            'code' => $pin,
+            'serial' => $seri,
+            'amount' => $amount,
+            'partner_id' => (string) $cfg['partner_id'],
+            'request_id' => $transId,
+            'command' => $command,
+            'sign' => $this->napGame247Sign($pin, $seri),
+            'callback_url' => (string) ($cfg['callback_url'] ?? ''),
+        ];
+
+        try {
+            $response = Http::asForm()
+                ->timeout((int) ($cfg['timeout'] ?? 20))
+                ->post((string) $cfg['api_url'], $payload);
+        } catch (\Throwable $e) {
+            Log::error('NapGame247 submit request error: ' . $e->getMessage(), [
+                'trans_id' => $transId,
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => 'Không kết nối được NapGame247.',
+                'status' => 502,
+                'final_status' => null,
+                'amount' => $amount,
+            ];
+        }
+
+        $data = $response->json();
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        Log::info('NapGame247 submit response', [
+            'trans_id' => $transId,
+            'status' => $response->status(),
+            'body' => $data ?: $response->body(),
+        ]);
+
+        if (!$response->ok()) {
+            return [
+                'ok' => false,
+                'message' => $data['message'] ?? 'NapGame247 từ chối yêu cầu.',
+                'status' => 502,
+                'final_status' => null,
+                'amount' => $amount,
+            ];
+        }
+
+        $providerStatus = (int) ($data['status'] ?? 99);
+        $finalStatus = $this->mapNapGame247Status($providerStatus);
+
+        if ($finalStatus === 2) {
+            return [
+                'ok' => false,
+                'message' => $data['message'] ?? 'Thẻ không hợp lệ hoặc bị từ chối.',
+                'status' => 422,
+                'final_status' => 2,
+                'amount' => (int) ($data['amount'] ?? $amount),
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'message' => $data['message'] ?? 'Đã gửi thẻ, vui lòng chờ hệ thống xử lý.',
+            'status' => 200,
+            'final_status' => $finalStatus === 1 ? 1 : null,
+            'amount' => (int) ($data['amount'] ?? $amount),
+        ];
+    }
+
+    private function settleCardTransaction(string $transId, int $status, int $amount): array
+    {
+        if (!in_array($status, [1, 2], true)) {
+            return ['ok' => false, 'error' => 'invalid_status'];
+        }
+
+        return DB::connection('game')->transaction(function () use ($transId, $status, $amount) {
+            $trans = DB::connection('game')->table('trans_log')
+                ->where('trans_id', $transId)
+                ->where('status', 0)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$trans) {
+                return ['ok' => false, 'error' => 'not_found'];
+            }
+
+            $creditAmount = $status === 1 ? $amount : (int) $trans->amount;
+            if ($status === 1 && $creditAmount <= 0) {
+                return ['ok' => false, 'error' => 'invalid_amount'];
+            }
+
+            DB::connection('game')->table('trans_log')
+                ->where('id', $trans->id)
+                ->update([
+                    'status' => $status,
+                    'amount' => $creditAmount,
+                ]);
+
+            if ($status !== 1) {
+                return ['ok' => true];
+            }
+
+            $account = Account::where('username', $trans->username)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$account) {
+                return ['ok' => false, 'error' => 'user_not_found'];
+            }
+
+            if (!TopupTransaction::where('trans_id', $transId)->exists()) {
+                TopupTransaction::create([
+                    'trans_id' => $transId,
+                    'username' => strtolower((string) $trans->username),
+                    'user_id' => (int) $account->id,
+                    'amount' => $creditAmount,
+                    'currency' => 'cash',
+                    'source' => 'card',
+                    'note' => 'NapGame247 ' . $trans->type,
+                ]);
+
+                Account::where('id', $account->id)->update([
+                    'cash' => DB::raw('cash + ' . $creditAmount),
+                    'danap' => DB::raw('danap + ' . $creditAmount),
+                ]);
+            }
+
+            return ['ok' => true];
+        });
+    }
+
+    private function napGame247Telco(string $type): string
+    {
+        return match ($type) {
+            'Viettel' => 'VIETTEL',
+            'Mobifone' => 'MOBIFONE',
+            'Vinaphone' => 'VINAPHONE',
+            'Vietnamobile' => 'VIETNAMOBILE',
+            default => strtoupper($type),
+        };
+    }
+
+    private function napGame247Sign(string $code, string $serial): string
+    {
+        return md5((string) config('services.napgame247.partner_key') . $code . $serial);
+    }
+
+    private function verifyNapGame247Callback(array $payload): bool
+    {
+        $received = strtolower(trim((string) ($payload['callback_sign'] ?? $payload['sign'] ?? '')));
+        if ($received === '') {
+            return false;
+        }
+
+        $code = (string) ($payload['code'] ?? $payload['pin'] ?? '');
+        $serial = (string) ($payload['serial'] ?? $payload['seri'] ?? '');
+
+        if ($code === '' || $serial === '') {
+            return false;
+        }
+
+        return hash_equals($this->napGame247Sign($code, $serial), $received);
+    }
+
+    private function mapNapGame247Status(int $status): int
+    {
+        return match ($status) {
+            1, 2 => 1,
+            99 => 0,
+            default => 2,
+        };
     }
 }
