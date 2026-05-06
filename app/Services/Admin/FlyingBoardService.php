@@ -601,11 +601,14 @@ class FlyingBoardService extends AdminServiceSupport
     private function mountImageUrl(int $mountId, int $suffix): ?string
     {
         $filename = "mount_{$mountId}_{$suffix}.png";
-        if (!is_file($this->assets->gameSrcPath("data/img_by_name/x4/{$filename}"))) {
+        $path = $this->assets->gameSrcPath("data/img_by_name/x4/{$filename}");
+        if (!is_file($path) || filesize($path) < 512) {
             return null;
         }
 
-        return "/assets/game-img-by-name/x4/{$filename}";
+        $version = filemtime($path) ?: time();
+
+        return "/assets/game-img-by-name/x4/{$filename}?v={$version}";
     }
 
     private function deleteMountImageFiles(int $mountId): array
