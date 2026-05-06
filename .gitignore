@@ -15,6 +15,7 @@
 /node_modules
 /public/build
 /public/hot
+/public/assets/game-img-by-name
 /public/storage
 /storage/*.key
 /storage/pail
