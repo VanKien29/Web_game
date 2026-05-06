@@ -15,6 +15,8 @@ const pageLoaders = {
     pets: () => import("./features/game-assets/PetsPage.vue"),
     backAccessories: () =>
         import("./features/game-assets/BackAccessoriesPage.vue"),
+    flyingBoards: () =>
+        import("./features/game-assets/FlyingBoardsPage.vue"),
     milestones: () =>
         import("./features/milestones/MilestonesPage.vue"),
     milestoneForm: () =>
@@ -128,6 +130,12 @@ const routes = [
         path: "/admin/back-accessories",
         name: "admin.back_accessories",
         component: () => loadAdminPage("backAccessories"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/flying-boards",
+        name: "admin.flying_boards",
+        component: () => loadAdminPage("flyingBoards"),
         meta: { auth: true },
     },
     {

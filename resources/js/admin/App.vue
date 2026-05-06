@@ -208,6 +208,19 @@
                             <span class="text">Đeo lưng</span>
                         </router-link>
                     </div>
+                    <div class="nav-item">
+                        <router-link
+                            to="/admin/flying-boards"
+                            class="nav-link"
+                            :class="{
+                                active: $route.name === 'admin.flying_boards',
+                            }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">flight</span>
+                            <span class="text">Ván bay</span>
+                        </router-link>
+                    </div>
 
                     <div class="nav-heading">Settings</div>
                     <hr class="nav-line" />

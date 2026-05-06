@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\BadgeController;
 use App\Http\Controllers\Api\Admin\CatalogLookupController;
 use App\Http\Controllers\Api\Admin\CostumeController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\FlyingBoardController;
 use App\Http\Controllers\Api\Admin\GiftcodeController;
 use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
@@ -113,6 +114,12 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/back-accessories/{id}', [BackAccessoryController::class, 'show'])->whereNumber('id');
         Route::post('/api/back-accessories/{id}', [BackAccessoryController::class, 'update'])->whereNumber('id');
         Route::delete('/api/back-accessories/{id}', [BackAccessoryController::class, 'destroy'])->whereNumber('id');
+
+        Route::get('/api/flying-boards', [FlyingBoardController::class, 'index']);
+        Route::post('/api/flying-boards', [FlyingBoardController::class, 'store']);
+        Route::get('/api/flying-boards/{id}', [FlyingBoardController::class, 'show'])->whereNumber('id');
+        Route::post('/api/flying-boards/{id}', [FlyingBoardController::class, 'update'])->whereNumber('id');
+        Route::delete('/api/flying-boards/{id}', [FlyingBoardController::class, 'destroy'])->whereNumber('id');
 
         Route::get('/api/shops', [ShopController::class, 'index']);
         Route::get('/api/shops/tab/{tabId}', [ShopController::class, 'tab'])->whereNumber('tabId');
