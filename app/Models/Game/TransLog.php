@@ -11,8 +11,8 @@ class TransLog extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'type', 'telco', 'serial', 'code', 'amount',
-        'declared_amount', 'status', 'trans_id', 'message', 'created_at',
+        'username', 'seri', 'pin', 'type', 'amount', 'trans_id', 'status',
+        'created_at', 'updated_at',
     ];
 
     protected $casts = [

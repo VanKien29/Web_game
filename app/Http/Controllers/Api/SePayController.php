@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game\Account;
 use App\Models\Game\TopupTransaction;
+use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,19 +55,24 @@ class SePayController extends Controller
     public function webhook(Request $request): JsonResponse
     {
         $cfg = config('services.sepay');
-        $webhookKey = (string) ($cfg['webhook_api_key'] ?? '');
+        $webhookKeys = $this->configuredWebhookKeys();
 
-        if ($webhookKey === '') {
+        if ($webhookKeys === []) {
             return response()->json(['ok' => false, 'error' => 'webhook_not_configured'], 503);
         }
 
-        // Verify API Key
-        $authHeader = $request->header('Authorization', '');
-        if (!preg_match('/^APIkey\s+(\S+)$/i', $authHeader, $m)) {
+        $apiKey = $this->extractWebhookApiKey($request);
+        if ($apiKey === '') {
             return response()->json(['ok' => false, 'error' => 'missing_api_key'], 401);
         }
 
-        if (!hash_equals($webhookKey, $m[1])) {
+        if (!$this->validWebhookApiKey($apiKey, $webhookKeys)) {
+            Log::warning('SePay webhook invalid API key', [
+                'received_length' => strlen($apiKey),
+                'configured_key_count' => count($webhookKeys),
+                'configured_lengths' => array_map('strlen', $webhookKeys),
+            ]);
+
             return response()->json(['ok' => false, 'error' => 'invalid_api_key'], 403);
         }
 
@@ -83,6 +89,53 @@ class SePayController extends Controller
         $result = $this->processTransactions($transactions, $cfg['prefix'] ?? 'naptien');
 
         return response()->json($result);
+    }
+
+    private function configuredWebhookKeys(): array
+    {
+        $keys = [
+            config('services.sepay.webhook_api_key'),
+            env('SEPAY_WEBHOOK_API_KEY'),
+            Setting::getValue('sepay_webhook_api_key'),
+        ];
+
+        return array_values(array_unique(array_filter(array_map(
+            fn($key) => trim((string) $key),
+            $keys,
+        ))));
+    }
+
+    private function extractWebhookApiKey(Request $request): string
+    {
+        $authHeader = trim((string) $request->header('Authorization', ''));
+
+        if (preg_match('/^(?:ApiKey|APIkey|Apikey|Bearer)\s+(.+)$/i', $authHeader, $m)) {
+            return trim($m[1], " \t\n\r\0\x0B\"'");
+        }
+
+        if ($authHeader !== '') {
+            return trim($authHeader, " \t\n\r\0\x0B\"'");
+        }
+
+        foreach (['X-Api-Key', 'X-API-Key', 'Api-Key'] as $header) {
+            $value = trim((string) $request->header($header, ''));
+            if ($value !== '') {
+                return trim($value, " \t\n\r\0\x0B\"'");
+            }
+        }
+
+        return trim((string) $request->input('api_key', ''));
+    }
+
+    private function validWebhookApiKey(string $apiKey, array $webhookKeys): bool
+    {
+        foreach ($webhookKeys as $webhookKey) {
+            if (hash_equals($webhookKey, $apiKey)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function processTransactions(array $transactions, string $prefix): array

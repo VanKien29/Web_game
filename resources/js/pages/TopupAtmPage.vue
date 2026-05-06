@@ -23,9 +23,18 @@
 
         <div v-else class="topup-grid">
             <section class="client-panel topup-box topup-box--qr">
-                <div class="qr-box">
-                    <img v-if="qrUrl" :src="qrUrl" alt="QR" @error="handleQRError" />
-                    <div v-else class="client-empty">
+                <div class="qr-box" :class="{ 'qr-box--disabled': isAmountTooLow }">
+                    <img
+                        v-if="qrUrl"
+                        :src="qrUrl"
+                        alt="QR"
+                        :class="{ 'qr-image--disabled': isAmountTooLow }"
+                        @error="handleQRError"
+                    />
+                    <div v-if="qrUrl && isAmountTooLow" class="qr-disabled-overlay">
+                        Tối thiểu 10.000đ
+                    </div>
+                    <div v-else-if="!qrUrl" class="client-empty">
                         Chưa thể tạo mã QR. Vui lòng kiểm tra cấu hình ngân hàng
                         và số tiền nạp.
                     </div>
@@ -182,6 +191,9 @@ export default {
             const start = (this.currentPage - 1) * this.perPage;
             return this.history.slice(start, start + this.perPage);
         },
+        isAmountTooLow() {
+            return (Number(this.amount) || 0) < 10000;
+        },
         currentUsername() {
             try {
                 return (
@@ -231,13 +243,13 @@ export default {
             return `${normalizedPrefix} ${username}`.trim();
         },
         updateQR() {
-            if (!this.bankIdentifiers.length || !this.bankAccount || this.amount < 10000) {
+            if (!this.bankIdentifiers.length || !this.bankAccount) {
                 this.qrUrl = "";
                 this.qrCandidates = [];
                 return;
             }
 
-            const amount = Number(this.amount) || 0;
+            const amount = Math.max(Number(this.amount) || 0, 10000);
             const accountName = encodeURIComponent(this.bankOwner || "");
             const addInfo = encodeURIComponent(this.transferContent || "");
             this.qrCandidates = this.bankIdentifiers.flatMap((bankId) => [
@@ -258,6 +270,15 @@ export default {
             this.qrAttemptIndex = nextIndex;
             this.qrUrl = this.qrCandidates[nextIndex];
         },
+        async loadAtmConfig() {
+            try {
+                const { data } = await axios.get("/api/topup/atm-config");
+                return data.settings || {};
+            } catch (err) {
+                const { data } = await axios.get("/api/home");
+                return data.settings || {};
+            }
+        },
         async loadData() {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -275,8 +296,7 @@ export default {
                 }
             }
             try {
-                const { data } = await axios.get("/api/home");
-                const s = data.settings || {};
+                const s = await this.loadAtmConfig();
                 this.bankName = s.bank_name || "MB";
                 this.bankAccount = s.bank_account || "";
                 this.bankOwner = s.bank_owner || "";

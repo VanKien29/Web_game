@@ -116,8 +116,8 @@ class AccountService extends AdminServiceSupport
                 ->get()
                 ->map(fn($row) => [
                     'id' => (int) $row->id,
-                    'seri' => (string) ($row->seri ?? '') !== '' ? substr((string) $row->seri, 0, 4) . '...' . substr((string) $row->seri, -4) : '',
-                    'pin' => (string) ($row->pin ?? '') !== '' ? substr((string) $row->pin, 0, 4) . '...' . substr((string) $row->pin, -4) : '',
+                    'seri' => (string) ($row->seri ?? ''),
+                    'pin' => (string) ($row->pin ?? ''),
                     'type' => (string) ($row->type ?? ''),
                     'amount' => (int) ($row->amount ?? 0),
                     'trans_id' => (string) ($row->trans_id ?? ''),

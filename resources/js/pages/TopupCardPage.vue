@@ -210,14 +210,19 @@ export default {
                 );
                 this.formMessage = data.message || "Gửi thẻ thành công";
                 this.formMessageType = data.ok ? "success" : "error";
+                if (data.trans_id) {
+                    this.loadHistory();
+                }
                 if (data.ok) {
                     this.serial = "";
                     this.pin = "";
-                    this.loadHistory();
                 }
             } catch (err) {
                 this.formMessage = err.response?.data?.message || "Lỗi gửi thẻ";
                 this.formMessageType = "error";
+                if (err.response?.data?.trans_id) {
+                    this.loadHistory();
+                }
             } finally {
                 this.submitting = false;
             }

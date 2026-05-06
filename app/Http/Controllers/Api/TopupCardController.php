@@ -75,6 +75,14 @@ class TopupCardController extends Controller
                     ->where('status', 0)
                     ->update(['status' => 2]);
 
+                if ($providerResult['final_status'] === 2) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => $providerResult['message'],
+                        'trans_id' => $transId,
+                    ]);
+                }
+
                 return response()->json([
                     'ok' => false,
                     'message' => $providerResult['message'],
@@ -113,8 +121,8 @@ class TopupCardController extends Controller
                 ->get()
                 ->map(fn($row) => [
                     'id' => (int) $row->id,
-                    'serial' => $this->maskCode((string) $row->seri),
-                    'pin' => $this->maskCode((string) $row->pin),
+                    'serial' => (string) $row->seri,
+                    'pin' => (string) $row->pin,
                     'card_type' => (string) $row->type,
                     'amount' => (int) $row->amount,
                     'trans_id' => (string) $row->trans_id,
@@ -397,16 +405,6 @@ class TopupCardController extends Controller
         }
 
         return null;
-    }
-
-    private function maskCode(string $value): string
-    {
-        $length = strlen($value);
-        if ($length <= 8) {
-            return str_repeat('*', $length);
-        }
-
-        return substr($value, 0, 4) . str_repeat('*', max(4, $length - 8)) . substr($value, -4);
     }
 
     private function napGame247Configured(): bool

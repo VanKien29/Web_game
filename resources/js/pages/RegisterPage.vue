@@ -10,7 +10,7 @@
                 <div class="client-auth-art">
                     <img
                         src="/assets/frontend/home/v1/images/rtsc.png"
-                        alt="Ngọc Rồng HDPE"
+                        alt="Ngọc Rồng Horizon"
                         class="client-auth-logo"
                     />
                     <img
@@ -22,7 +22,7 @@
                 <div class="client-panel__eyebrow">Người chơi mới</div>
                 <h1 class="client-panel__title">Đăng ký</h1>
                 <p class="client-panel__desc">
-                    Tạo tài khoản nhanh để bắt đầu chơi và quản lý giao dịch.
+                    Tạo tài khoản để bắt đầu chơi và trải nghiệm.
                 </p>
                 <div class="client-auth-links">
                     <router-link to="/giftcode">Giftcode</router-link>

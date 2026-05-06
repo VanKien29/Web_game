@@ -13,12 +13,12 @@
                 <router-link to="/" class="game-header__logo">
                     <!-- <img
                         src="/assets/frontend/home/v1/images/bannergame.png"
-                        alt="HDPE"
+                        alt="Horizon"
                         class="game-header__icon"
                     /> -->
                     <img
-                        src="/assets/frontend/home/v1/images/textgame1.png"
-                        alt="Ngọc Rồng HDPE"
+                        :src="headerLogoSrc"
+                        alt="Ngọc Rồng Horizon"
                         class="game-header__wordmark"
                     />
                 </router-link>
@@ -147,7 +147,7 @@
                         alt="Logo"
                         class="game-footer__logo"
                     />
-                    <p class="game-footer__brand">NGỌC RỒNG HDPE</p>
+                    <p class="game-footer__brand">NGỌC RỒNG Horizon</p>
                     <p class="game-footer__tagline">
                         Game Ngọc Rồng Private Server
                     </p>
@@ -188,7 +188,7 @@
             </div>
             <div class="game-footer__bottom">
                 <p>
-                    © 2026 Ngọc Rồng HDPE — Website Phát Triển By
+                    © 2026 Ngọc Rồng Horizon — Website Phát Triển By
                     <strong>Vkien</strong>
                 </p>
             </div>
@@ -269,6 +269,7 @@ export default {
             menuOpen: false,
             sidebarOpen: false,
             scrolled: false,
+            isMobileHeader: false,
             loggedIn: !!localStorage.getItem("token"),
             bootLoading: true,
             routeLoading: false,
@@ -295,6 +296,11 @@ export default {
         isHome() {
             return this.$route.path === "/";
         },
+        headerLogoSrc() {
+            return this.isMobileHeader
+                ? "/assets/frontend/home/v1/images/bannergame.png"
+                : "/assets/frontend/home/v1/images/logo_horizon.png";
+        },
     },
     watch: {
         $route() {
@@ -307,6 +313,12 @@ export default {
         };
         window.addEventListener("scroll", this._onScroll, { passive: true });
         this._onScroll();
+
+        this._onResize = () => {
+            this.isMobileHeader = window.innerWidth <= 860;
+        };
+        window.addEventListener("resize", this._onResize, { passive: true });
+        this._onResize();
 
         this._onAuthChanged = () => {
             this.loggedIn = !!localStorage.getItem("token");
@@ -352,6 +364,7 @@ export default {
     },
     beforeUnmount() {
         window.removeEventListener("scroll", this._onScroll);
+        window.removeEventListener("resize", this._onResize);
         window.removeEventListener("auth-changed", this._onAuthChanged);
         window.removeEventListener("route-loading", this._onRouteLoading);
         window.clearTimeout(this.routeLoadingTimer);
