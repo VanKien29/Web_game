@@ -18,20 +18,6 @@
             </div>
 
             <div class="limit__game">
-                <div class="main--game__show">
-                    <div
-                        class="text--brand t-center m-auto p-relative"
-                        data-aos="fade-down"
-                        data-aos-duration="700"
-                        data-aos-delay="100"
-                    >
-                        <img
-                            src="/assets/frontend/home/v1/images/textgame.png?v=4"
-                            class="textgame__game"
-                        />
-                    </div>
-                </div>
-
                 <div class="box--download jCenter">
                     <div class="list-link-dl">
                         <a

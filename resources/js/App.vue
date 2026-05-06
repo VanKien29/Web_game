@@ -3,16 +3,19 @@
         <!-- GAME HEADER -->
         <header
             class="game-header"
-            :class="{ 'game-header--scrolled': scrolled }"
+            :class="{
+                'game-header--scrolled': scrolled,
+                'game-header--menu-open': menuOpen,
+            }"
         >
             <div class="game-header__inner">
                 <!-- Logo -->
                 <router-link to="/" class="game-header__logo">
-                    <img
+                    <!-- <img
                         src="/assets/frontend/home/v1/images/bannergame.png"
                         alt="HDPE"
                         class="game-header__icon"
-                    />
+                    /> -->
                     <img
                         src="/assets/frontend/home/v1/images/textgame.png"
                         alt="Ngọc Rồng HDPE"
@@ -103,15 +106,6 @@
                 v-if="menuOpen"
                 class="mobile-overlay"
                 @click="menuOpen = false"
-                style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 0.5);
-                    z-index: 1900;
-                "
             ></div>
         </header>
 

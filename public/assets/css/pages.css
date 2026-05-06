@@ -48,6 +48,7 @@ body * {
     height: 68px;
     background: transparent;
     border-bottom: none;
+    pointer-events: none;
     transition:
         background 0.35s ease,
         box-shadow 0.35s ease,
@@ -63,13 +64,22 @@ body * {
     box-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
+.game-header--menu-open {
+    height: 60px;
+    background: rgba(6, 15, 43, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
 .game-header__inner {
     max-width: 1260px;
     margin: 0 auto;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 0 24px;
     position: relative;
 }
@@ -81,6 +91,10 @@ body * {
     gap: 14px;
     text-decoration: none;
     flex-shrink: 0;
+    width: auto;
+    height: 100%;
+    overflow: visible;
+    pointer-events: auto;
 }
 
 .game-header__icon {
@@ -92,11 +106,14 @@ body * {
 }
 
 .game-header__wordmark {
-    height: 60px;
-    max-width: 390px;
+    height: 98px;
+    max-width: none;
+    margin: 0;
     width: auto;
     display: block;
     filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.3));
+    transform: translate(0, 8px);
+    transform-origin: left center;
 }
 
 /* Nav */
@@ -104,7 +121,8 @@ body * {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-left: auto;
+    margin-left: 14px;
+    pointer-events: auto;
 }
 
 .game-nav__link,
@@ -249,8 +267,11 @@ body * {
     display: block;
     width: 22px;
     height: 2px;
-    background: rgba(255, 255, 255, 0.8);
+    background: #fff;
     border-radius: 1px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.9),
+        0 0 8px rgba(0, 0, 0, 0.65);
     transition: all 0.3s;
     position: relative;
     transform-origin: center;
@@ -270,9 +291,14 @@ body * {
 
 /* Responsive */
 @media (max-width: 1060px) {
+    .game-header__logo {
+        width: auto;
+    }
+
     .game-header__wordmark {
-        height: 50px;
-        max-width: 320px;
+        height: 78px;
+        max-width: none;
+        transform: translate(0, 6px);
     }
 
     .game-header__icon {
@@ -293,8 +319,73 @@ body * {
 }
 
 @media (max-width: 860px) {
+    .game-header {
+        height: 60px;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .game-header__inner {
+        justify-content: space-between;
+    }
+
+    .game-header__inner::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 2199;
+        background:
+            linear-gradient(#fff, #fff) center 14px / 22px 2px no-repeat,
+            linear-gradient(#fff, #fff) center 20px / 22px 2px no-repeat,
+            linear-gradient(#fff, #fff) center 26px / 22px 2px no-repeat,
+            rgba(6, 15, 43, 0.48);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+        transform: translateY(-50%);
+    }
+
+    .game-header__inner:has(.game-nav--open)::after {
+        background:
+            linear-gradient(45deg, transparent 47%, #fff 48% 52%, transparent 53%)
+                center / 24px 24px no-repeat,
+            linear-gradient(-45deg, transparent 47%, #fff 48% 52%, transparent 53%)
+                center / 24px 24px no-repeat,
+            rgba(6, 15, 43, 0.58);
+    }
+
     .game-header__toggle {
-        display: flex;
+        display: flex !important;
+        position: absolute !important;
+        top: 50% !important;
+        right: 14px !important;
+        transform: translateY(-50%) !important;
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(6, 15, 43, 0.48);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+        opacity: 1 !important;
+        visibility: visible !important;
+        z-index: 2200 !important;
+        pointer-events: auto !important;
+    }
+
+    .mobile-overlay {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1900;
+        background: rgba(0, 0, 0, 0.52);
+        pointer-events: auto;
     }
 
     .game-nav {
@@ -303,12 +394,14 @@ body * {
         left: 0;
         bottom: 0;
         width: 280px;
+        height: 100dvh;
         margin-left: 0;
         background: rgba(6, 15, 43, 0.98);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         flex-direction: column;
-        padding: 80px 16px 20px;
+        justify-content: flex-start;
+        padding: clamp(112px, 16vh, 140px) 16px 20px;
         gap: 8px;
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -338,8 +431,9 @@ body * {
     }
 
     .game-header__wordmark {
-        height: 44px;
-        max-width: 270px;
+        height: 58px;
+        max-width: none;
+        transform: translate(0, 2px);
     }
 
     .game-header__icon {
@@ -349,11 +443,16 @@ body * {
 
     .game-header--scrolled {
         height: 60px;
+        background: rgba(6, 15, 43, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 
-    .game-header--scrolled ~ .game-nav,
-    .game-header--scrolled .game-nav {
-        top: 60px;
+    .game-header--menu-open {
+        height: 60px;
+        background: rgba(6, 15, 43, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 }
 
@@ -366,13 +465,14 @@ body * {
         padding: 0 14px;
     }
 
-    .game-nav {
-        top: 60px;
+    .game-header__logo {
+        width: auto;
     }
 
     .game-header__wordmark {
-        height: 30px;
-        max-width: 170px;
+        height: 50px;
+        max-width: none;
+        transform: translate(0, 1px);
     }
 
     .game-header__icon {
@@ -674,7 +774,11 @@ main:not(.inner-page) {
     align-items: center;
     justify-content: center;
     background:
-        radial-gradient(circle at center, rgba(255, 140, 0, 0.16), transparent 34%),
+        radial-gradient(
+            circle at center,
+            rgba(255, 140, 0, 0.16),
+            transparent 34%
+        ),
         rgba(5, 12, 30, 0.82);
     backdrop-filter: blur(7px);
     -webkit-backdrop-filter: blur(7px);
