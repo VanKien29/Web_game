@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game\Account;
 use App\Models\Game\TopupTransaction;
+use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,36 @@ use Illuminate\Support\Facades\Log;
 
 class TopupController extends Controller
 {
+    /**
+     * GET /api/topup/atm-config
+     */
+    public function atmConfig(): JsonResponse
+    {
+        $keys = ['bank_name', 'bank_account', 'bank_owner', 'transfer_prefix'];
+
+        $settings = Setting::query()
+            ->whereIn('key_name', $keys)
+            ->pluck('value', 'key_name')
+            ->all();
+
+        foreach ($keys as $key) {
+            $settings[$key] = trim((string) ($settings[$key] ?? ''));
+        }
+
+        if ($settings['bank_name'] === '') {
+            $settings['bank_name'] = 'MB';
+        }
+
+        if ($settings['transfer_prefix'] === '') {
+            $settings['transfer_prefix'] = (string) config('services.sepay.prefix', 'naptien');
+        }
+
+        return response()->json([
+            'ok' => true,
+            'settings' => $settings,
+        ]);
+    }
+
     /**
      * POST /api/topup/credit — Called by SePay / internal system
      * Protected by topup.secret middleware

@@ -6,42 +6,35 @@ use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\Setting;
 use App\Models\Slide;
-use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $slides = Cache::remember('home_slides', 3600, function () {
-            return Slide::active()->orderBy('sort_order')->get();
-        });
+        $slides = Slide::active()
+            ->orderBy('sort_order')
+            ->get();
 
-        $tinTuc = Cache::remember('home_posts_tin_tuc', 1800, function () {
-            return Post::published()
-                ->whereHas('category', fn($q) => $q->where('slug', 'tin-tuc'))
-                ->with('category:id,name')
-                ->orderByDesc('published_at')
-                ->limit(5)
-                ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
-        });
+        $tinTuc = Post::published()
+            ->whereHas('category', fn($q) => $q->where('slug', 'tin-tuc'))
+            ->with('category:id,name')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
 
-        $suKien = Cache::remember('home_posts_su_kien', 1800, function () {
-            return Post::published()
-                ->whereHas('category', fn($q) => $q->where('slug', 'su-kien'))
-                ->with('category:id,name')
-                ->orderByDesc('published_at')
-                ->limit(5)
-                ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
-        });
+        $suKien = Post::published()
+            ->whereHas('category', fn($q) => $q->where('slug', 'su-kien'))
+            ->with('category:id,name')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
 
-        $huongDan = Cache::remember('home_posts_huong_dan', 1800, function () {
-            return Post::published()
-                ->whereHas('category', fn($q) => $q->where('slug', 'huong-dan'))
-                ->with('category:id,name')
-                ->orderByDesc('published_at')
-                ->limit(5)
-                ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
-        });
+        $huongDan = Post::published()
+            ->whereHas('category', fn($q) => $q->where('slug', 'huong-dan'))
+            ->with('category:id,name')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
 
         $keys = [
             'site_name', 'site_description', 'site_keywords',

@@ -290,7 +290,7 @@ export default {
             }
             try {
                 const { data } = await axios.post(
-                    "/api/change-password",
+                    "/api/auth/change-password",
                     { new_password: this.newPassword },
                     this.getAuthHeaders(),
                 );
@@ -305,7 +305,7 @@ export default {
         async activateAccount() {
             try {
                 const { data } = await axios.post(
-                    "/api/activate",
+                    "/api/auth/activate",
                     {},
                     this.getAuthHeaders(),
                 );

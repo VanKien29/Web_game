@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Ngọc Rồng HDPE</title>
+    <title>Ngọc Rồng Horizon</title>
     <link rel="shortcut icon" type="image/png" href="/assets/frontend/home/v1/images/favicon.png" />
 
     <!-- Readable Vietnamese UI font -->
@@ -25,9 +25,9 @@
     <link rel="stylesheet" href="/assets/frontend/home/v1/css/stylea6ca.css" />
 
     <!-- Custom CSS (body, fonts, footer, sidebar, popup) -->
-    <link rel="stylesheet" href="/assets/css/game.css" />
-    <link rel="stylesheet" href="/assets/css/pages.css" />
-    <link rel="stylesheet" href="/assets/css/auth.css" />
+    <link rel="stylesheet" href="/assets/css/game.css?v={{ filemtime(public_path('assets/css/game.css')) }}" />
+    <link rel="stylesheet" href="/assets/css/pages.css?v={{ filemtime(public_path('assets/css/pages.css')) }}" />
+    <link rel="stylesheet" href="/assets/css/auth.css?v={{ filemtime(public_path('assets/css/auth.css')) }}" />
     @vite('resources/js/app.js')
 </head>
 

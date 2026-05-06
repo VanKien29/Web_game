@@ -10,8 +10,8 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            ['key_name' => 'site_name', 'value' => 'Ngọc Rồng HDPE', 'description' => 'Tên website'],
-            ['key_name' => 'site_description', 'value' => 'Website chính thức của Ngọc Rồng HDPE', 'description' => 'Mô tả website'],
+            ['key_name' => 'site_name', 'value' => 'Ngọc Rồng Horizon', 'description' => 'Tên website'],
+            ['key_name' => 'site_description', 'value' => 'Website chính thức của Ngọc Rồng Horizon', 'description' => 'Mô tả website'],
             ['key_name' => 'site_keywords', 'value' => 'game, nro, dragon ball', 'description' => 'Từ khóa SEO'],
             ['key_name' => 'facebook_url', 'value' => 'https://facebook.com', 'description' => 'Link Facebook fanpage'],
             ['key_name' => 'facebook_group_url', 'value' => 'https://facebook.com/groups', 'description' => 'Link Facebook group'],

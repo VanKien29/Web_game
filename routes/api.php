@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BxhController;
 use App\Http\Controllers\Api\GiftcodeController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\PostInteractionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SePayController;
 use App\Http\Controllers\Api\TopupCardController;
@@ -20,17 +21,25 @@ Route::prefix('api')->group(function () {
     Route::get('/bxh', [BxhController::class, 'index']);
     Route::get('/giftcodes', [GiftcodeController::class, 'index']);
     Route::get('/posts/{slug}', [HomeController::class, 'postDetail']);
+    Route::get('/posts/{slug}/engagement', [PostInteractionController::class, 'engagement']);
+    Route::get('/posts/{slug}/comments', [PostInteractionController::class, 'comments']);
 
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::get('/topup/atm-config', [TopupController::class, 'atmConfig']);
 
     Route::middleware('game.auth')->group(function () {
         Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
         Route::post('/auth/activate', [AuthController::class, 'activate']);
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/activate', [AuthController::class, 'activate']);
         Route::get('/profile', [ProfileController::class, 'profile']);
         Route::get('/topup/history', [TopupController::class, 'history']);
         Route::post('/topup/card', [TopupCardController::class, 'submit']);
         Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);
+        Route::post('/posts/{slug}/like', [PostInteractionController::class, 'togglePostLike']);
+        Route::post('/posts/{slug}/comments', [PostInteractionController::class, 'storeComment']);
+        Route::post('/comments/{comment}/like', [PostInteractionController::class, 'toggleCommentLike'])->whereNumber('comment');
     });
 
     Route::post('/sepay/webhook', [SePayController::class, 'webhook']);

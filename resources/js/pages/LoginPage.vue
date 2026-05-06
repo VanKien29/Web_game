@@ -10,7 +10,7 @@
                 <div class="client-auth-art">
                     <img
                         src="/assets/frontend/home/v1/images/rtsc.png"
-                        alt="Ngọc Rồng HDPE"
+                        alt="Ngọc Rồng Horizon"
                         class="client-auth-logo"
                     />
                     <img
@@ -22,7 +22,7 @@
                 <div class="client-panel__eyebrow">Tài khoản</div>
                 <h1 class="client-panel__title">Đăng nhập</h1>
                 <p class="client-panel__desc">
-                    Vào tài khoản để nạp, nhận giftcode và theo dõi nhân vật.
+                    Đăng nhập để nạp, nhận giftcode và theo dõi nhân vật.
                 </p>
                 <div class="client-auth-links">
                     <router-link to="/giftcode">Giftcode</router-link>
