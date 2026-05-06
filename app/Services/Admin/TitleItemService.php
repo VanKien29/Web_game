@@ -22,7 +22,7 @@ class TitleItemService extends AdminServiceSupport
         $search = trim((string) $request->query('search', ''));
         $page = max((int) $request->query('page', 1), 1);
         $limit = max(1, min((int) $request->query('per_page', 30), 100));
-
+        
         $query = DB::connection('game')->table('item_template as i')
             ->select([
                 'i.id',

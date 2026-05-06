@@ -67,7 +67,7 @@ class GameCatalogService extends AdminServiceSupport
         }
 
         $total = (clone $query)->count();
-        $items = $query->orderBy('id')
+        $items = $query->orderByDesc('id')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get();
