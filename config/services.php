@@ -61,7 +61,7 @@ return [
 
     'sepay' => [
         'token' => env('SEPAY_TOKEN', ''),
-        'api_url' => env('SEPAY_API_URL', ''),
+        'api_url' => env('SEPAY_API_URL', 'https://userapi.sepay.vn/v2/transactions'),
         'webhook_api_key' => env('SEPAY_WEBHOOK_API_KEY', ''),
         'cron_secret' => env('SEPAY_CRON_SECRET', ''),
         'prefix' => env('SEPAY_PREFIX', 'naptien'),
@@ -69,6 +69,18 @@ return [
 
     'thesieutoc' => [
         'api_key' => env('THESIEUTOC_API_KEY', ''),
+        'api_url' => env('THESIEUTOC_API_URL', 'https://thesieutoc.com/chargingws/v2'),
+        'partner_id' => env('THESIEUTOC_PARTNER_ID', ''),
+        'partner_key' => env('THESIEUTOC_PARTNER_KEY', ''),
+    ],
+
+    'napgame247' => [
+        'api_url' => env('NAPGAME247_API_URL', 'https://napgame247.vn/chargingws/v2'),
+        'partner_id' => env('NAPGAME247_PARTNER_ID', ''),
+        'partner_key' => env('NAPGAME247_PARTNER_KEY', ''),
+        'callback_secret' => env('NAPGAME247_CALLBACK_SECRET', ''),
+        'callback_url' => env('NAPGAME247_CALLBACK_URL', env('APP_URL') . '/api/napgame247/callback'),
+        'timeout' => env('NAPGAME247_TIMEOUT', 20),
     ],
 
 ];

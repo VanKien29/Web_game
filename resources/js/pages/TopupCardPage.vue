@@ -1,41 +1,35 @@
 <template>
-    <div class="bxh-wrapper">
-        <div class="breadcrumb">
+    <div class="client-page client-page--topup">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Nạp Thẻ Cào</span>
         </div>
 
-        <div
-            style="
-                display: flex;
-                gap: 10px;
-                justify-content: center;
-                margin-bottom: 20px;
-            "
-        >
-            <router-link to="/nap-atm" class="btn-change2">Nạp ATM</router-link>
-            <router-link to="/nap-card" class="btn-change1"
-                >Nạp Thẻ Cào</router-link
-            >
+        <div class="client-page-head client-page-head--split">
+            <div>
+                <div class="client-panel__eyebrow">Thanh toán</div>
+                <h1 class="client-panel__title">Nạp thẻ cào</h1>
+            </div>
+            <div class="client-segment">
+                <router-link to="/nap-atm">Nạp ATM</router-link>
+                <router-link to="/nap-card" class="active">Nạp thẻ cào</router-link>
+            </div>
         </div>
-
-        <div class="page-title">NẠP THẺ CÀO</div>
 
         <div v-if="loading" class="page-loading">
             <div class="page-loading__spinner"></div>
         </div>
 
-        <div v-else class="topup-grid" style="display: block">
-            <!-- Card Form -->
-            <div class="topup-box" style="margin-bottom: 20px">
+        <div v-else class="topup-grid topup-grid--card">
+            <section class="client-panel topup-box">
                 <form @submit.prevent="submitCard">
-                    <div class="form-group">
-                        <label>Tên Nhân Vật:</label>
+                    <label class="client-field form-group">
+                        <span>Tên nhân vật</span>
                         <input type="text" :value="username" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Loại Thẻ:</label>
+                    </label>
+                    <label class="client-field form-group">
+                        <span>Loại thẻ</span>
                         <select v-model="cardType">
                             <option value="">-- Chọn loại thẻ --</option>
                             <option value="Viettel">Viettel</option>
@@ -43,9 +37,9 @@
                             <option value="Vinaphone">Vinaphone</option>
                             <option value="Vietnamobile">Vietnamobile</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Mệnh Giá:</label>
+                    </label>
+                    <label class="client-field form-group">
+                        <span>Mệnh giá</span>
                         <select v-model="cardAmount">
                             <option value="">-- Chọn mệnh giá --</option>
                             <option value="10000">10.000 đ</option>
@@ -55,25 +49,25 @@
                             <option value="200000">200.000 đ</option>
                             <option value="500000">500.000 đ</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Số Serial:</label>
+                    </label>
+                    <label class="client-field form-group">
+                        <span>Số serial</span>
                         <input
                             v-model="serial"
                             type="text"
                             placeholder="Nhập số serial thẻ"
                             required
                         />
-                    </div>
-                    <div class="form-group">
-                        <label>Mã thẻ:</label>
+                    </label>
+                    <label class="client-field form-group">
+                        <span>Mã thẻ</span>
                         <input
                             v-model="pin"
                             type="text"
                             placeholder="Nhập mã thẻ"
                             required
                         />
-                    </div>
+                    </label>
                     <div
                         v-if="formMessage"
                         :class="
@@ -81,37 +75,29 @@
                                 ? 'msg-success'
                                 : 'msg-error'
                         "
-                        style="
-                            padding: 12px;
-                            border-radius: 6px;
-                            margin-bottom: 15px;
-                            text-align: center;
-                            font-weight: bold;
-                        "
                     >
                         {{ formMessage }}
                     </div>
                     <button
                         type="submit"
-                        class="btn-change1"
+                        class="client-btn client-btn--primary"
                         :disabled="submitting"
                     >
-                        {{ submitting ? "Đang gửi..." : "NẠP THẺ" }}
+                        {{ submitting ? "Đang gửi..." : "Nạp thẻ" }}
                     </button>
                 </form>
-            </div>
+            </section>
 
-            <!-- Notes + History -->
-            <div class="side-box">
+            <section class="client-panel side-box">
                 <div class="note">
-                    <strong>LƯU Ý QUAN TRỌNG:</strong>
+                    <strong>Lưu ý quan trọng:</strong>
                     <p>Kiểm tra kỹ thông tin trước khi nạp</p>
-                    <p>Nạp sai loại/mệnh giá → Admin KHÔNG hoàn tiền</p>
+                    <p>Nạp sai loại/mệnh giá sẽ không được hoàn tiền</p>
                     <p>Sau 5 phút chưa được cộng, liên hệ Admin</p>
                 </div>
 
                 <div class="history">
-                    <h3>LỊCH SỬ NẠP</h3>
+                    <h3>Lịch sử nạp</h3>
                     <table>
                         <thead>
                             <tr>
@@ -126,7 +112,7 @@
                         </thead>
                         <tbody>
                             <tr v-if="!cardHistory.length">
-                                <td colspan="7" style="color: #111">
+                                <td colspan="7">
                                     Chưa có giao dịch nào
                                 </td>
                             </tr>
@@ -142,17 +128,17 @@
                                 <td>
                                     {{
                                         tx.status === 1
-                                            ? "✅ Thành công"
+                                            ? "Thành công"
                                             : tx.status === 2
-                                              ? "❌ Thất bại"
-                                              : "⏳ Chờ"
+                                              ? "Thất bại"
+                                              : "Chờ"
                                     }}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </template>

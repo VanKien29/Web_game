@@ -16,10 +16,19 @@ class SePayController extends Controller
     public function cron(Request $request): JsonResponse
     {
         $cfg = config('services.sepay');
+        $cronSecret = (string) ($cfg['cron_secret'] ?? '');
         $secret = $request->query('secret', '');
 
-        if (!hash_equals($cfg['cron_secret'] ?? '', $secret)) {
+        if ($cronSecret === '') {
+            return response()->json(['ok' => false, 'error' => 'cron_not_configured'], 503);
+        }
+
+        if (!hash_equals($cronSecret, $secret)) {
             return response()->json(['ok' => false, 'error' => 'forbidden'], 403);
+        }
+
+        if (empty($cfg['token']) || empty($cfg['api_url'])) {
+            return response()->json(['ok' => false, 'error' => 'sepay_not_configured'], 503);
         }
 
         // Fetch transactions from SePay API
@@ -32,18 +41,24 @@ class SePayController extends Controller
         }
 
         $data = $response->json();
-        if (!isset($data['transactions'])) {
+        $transactions = $data['transactions'] ?? $data['data'] ?? null;
+        if (!is_array($transactions)) {
             return response()->json(['ok' => false, 'error' => 'invalid_response']);
         }
 
-        $result = $this->processTransactions($data['transactions'], $cfg['prefix'] ?? 'naptien');
+        $result = $this->processTransactions($transactions, $cfg['prefix'] ?? 'naptien');
 
-        return response()->json($result);
+        return response()->json(['success' => true] + $result);
     }
 
     public function webhook(Request $request): JsonResponse
     {
         $cfg = config('services.sepay');
+        $webhookKey = (string) ($cfg['webhook_api_key'] ?? '');
+
+        if ($webhookKey === '') {
+            return response()->json(['ok' => false, 'error' => 'webhook_not_configured'], 503);
+        }
 
         // Verify API Key
         $authHeader = $request->header('Authorization', '');
@@ -51,7 +66,7 @@ class SePayController extends Controller
             return response()->json(['ok' => false, 'error' => 'missing_api_key'], 401);
         }
 
-        if (!hash_equals($cfg['webhook_api_key'] ?? '', $m[1])) {
+        if (!hash_equals($webhookKey, $m[1])) {
             return response()->json(['ok' => false, 'error' => 'invalid_api_key'], 403);
         }
 
@@ -78,9 +93,11 @@ class SePayController extends Controller
 
         foreach ($transactions as $gd) {
             $desc = strtolower(trim($gd['transaction_content'] ?? $gd['content'] ?? ''));
-            $amount = (int) ($gd['amount_in'] ?? $gd['transferAmount'] ?? 0);
-            $transId = $gd['reference_number'] ?? $gd['referenceCode'] ?? $gd['id'] ?? '';
+            $transferType = strtolower(trim((string) ($gd['transfer_type'] ?? $gd['transferType'] ?? '')));
+            $amount = $this->parseAmount($gd['amount_in'] ?? $gd['transferAmount'] ?? 0);
+            $transId = trim((string) ($gd['id'] ?? $gd['reference_number'] ?? $gd['referenceCode'] ?? ''));
 
+            if ($transferType !== '' && $transferType !== 'in') continue;
             if ($amount <= 0 || !$transId) continue;
             $processed++;
 
@@ -125,5 +142,14 @@ class SePayController extends Controller
             'processed' => $processed,
             'credited' => $credited,
         ];
+    }
+
+    private function parseAmount($value): int
+    {
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return (int) preg_replace('/[^\d]/', '', (string) $value);
     }
 }

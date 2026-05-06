@@ -1,20 +1,29 @@
 <template>
-    <div class="bxh-wrapper">
-        <div class="breadcrumb">
+    <div class="client-page client-page--ranking">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Bảng xếp hạng</span>
         </div>
 
-        <div class="rankings-container">
-            <div class="main-title" style="color: #1f2937">BẢNG XẾP HẠNG</div>
+        <section class="client-panel rankings-container">
+            <div class="client-page-head">
+                <div>
+                    <div class="client-panel__eyebrow">Đua top</div>
+                    <h1 class="client-panel__title">Bảng xếp hạng</h1>
+                </div>
+                <p class="client-panel__desc">
+                    Theo dõi người chơi nổi bật theo nạp tiền, sức mạnh và nhiệm
+                    vụ.
+                </p>
+            </div>
 
             <div v-if="loading" class="page-loading">
                 <div class="page-loading__spinner"></div>
             </div>
 
-            <div v-else class="tabs-container">
-                <div class="tab-navigation">
+            <div v-else class="client-tabs tabs-container">
+                <div class="tab-navigation client-tab-list">
                     <button
                         class="tab-btn tab-nap"
                         :class="{ active: activeTab === 'nap' }"
@@ -46,7 +55,7 @@
                     <table v-if="topNap.length" class="ranking-table">
                         <thead>
                             <tr>
-                                <th width="80">Hạng</th>
+                                <th width="80">#</th>
                                 <th>Nhân vật</th>
                                 <th>Tổng nạp</th>
                             </tr>
@@ -58,7 +67,7 @@
                                         v-if="i < 3"
                                         class="rank-cup"
                                         :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ ["🥇", "🥈", "🥉"][i] }}</span
+                                        >{{ i + 1 }}</span
                                     >
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
@@ -97,7 +106,7 @@
                                         v-if="i < 3"
                                         class="rank-cup"
                                         :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ ["🥇", "🥈", "🥉"][i] }}</span
+                                        >{{ i + 1 }}</span
                                     >
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
@@ -135,7 +144,7 @@
                                         v-if="i < 3"
                                         class="rank-cup"
                                         :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ ["🥇", "🥈", "🥉"][i] }}</span
+                                        >{{ i + 1 }}</span
                                     >
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
@@ -153,7 +162,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 </template>
 

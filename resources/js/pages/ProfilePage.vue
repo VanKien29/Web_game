@@ -1,8 +1,8 @@
 <template>
-    <div class="page-container">
-        <div class="breadcrumb">
+    <div class="client-page client-page--profile">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Thông tin cá nhân</span>
         </div>
 
@@ -10,12 +10,7 @@
             <div class="page-loading__spinner"></div>
         </div>
 
-        <div
-            v-else-if="profile"
-            class="profile-container"
-            style="max-width: 600px; margin: 30px auto"
-        >
-            <!-- Flash message -->
+        <div v-else-if="profile" class="profile-dashboard">
             <div
                 v-if="message"
                 class="alert"
@@ -26,137 +21,117 @@
                 {{ message }}
             </div>
 
-            <!-- ACCOUNT INFO -->
-            <div
-                class="account-info-section"
-                style="
-                    background: #d597fa;
-                    border: 3px solid #222;
-                    border-radius: 12px;
-                    padding: 20px;
-                    display: flex;
-                    gap: 20px;
-                "
-            >
-                <img
-                    :src="
-                        profile.player?.avatar_url ||
-                        '/assets/frontend/home/v1/images/favicon.png'
-                    "
-                    style="
-                        width: 80px;
-                        height: 80px;
-                        border-radius: 50%;
-                        border: 3px solid #222;
-                    "
-                />
-                <div>
-                    <div
-                        style="
-                            font-family: &quot;Bangers&quot;;
-                            font-size: 1.5em;
-                            color: #111;
-                        "
-                    >
-                        👤 {{ profile.user.username }}
-                    </div>
-                    <div style="color: #111">
-                        Số tiền:
-                        {{ Number(profile.user.cash || 0).toLocaleString() }}
-                        VNĐ
-                    </div>
-                    <div style="color: #111">
-                        Số tiền đã nạp:
-                        {{ Number(profile.user.danap || 0).toLocaleString() }}
-                        VNĐ
+            <section class="client-panel profile-hero-card">
+                <div class="profile-hero-card__main">
+                    <img :src="avatarUrl" class="profile-avatar" />
+                    <div>
+                        <div class="client-panel__eyebrow">Tài khoản</div>
+                        <h1 class="client-panel__title">
+                            {{ profile.user.username }}
+                        </h1>
+                        <span
+                            class="status-badge"
+                            :class="profile.user.active ? 'status-active' : 'status-pending'"
+                        >
+                            {{ profile.user.active ? "Đã kích hoạt" : "Chưa kích hoạt" }}
+                        </span>
                     </div>
                 </div>
-            </div>
+                <div class="profile-balance-grid">
+                    <div class="profile-balance-card">
+                        <span>Số tiền còn lại</span>
+                        <strong>{{ formatNumber(profile.user.cash) }} VNĐ</strong>
+                    </div>
+                    <div class="profile-balance-card">
+                        <span>Số tiền đã nạp</span>
+                        <strong>{{ formatNumber(profile.user.danap) }} VNĐ</strong>
+                    </div>
+                </div>
+            </section>
 
-            <!-- PLAYER INFO -->
-            <div
-                v-if="profile.player && profile.player.has_character"
-                style="
-                    background: #90cdf4;
-                    border: 3px solid #222;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin-top: 20px;
-                "
+            <section
+                v-if="player.has_character"
+                class="client-panel profile-card profile-card--character"
             >
-                <h2
-                    style="
-                        font-family: &quot;Bangers&quot;;
-                        text-align: center;
-                        font-size: 22px;
-                        color: #111;
-                    "
-                >
-                    THÔNG TIN NHÂN VẬT
-                </h2>
-                <div style="color: #111">Tên: {{ profile.player.name }}</div>
-                <div style="color: #111">
-                    Sức mạnh:
-                    {{ Number(profile.player.power || 0).toLocaleString() }}
+                <div class="profile-card__head">
+                    <div class="client-panel__eyebrow">Nhân vật</div>
+                    <h2 class="profile-section-title">Nhân vật</h2>
                 </div>
-                <div style="color: #111">
-                    Nhiệm vụ: {{ profile.player.task_name }}
+                <dl class="profile-meta profile-meta--compact">
+                    <div>
+                        <dt>Tên</dt>
+                        <dd>{{ player.name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Hành tinh</dt>
+                        <dd>{{ player.gender_text }}</dd>
+                    </div>
+                    <div>
+                        <dt>Nhiệm vụ</dt>
+                        <dd>{{ player.task_name }}</dd>
+                    </div>
+                </dl>
+                <div class="profile-stat-grid">
+                    <div>
+                        <span>Sức mạnh</span>
+                        <strong>{{ formatNumber(player.power) }}</strong>
+                    </div>
+                    <div>
+                        <span>Tiềm năng</span>
+                        <strong>{{ formatNumber(stats.potential) }}</strong>
+                    </div>
+                    <div>
+                        <span>HP</span>
+                        <strong>{{ formatNumber(stats.hp) }}</strong>
+                    </div>
+                    <div>
+                        <span>KI</span>
+                        <strong>{{ formatNumber(stats.ki) }}</strong>
+                    </div>
+                    <div>
+                        <span>Sức đánh</span>
+                        <strong>{{ formatNumber(stats.damage) }}</strong>
+                    </div>
+                    <div>
+                        <span>Giáp / Chí mạng</span>
+                        <strong>{{ formatNumber(stats.defense) }} / {{ formatNumber(stats.critical) }}%</strong>
+                    </div>
                 </div>
-                <div style="color: #111">
-                    Hành tinh: {{ profile.player.gender_text }}
-                </div>
-                <div style="color: #111">
-                    Trạng thái:
-                    <span
-                        class="status-badge"
-                        :class="
-                            profile.user.active
-                                ? 'status-active'
-                                : 'status-pending'
-                        "
-                    >
-                        {{
-                            profile.user.active
-                                ? "Đã kích hoạt"
-                                : "Chưa kích hoạt"
-                        }}
-                    </span>
-                </div>
-            </div>
-            <div
-                v-else
-                style="
-                    background: #90cdf4;
-                    border: 3px solid #222;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin-top: 20px;
-                    text-align: center;
-                    color: #111;
-                "
-            >
+            </section>
+
+            <section v-else class="client-panel client-empty profile-empty">
                 Chưa tạo nhân vật trong game.
-            </div>
+            </section>
 
-            <!-- BUTTONS -->
-            <div
-                style="
-                    background: #42e4f5;
-                    border: 3px solid #222;
-                    border-radius: 12px;
-                    padding: 20px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                    margin-top: 20px;
-                "
-            >
+            <section class="client-panel profile-card profile-card--wallet">
+                <div class="profile-card__head">
+                    <div class="client-panel__eyebrow">Tài sản game</div>
+                    <h2 class="profile-section-title">Hành trang</h2>
+                </div>
+                <div class="profile-wallet-grid">
+                    <div>
+                        <span>Vàng</span>
+                        <strong>{{ formatNumber(inventory.gold) }}</strong>
+                    </div>
+                    <div>
+                        <span>Ngọc xanh</span>
+                        <strong>{{ formatNumber(inventory.gem) }}</strong>
+                    </div>
+                    <div>
+                        <span>Hồng ngọc</span>
+                        <strong>{{ formatNumber(inventory.ruby) }}</strong>
+                    </div>
+                    <div>
+                        <span>Thỏi vàng</span>
+                        <strong>{{ formatNumber(inventory.thoi_vang) }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="client-panel profile-actions">
                 <div
                     v-if="!profile.user.active"
                     class="button-grid-2x2"
-                    style="
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 15px;
-                    "
                 >
                     <button
                         class="action-btn"
@@ -168,12 +143,11 @@
                         class="action-btn"
                         @click="showActivateModal = true"
                     >
-                        ⚡Kích hoạt
+                        Kích hoạt
                     </button>
                     <a
                         href="https://zalo.me/g/tkdeeb069"
                         class="action-btn"
-                        style="text-decoration: none"
                         >Nhóm Zalo</a
                     >
                     <button class="action-btn" @click="logout">
@@ -183,11 +157,6 @@
                 <div
                     v-else
                     class="button-grid-1x3"
-                    style="
-                        display: grid;
-                        grid-template-columns: 1fr 1fr 1fr;
-                        gap: 15px;
-                    "
                 >
                     <button
                         class="action-btn"
@@ -198,26 +167,23 @@
                     <a
                         href="https://zalo.me/g/tkdeeb069"
                         class="action-btn"
-                        style="text-decoration: none"
                         >Nhóm Zalo</a
                     >
                     <button class="action-btn" @click="logout">
                         Đăng xuất
                     </button>
                 </div>
-            </div>
+            </section>
 
-            <!-- PASSWORD MODAL -->
             <div class="modal-overlay" :class="{ active: showPasswordModal }">
                 <div class="modal">
-                    <h3>ĐỔI MẬT KHẨU</h3>
+                    <h3>Đổi mật khẩu</h3>
                     <form @submit.prevent="changePassword">
                         <input
                             v-model="newPassword"
                             type="password"
                             placeholder="Mật khẩu mới"
                             required
-                            style="margin-bottom: 12px"
                         />
                         <input
                             v-model="confirmNewPassword"
@@ -227,48 +193,39 @@
                         />
                         <div class="btn-row">
                             <button type="submit" class="btn-success">
-                                ✔ CẬP NHẬT
+                                Cập nhật
                             </button>
                             <button
                                 type="button"
                                 class="btn-danger"
                                 @click="showPasswordModal = false"
                             >
-                                ✖ HỦY
+                                Hủy
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- ACTIVATE MODAL -->
             <div class="modal-overlay" :class="{ active: showActivateModal }">
                 <div class="modal">
-                    <h3>KÍCH HOẠT TÀI KHOẢN</h3>
-                    <p
-                        style="
-                            text-align: center;
-                            color: #111;
-                            margin-bottom: 20px;
-                        "
-                    >
+                    <h3>Kích hoạt tài khoản</h3>
+                    <p class="modal-copy">
                         Kích hoạt sẽ tốn 10.000 VNĐ từ tài khoản game. Bạn có
                         chắc chắn không?
                     </p>
-                    <div style="display: flex; gap: 10px">
+                    <div class="modal-actions">
                         <button
                             class="btn-success"
-                            style="flex: 1"
                             @click="activateAccount"
                         >
-                            ✔ Xác nhận
+                            Xác nhận
                         </button>
                         <button
                             class="btn-danger"
-                            style="flex: 1"
                             @click="showActivateModal = false"
                         >
-                            ✖ Hủy
+                            Hủy
                         </button>
                     </div>
                 </div>
@@ -294,7 +251,30 @@ export default {
             confirmNewPassword: "",
         };
     },
+    computed: {
+        player() {
+            return this.profile?.player || { has_character: false };
+        },
+        stats() {
+            return this.player.stats || {};
+        },
+        inventory() {
+            return this.player.inventory || {};
+        },
+        avatarUrl() {
+            return (
+                this.player.avatar_url ||
+                "/assets/frontend/home/v1/images/bannergame.png"
+            );
+        },
+    },
     methods: {
+        formatNumber(value) {
+            const number = Number(value || 0);
+            return Number.isFinite(number)
+                ? number.toLocaleString("vi-VN")
+                : "0";
+        },
         getAuthHeaders() {
             return {
                 headers: {

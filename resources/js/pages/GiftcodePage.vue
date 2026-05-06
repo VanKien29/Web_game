@@ -1,14 +1,20 @@
 <template>
-    <div class="giftcode-wrapper">
-        <div class="breadcrumb">
+    <div class="client-page client-page--giftcode">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Giftcode</span>
         </div>
 
-        <div class="giftcode-container">
-            <div class="main-title" style="color: #1f2937">
-                DANH SÁCH GIFTCODE
+        <section class="client-panel giftcode-container">
+            <div class="client-page-head">
+                <div>
+                    <div class="client-panel__eyebrow">Quà tặng</div>
+                    <h1 class="client-panel__title">Danh sách giftcode</h1>
+                </div>
+                <p class="client-panel__desc">
+                    Bấm vào mã để mở phần thưởng, bấm tên mã để sao chép.
+                </p>
             </div>
 
             <div v-if="loading" class="page-loading">
@@ -34,7 +40,7 @@
                                 @click.stop="copyCode(gc.code)"
                             >
                                 {{ gc.code }}
-                                <span class="copy-icon">📋</span>
+                                <span class="copy-icon">Copy</span>
                             </div>
                             <div class="giftcode-stats">
                                 Còn lại: {{ gc.count_left }}
@@ -82,17 +88,16 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-else style="text-align: center; color: #666">
+                        <div v-else class="client-empty">
                             Không có thông tin phần thưởng
                         </div>
-                        <br />
-                        <p style="color: black; text-align: center">
+                        <p class="giftcode-hint">
                             Click vào ảnh vật phẩm để xem chỉ số.
                         </p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 </template>
 

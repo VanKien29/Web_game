@@ -1,11 +1,11 @@
 /* === BODY === */
 body {
     margin: 0;
-    font-family: "Bangers", cursive;
+    font-family: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5;
     font-weight: 400;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
     color: #222;
     background-color: #0b1a3b;
     min-height: 100vh;

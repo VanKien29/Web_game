@@ -98,7 +98,17 @@ class TopupController extends Controller
         $history = TopupTransaction::where('user_id', $account->id)
             ->orderByDesc('created_at')
             ->limit(20)
-            ->get(['amount', 'currency', 'source', 'trans_id', 'created_at']);
+            ->get(['amount', 'currency', 'source', 'trans_id', 'created_at'])
+            ->map(function (TopupTransaction $transaction) {
+                return [
+                    'amount' => $transaction->amount,
+                    'currency' => $transaction->currency,
+                    'source' => $transaction->source,
+                    'trans_id' => $transaction->trans_id,
+                    'created_at' => $transaction->created_at,
+                    'status' => 1,
+                ];
+            });
 
         return response()->json(['ok' => true, 'data' => $history]);
     }

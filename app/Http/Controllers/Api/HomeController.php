@@ -43,19 +43,22 @@ class HomeController extends Controller
                 ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
         });
 
-        $settings = Cache::remember('home_settings', 86400, function () {
-            $keys = [
-                'site_name', 'site_description', 'site_keywords',
-                'facebook_url', 'facebook_group_url',
-                'ios_download_url', 'android_download_url', 'apk_download_url',
-                'payment_url',
-            ];
-            $result = [];
-            foreach ($keys as $key) {
-                $result[$key] = Setting::getValue($key);
-            }
-            return $result;
-        });
+        $keys = [
+            'site_name', 'site_description', 'site_keywords',
+            'facebook_url', 'facebook_group_url',
+            'ios_download_url', 'android_download_url', 'apk_download_url',
+            'payment_url',
+            'bank_name', 'bank_account', 'bank_owner', 'transfer_prefix',
+        ];
+
+        $settings = Setting::query()
+            ->whereIn('key_name', $keys)
+            ->pluck('value', 'key_name')
+            ->all();
+
+        foreach ($keys as $key) {
+            $settings[$key] ??= '';
+        }
 
         return response()->json([
             'slides' => $slides,
