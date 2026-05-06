@@ -22,7 +22,9 @@ class GameAssetService
 
         $candidates = array_filter([
             env('GAME_SRC_PATH'),
+            rtrim((string) getenv('USERPROFILE'), '\\/') . DIRECTORY_SEPARATOR . 'Downloads' . DIRECTORY_SEPARATOR . 'Source_game',
             rtrim((string) getenv('USERPROFILE'), '\\/') . DIRECTORY_SEPARATOR . 'Downloads' . DIRECTORY_SEPARATOR . 'SRC' . DIRECTORY_SEPARATOR . 'SRC',
+            base_path('../Source_game'),
             base_path('../../../../SRC/SRC'),
             base_path('../../../SRC'),
         ]);
@@ -41,11 +43,18 @@ class GameAssetService
 
     public function gameIconUrl(int $iconId): ?string
     {
-        if ($iconId <= 0 || !is_file($this->gameSrcPath("data/icon/x4/{$iconId}.png"))) {
+        $path = $this->gameSrcPath("data/icon/x4/{$iconId}.png");
+        if ($iconId <= 0 || !is_file($path)) {
             return null;
         }
 
-        return "/assets/game-icons/x4/{$iconId}.png";
+        $version = filemtime($path) ?: time();
+        $publicPath = public_path("assets/game-icons/x4/{$iconId}.png");
+        if (is_file($publicPath)) {
+            return "/assets/game-icons/x4/{$iconId}.png?v={$version}";
+        }
+
+        return "/admin/api/title-items/icon/{$iconId}?v={$version}";
     }
 
     public function titleAssetPaths(): array

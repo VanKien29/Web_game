@@ -30,7 +30,8 @@ export default {
         return {
             failed: false,
             loaded: false,
-            fallback: false,
+            fallbackStep: 0,
+            cacheKey: Date.now(),
         };
     },
     computed: {
@@ -44,9 +45,14 @@ export default {
             }
             const id = Number(this.iconId);
             if (!Number.isInteger(id) || id < 0) return "";
-            return this.fallback
-                ? `/assets/frontend/home/v1/images/x4/${id}.png`
-                : `/assets/game-icons/x4/${id}.png`;
+            if (this.fallbackStep === 1) {
+                return `/admin/api/title-items/icon/${id}?v=${this.cacheKey}`;
+            }
+            if (this.fallbackStep >= 2) {
+                return `/assets/frontend/home/v1/images/x4/${id}.png`;
+            }
+
+            return `/assets/game-icons/x4/${id}.png?v=${this.cacheKey}`;
         },
     },
     watch: {
@@ -55,13 +61,14 @@ export default {
             this.loaded = false;
         },
         iconId() {
-            this.fallback = false;
+            this.fallbackStep = 0;
+            this.cacheKey = Date.now();
         },
     },
     methods: {
         handleError() {
-            if (!this.fallback) {
-                this.fallback = true;
+            if (this.fallbackStep < 2) {
+                this.fallbackStep += 1;
                 this.failed = false;
                 return;
             }

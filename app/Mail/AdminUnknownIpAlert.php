@@ -22,7 +22,7 @@ class AdminUnknownIpAlert extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[CẢNH BÁO] Đăng nhập admin từ IP lạ - ' . $this->account->username,
+            subject: '[CANH BAO] Dang nhap admin tu IP la - ' . $this->account->username,
         );
     }
 
