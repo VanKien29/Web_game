@@ -19,6 +19,10 @@ class SettingsSeeder extends Seeder
             ['key_name' => 'android_download_url', 'value' => '#', 'description' => 'Link tải Android'],
             ['key_name' => 'apk_download_url', 'value' => '#', 'description' => 'Link tải APK'],
             ['key_name' => 'payment_url', 'value' => '#', 'description' => 'Link nạp tiền'],
+            ['key_name' => 'bank_name', 'value' => 'MB', 'description' => 'Mã ngân hàng VietQR'],
+            ['key_name' => 'bank_account', 'value' => '', 'description' => 'Số tài khoản nhận chuyển khoản'],
+            ['key_name' => 'bank_owner', 'value' => '', 'description' => 'Tên chủ tài khoản nhận chuyển khoản'],
+            ['key_name' => 'transfer_prefix', 'value' => 'naptien', 'description' => 'Tiền tố nội dung chuyển khoản, phải khớp SEPAY_PREFIX'],
         ];
 
         foreach ($settings as $setting) {

@@ -29,10 +29,13 @@ Route::prefix('api')->group(function () {
         Route::post('/auth/activate', [AuthController::class, 'activate']);
         Route::get('/profile', [ProfileController::class, 'profile']);
         Route::get('/topup/history', [TopupController::class, 'history']);
+        Route::post('/topup/card', [TopupCardController::class, 'submit']);
+        Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);
     });
 
     Route::post('/sepay/webhook', [SePayController::class, 'webhook']);
     Route::get('/sepay/cron', [SePayController::class, 'cron']);
+    Route::post('/napgame247/callback', [TopupCardController::class, 'napgame247Callback']);
 
     Route::middleware('topup.secret')->group(function () {
         Route::post('/topup/credit', [TopupController::class, 'credit']);

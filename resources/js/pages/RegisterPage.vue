@@ -1,59 +1,82 @@
 <template>
-    <div class="page-container">
-        <div class="breadcrumb">
+    <div class="client-page client-page--auth">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Đăng ký</span>
         </div>
-        <div class="auth-box">
-            <h1>ĐĂNG KÝ</h1>
-            <div v-if="error" class="alert alert-error">{{ error }}</div>
-            <div v-if="success" class="alert alert-success">
-                {{ success }}
-            </div>
-            <form @submit.prevent="handleRegister">
-                <input
-                    v-model="username"
-                    type="text"
-                    placeholder="Tên đăng nhập"
-                    required
-                />
-                <input
-                    v-model="password"
-                    type="password"
-                    placeholder="Mật khẩu"
-                    required
-                />
-                <input
-                    v-model="confirmPassword"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    required
-                />
-                <button
-                    type="submit"
-                    :disabled="loading"
-                    style="margin-top: 10px"
-                >
-                    <span v-if="loading" class="btn-loading-dot"></span>
-                    {{ loading ? "Đang xử lý..." : "ĐĂNG KÝ" }}
-                </button>
-            </form>
-            <p
-                style="
-                    text-align: center;
-                    margin-top: 15px;
-                    font-weight: bold;
-                    color: #444;
-                "
-            >
-                Đã có tài khoản?
-                <router-link
-                    to="/login"
-                    style="font-weight: bold; color: #007bff"
-                    >Đăng nhập</router-link
-                >
-            </p>
+        <div class="client-auth-shell">
+            <section class="client-panel client-auth-card">
+                <div class="client-auth-art">
+                    <img
+                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        alt="Ngọc Rồng HDPE"
+                        class="client-auth-logo"
+                    />
+                    <img
+                        src="/assets/frontend/home/v1/images/goku.png"
+                        alt=""
+                        class="client-auth-hero"
+                    />
+                </div>
+                <div class="client-panel__eyebrow">Người chơi mới</div>
+                <h1 class="client-panel__title">Đăng ký</h1>
+                <p class="client-panel__desc">
+                    Tạo tài khoản nhanh để bắt đầu chơi và quản lý giao dịch.
+                </p>
+                <div class="client-auth-links">
+                    <router-link to="/giftcode">Giftcode</router-link>
+                    <router-link to="/bxh">Bảng xếp hạng</router-link>
+                    <router-link to="/nap-atm">Nạp tiền</router-link>
+                </div>
+            </section>
+            <section class="client-panel client-auth-form">
+                <div v-if="error" class="alert alert-error">{{ error }}</div>
+                <div v-if="success" class="alert alert-success">
+                    {{ success }}
+                </div>
+                <form novalidate @submit.prevent="handleRegister">
+                    <label class="client-field">
+                        <span>Tên đăng nhập</span>
+                        <input
+                            v-model.trim="username"
+                            type="text"
+                            placeholder="Tên đăng nhập"
+                            required
+                        />
+                    </label>
+                    <label class="client-field">
+                        <span>Mật khẩu</span>
+                        <input
+                            v-model="password"
+                            type="password"
+                            placeholder="Mật khẩu"
+                            required
+                        />
+                    </label>
+                    <label class="client-field">
+                        <span>Nhập lại mật khẩu</span>
+                        <input
+                            v-model="confirmPassword"
+                            type="password"
+                            placeholder="Nhập lại mật khẩu"
+                            required
+                        />
+                    </label>
+                    <button
+                        type="submit"
+                        class="client-btn client-btn--primary"
+                        :disabled="loading"
+                    >
+                        <span v-if="loading" class="btn-loading-dot"></span>
+                        {{ loading ? "Đang xử lý..." : "Đăng ký" }}
+                    </button>
+                </form>
+                <p class="client-auth-note">
+                    Đã có tài khoản?
+                    <router-link to="/login">Đăng nhập</router-link>
+                </p>
+            </section>
         </div>
     </div>
 </template>
@@ -77,6 +100,11 @@ export default {
         async handleRegister() {
             this.error = "";
             this.success = "";
+            if (!this.username || !this.password || !this.confirmPassword) {
+                this.error = "Vui lòng nhập đầy đủ thông tin đăng ký";
+                return;
+            }
+
             if (this.password !== this.confirmPassword) {
                 this.error = "Mật khẩu không khớp";
                 return;

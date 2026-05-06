@@ -1,53 +1,73 @@
 <template>
-    <div class="page-container">
-        <div class="breadcrumb">
+    <div class="client-page client-page--auth">
+        <div class="breadcrumb client-breadcrumb">
             <router-link to="/">Trang chủ</router-link>
-            <span style="color: black"> > </span>
+            <span>›</span>
             <span>Đăng nhập</span>
         </div>
-        <div class="login-box">
-            <h2>ĐĂNG NHẬP</h2>
-            <div v-if="error" class="alert alert-error">{{ error }}</div>
-            <div v-if="success" class="alert alert-success">
-                {{ success }}
-            </div>
-            <form @submit.prevent="handleLogin">
-                <input
-                    v-model="username"
-                    type="text"
-                    placeholder="Tên đăng nhập"
-                    required
-                />
-                <input
-                    v-model="password"
-                    type="password"
-                    placeholder="Mật khẩu"
-                    required
-                />
-                <button
-                    type="submit"
-                    :disabled="loading"
-                    style="margin-top: 10px"
-                >
-                    <span v-if="loading" class="btn-loading-dot"></span>
-                    {{ loading ? "Đang xử lý..." : "ĐĂNG NHẬP" }}
-                </button>
-            </form>
-            <p
-                style="
-                    text-align: center;
-                    margin-top: 15px;
-                    font-weight: bold;
-                    color: #444;
-                "
-            >
-                Bạn chưa có tài khoản?
-                <router-link
-                    to="/register"
-                    style="font-weight: bold; color: #007bff"
-                    >Đăng ký ngay</router-link
-                >
-            </p>
+        <div class="client-auth-shell">
+            <section class="client-panel client-auth-card">
+                <div class="client-auth-art">
+                    <img
+                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        alt="Ngọc Rồng HDPE"
+                        class="client-auth-logo"
+                    />
+                    <img
+                        src="/assets/frontend/home/v1/images/goku.png"
+                        alt=""
+                        class="client-auth-hero"
+                    />
+                </div>
+                <div class="client-panel__eyebrow">Tài khoản</div>
+                <h1 class="client-panel__title">Đăng nhập</h1>
+                <p class="client-panel__desc">
+                    Vào tài khoản để nạp, nhận giftcode và theo dõi nhân vật.
+                </p>
+                <div class="client-auth-links">
+                    <router-link to="/giftcode">Giftcode</router-link>
+                    <router-link to="/bxh">Bảng xếp hạng</router-link>
+                    <router-link to="/nap-atm">Nạp tiền</router-link>
+                </div>
+            </section>
+            <section class="client-panel client-auth-form">
+                <div v-if="error" class="alert alert-error">{{ error }}</div>
+                <div v-if="success" class="alert alert-success">
+                    {{ success }}
+                </div>
+                <form novalidate @submit.prevent="handleLogin">
+                    <label class="client-field">
+                        <span>Tên đăng nhập</span>
+                        <input
+                            v-model.trim="username"
+                            type="text"
+                            placeholder="Tên đăng nhập"
+                            required
+                        />
+                    </label>
+                    <label class="client-field">
+                        <span>Mật khẩu</span>
+                        <input
+                            v-model="password"
+                            type="password"
+                            placeholder="Mật khẩu"
+                            required
+                        />
+                    </label>
+                    <button
+                        type="submit"
+                        class="client-btn client-btn--primary"
+                        :disabled="loading"
+                    >
+                        <span v-if="loading" class="btn-loading-dot"></span>
+                        {{ loading ? "Đang xử lý..." : "Đăng nhập" }}
+                    </button>
+                </form>
+                <p class="client-auth-note">
+                    Bạn chưa có tài khoản?
+                    <router-link to="/register">Đăng ký ngay</router-link>
+                </p>
+            </section>
         </div>
     </div>
 </template>
@@ -69,6 +89,11 @@ export default {
     methods: {
         async handleLogin() {
             this.error = "";
+            if (!this.username || !this.password) {
+                this.error = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu";
+                return;
+            }
+
             this.loading = true;
             try {
                 const { data } = await axios.post("/api/auth/login", {

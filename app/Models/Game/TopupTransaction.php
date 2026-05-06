@@ -11,7 +11,8 @@ class TopupTransaction extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'amount', 'type', 'trans_id', 'status', 'created_at',
+        'trans_id', 'username', 'user_id', 'amount', 'currency', 'source',
+        'note', 'created_at',
     ];
 
     protected $casts = [

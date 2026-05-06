@@ -17,7 +17,7 @@
                         class="game-header__icon"
                     /> -->
                     <img
-                        src="/assets/frontend/home/v1/images/textgame.png"
+                        src="/assets/frontend/home/v1/images/textgame1.png"
                         alt="Ngọc Rồng HDPE"
                         class="game-header__wordmark"
                     />
