@@ -75,11 +75,11 @@
                         >
                             <img
                                 class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-fb.png"
+                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl.png"
                             />
                             <img
                                 class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-fb-hv.png"
+                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl-hv.png"
                             />
                         </a>
                     </div>
