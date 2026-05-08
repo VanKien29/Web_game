@@ -104,37 +104,22 @@
 
                         <div class="pp-divider"></div>
 
-                        <!-- Toast -->
-                        <transition name="pp-toast">
-                            <div v-if="interactionMessage" class="pp-toast">
-                                <i class="fa-solid fa-circle-info"></i>
-                                {{ interactionMessage }}
+                        <form class="fb-composer" @submit.prevent="submitComment()">
+                            <div class="fb-avatar">
+                                <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                                <span v-else>{{ currentInitial }}</span>
                             </div>
-                        </transition>
-
-                        <!-- ── COMMENTS ── -->
-                        <div class="pp-comments">
-
-                            <!-- Composer -->
-                            <div class="pp-composer">
-                                <div class="pp-me-avatar">{{ currentInitial }}</div>
-                                <div class="pp-composer-inner" :class="{ 'pp-composer-inner--focus': composerFocused }">
-                                    <textarea
-                                        ref="commentInput"
-                                        v-model="commentText"
-                                        rows="1"
-                                        placeholder="Viết bình luận..."
-                                        class="pp-composer-ta"
-                                        @focus="composerFocused = true"
-                                        @blur="composerFocused = false"
-                                        @keydown.enter.exact.prevent="submitComment()"
-                                    ></textarea>
-                                    <button
-                                        class="pp-composer-send"
-                                        :disabled="commentSubmitting || !commentText.trim()"
-                                        @click.prevent="submitComment()"
-                                        title="Gửi"
-                                    >
+                            <div class="fb-composer__body">
+                                <textarea
+                                    ref="commentInput"
+                                    v-model="commentText"
+                                    rows="2"
+                                    placeholder="Viết bình luận..."
+                                    @keydown.enter.exact.prevent="submitComment()"
+                                ></textarea>
+                                <div class="fb-composer__foot">
+                                    <span>Enter để gửi, Shift + Enter để xuống dòng</span>
+                                    <button type="submit" :disabled="commentSubmitting">
                                         <i class="fa-solid fa-paper-plane"></i>
                                     </button>
                                 </div>
@@ -184,66 +169,109 @@
                                         </div>
                                     </div>
 
-                                    <!-- Replies -->
-                                    <div v-if="comment.replies?.length" class="pp-replies">
-                                        <div class="pp-replies-line"></div>
-                                        <div class="pp-replies-body">
-                                            <div
-                                                v-for="reply in comment.replies"
-                                                :key="reply.id"
-                                                class="pp-cmt-row pp-cmt-row--reply"
+                            <div
+                                v-for="comment in comments"
+                                :key="comment.id"
+                                class="fb-comment-thread"
+                            >
+                                <div class="fb-comment">
+                                    <div class="fb-avatar fb-avatar--small">
+                                        <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="" />
+                                        <span v-else>{{ commentInitial(comment.username) }}</span>
+                                    </div>
+                                    <div class="fb-comment__main">
+                                        <div class="fb-bubble">
+                                            <strong>{{ comment.username }}</strong>
+                                            <p>{{ commentContent(comment) }}</p>
+                                        </div>
+                                        <div class="fb-comment__actions">
+                                            <button
+                                                type="button"
+                                                :class="{ active: comment.liked }"
+                                                @click="toggleCommentLike(comment)"
                                             >
-                                                <div class="pp-cmt-avatar pp-cmt-avatar--sm">
-                                                    <img v-if="reply.avatar_url" :src="reply.avatar_url" alt="" />
-                                                    <span v-else>{{ reply.username?.slice(0,1).toUpperCase() }}</span>
-                                                </div>
-                                                <div class="pp-cmt-right">
-                                                    <div class="pp-cmt-bubble">
-                                                        <span class="pp-cmt-name">{{ reply.username }}</span>
-                                                        <p class="pp-cmt-text">{{ reply.content }}</p>
-                                                    </div>
-                                                    <div class="pp-cmt-meta">
-                                                        <button
-                                                            class="pp-cmt-btn"
-                                                            :class="{ 'pp-cmt-btn--liked': reply.liked }"
-                                                            @click="toggleCommentLike(reply)"
-                                                        >
-                                                            <i :class="reply.liked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up'"></i>
-                                                            Thích
-                                                        </button>
-                                                        <button class="pp-cmt-btn" @click="startReply(reply)">
-                                                            <i class="fa-solid fa-reply"></i>
-                                                            Phản hồi
-                                                        </button>
-                                                        <span class="pp-cmt-time">{{ formatRelative(reply.created_at) }}</span>
-                                                        <span v-if="reply.likes" class="pp-cmt-likes">
-                                                            <i class="fa-solid fa-thumbs-up"></i> {{ reply.likes }}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                                <i class="fa-solid fa-thumbs-up"></i>
+                                                Thích
+                                            </button>
+                                            <button type="button" @click="startReply(comment)">
+                                                <i class="fa-solid fa-reply"></i>
+                                                Phản hồi
+                                            </button>
+                                            <span>
+                                                <i class="fa-regular fa-clock"></i>
+                                                {{ formatRelative(comment.created_at) }}
+                                            </span>
+                                            <span v-if="comment.likes">
+                                                <i class="fa-solid fa-heart"></i>
+                                                {{ comment.likes }} thích
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="comment.replies?.length" class="fb-replies">
+                                    <div
+                                        v-for="reply in comment.replies"
+                                        :key="reply.id"
+                                        class="fb-comment fb-comment--compact"
+                                    >
+                                        <div class="fb-avatar fb-avatar--small">
+                                            <img v-if="reply.avatar_url" :src="reply.avatar_url" alt="" />
+                                            <span v-else>{{ commentInitial(reply.username) }}</span>
+                                        </div>
+                                        <div class="fb-comment__main">
+                                            <div class="fb-bubble">
+                                                <strong>{{ reply.username }}</strong>
+                                                <p>{{ commentContent(reply) }}</p>
+                                            </div>
+                                            <div class="fb-comment__actions">
+                                                <button
+                                                    type="button"
+                                                    :class="{ active: reply.liked }"
+                                                    @click="toggleCommentLike(reply)"
+                                                >
+                                                    <i class="fa-solid fa-thumbs-up"></i>
+                                                    Thích
+                                                </button>
+                                                <button type="button" @click="startReply(reply)">
+                                                    <i class="fa-solid fa-reply"></i>
+                                                    Phản hồi
+                                                </button>
+                                                <span>
+                                                    <i class="fa-regular fa-clock"></i>
+                                                    {{ formatRelative(reply.created_at) }}
+                                                </span>
+                                                <span v-if="reply.likes">
+                                                    <i class="fa-solid fa-heart"></i>
+                                                    {{ reply.likes }} thích
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Reply composer -->
-                                    <div v-if="replyingTo === comment.id" class="pp-reply-composer">
-                                        <div class="pp-me-avatar pp-me-avatar--sm">{{ currentInitial }}</div>
-                                        <div class="pp-composer-inner" :class="{ 'pp-composer-inner--focus': replyFocused }">
-                                            <textarea
-                                                v-model="replyText"
-                                                rows="1"
-                                                :placeholder="`Trả lời ${comment.username}...`"
-                                                class="pp-composer-ta"
-                                                @focus="replyFocused = true"
-                                                @blur="replyFocused = false"
-                                                @keydown.enter.exact.prevent="submitComment(comment.id)"
-                                            ></textarea>
-                                            <button
-                                                class="pp-composer-send"
-                                                :disabled="commentSubmitting"
-                                                @click.prevent="submitComment(comment.id)"
-                                            >
-                                                <i class="fa-solid fa-paper-plane"></i>
+                                <form
+                                    v-if="replyingTo === comment.id"
+                                    class="fb-composer fb-composer--reply"
+                                    @submit.prevent="submitComment(comment.id)"
+                                >
+                                    <div class="fb-avatar">
+                                        <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                                        <span v-else>{{ currentInitial }}</span>
+                                    </div>
+                                    <div class="fb-composer__body">
+                                        <textarea
+                                            v-model="replyText"
+                                            rows="1"
+                                            :placeholder="`Trả lời ${comment.username}...`"
+                                            @keydown.enter.exact.prevent="submitComment(comment.id)"
+                                        ></textarea>
+                                        <div class="fb-composer__foot">
+                                            <button type="button" class="plain" @click="cancelReply">
+                                                Hủy
+                                            </button>
+                                            <button type="submit" :disabled="commentSubmitting">
+                                                Trả lời
                                             </button>
                                         </div>
                                         <button class="pp-reply-cancel" @click="cancelReply">
@@ -320,9 +348,7 @@ export default {
             replyingTo: null,
             commentSubmitting: false,
             interactionMessage: "",
-            composerFocused: false,
-            replyFocused: false,
-            _msgTimer: null,
+            currentAvatarUrl: "",
         };
     },
     computed: {
@@ -340,11 +366,18 @@ export default {
             return d ? new Date(d).toLocaleDateString("vi-VN") : "";
         },
         formatRelative(date) {
-            const diff = Math.max(1, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+            const value = date ? new Date(date).getTime() : 0;
+            const diff = Math.max(1, Math.floor((Date.now() - value) / 1000));
             if (diff < 60) return "Vừa xong";
             if (diff < 3600) return `${Math.floor(diff / 60)} phút`;
             if (diff < 86400) return `${Math.floor(diff / 3600)} giờ`;
             return new Date(date).toLocaleDateString("vi-VN");
+        },
+        commentInitial(name) {
+            return String(name || "?").trim().slice(0, 1).toUpperCase();
+        },
+        commentContent(comment) {
+            return String(comment?.content || comment?.body || comment?.message || "");
         },
         authHeaders() {
             const token = localStorage.getItem("token");
@@ -369,6 +402,15 @@ export default {
                     if (data.engagement) this.engagement = data.engagement;
                 }
             } catch (e) { console.error("loadComments", e); }
+        },
+        async loadCurrentProfileAvatar() {
+            if (!this.isLoggedIn) return;
+            try {
+                const { data } = await axios.get("/api/profile", this.authHeaders());
+                this.currentAvatarUrl = data?.data?.player?.avatar_url || "";
+            } catch {
+                this.currentAvatarUrl = "";
+            }
         },
         async togglePostLike() {
             if (!this.requireLogin()) return;
@@ -424,7 +466,10 @@ export default {
     async mounted() {
         const slug = this.$route.params.slug;
         try {
-            const { data } = await axios.get(`/api/posts/${slug}`);
+            this.loadCurrentProfileAvatar();
+            const [{ data }] = await Promise.all([
+                axios.get(`/api/posts/${slug}`),
+            ]);
             if (data.ok) {
                 this.post = data.data;
                 await this.loadComments();

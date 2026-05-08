@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Game\Account;
+use App\Models\Game\HeadAvatar;
 use App\Models\Post;
 use App\Services\JwtService;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,8 @@ class PostInteractionController extends Controller
             ->orderBy('id')
             ->get();
 
+        $avatarByUsername = $this->commentAvatarMap($comments);
+
         $likedCommentIds = [];
         if ($account) {
             $likedCommentIds = DB::table('comment_likes')
@@ -57,7 +60,7 @@ class PostInteractionController extends Controller
             'post_id' => (int) $row->post_id,
             'parent_comment_id' => $row->parent_comment_id ? (int) $row->parent_comment_id : null,
             'username' => (string) $row->username,
-            'avatar_url' => $row->avatar_url ?: null,
+            'avatar_url' => $avatarByUsername[mb_strtolower((string) $row->username)] ?? ($row->avatar_url ?: $this->defaultAvatarUrl()),
             'content' => (string) $row->content,
             'likes' => (int) $row->likes,
             'liked' => isset($likedLookup[(int) $row->id]),
@@ -123,7 +126,7 @@ class PostInteractionController extends Controller
             'parent_comment_id' => $parentId,
             'nro_account_id' => $account->id,
             'username' => (string) $account->username,
-            'avatar_url' => null,
+            'avatar_url' => $this->avatarUrlForAccount($account),
             'content' => $content,
             'likes' => 0,
             'created_at' => now(),
@@ -139,7 +142,7 @@ class PostInteractionController extends Controller
                 'post_id' => (int) $comment->post_id,
                 'parent_comment_id' => $comment->parent_comment_id ? (int) $comment->parent_comment_id : null,
                 'username' => (string) $comment->username,
-                'avatar_url' => $comment->avatar_url ?: null,
+                'avatar_url' => $comment->avatar_url ?: $this->avatarUrlForAccount($account),
                 'content' => (string) $comment->content,
                 'likes' => (int) $comment->likes,
                 'liked' => false,
@@ -268,5 +271,80 @@ class PostInteractionController extends Controller
         }
 
         return Account::query()->where('id', $payload->sub)->first();
+    }
+
+    private function commentAvatarMap($comments): array
+    {
+        $usernames = $comments
+            ->pluck('username')
+            ->filter()
+            ->map(fn($username) => (string) $username)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!$usernames) {
+            return [];
+        }
+
+        $accounts = Account::query()
+            ->with('player')
+            ->whereIn('username', $usernames)
+            ->get();
+
+        $heads = $accounts
+            ->map(fn(Account $account) => $account->player?->head)
+            ->filter(fn($head) => $head !== null && $head !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        $avatars = $heads
+            ? HeadAvatar::query()->whereIn('head_id', $heads)->get()->keyBy('head_id')
+            : collect();
+
+        $map = [];
+        foreach ($accounts as $account) {
+            $map[mb_strtolower((string) $account->username)] = $this->avatarUrlFromHead(
+                $account->player?->head,
+                $avatars
+            );
+        }
+
+        return $map;
+    }
+
+    private function avatarUrlForAccount(Account $account): string
+    {
+        $account->loadMissing('player');
+
+        return $this->avatarUrlFromHead($account->player?->head);
+    }
+
+    private function avatarUrlFromHead($head, $avatars = null): string
+    {
+        if ($head === null || $head === '') {
+            return $this->defaultAvatarUrl();
+        }
+
+        $headAvatar = $avatars ? $avatars->get($head) : HeadAvatar::query()->where('head_id', $head)->first();
+        if (!$headAvatar) {
+            return $this->defaultAvatarUrl();
+        }
+
+        if (!empty($headAvatar->avatar_id)) {
+            return '/assets/frontend/home/v1/images/x4/' . $headAvatar->avatar_id . '.png';
+        }
+
+        if (!empty($headAvatar->avatar_url)) {
+            return (string) $headAvatar->avatar_url;
+        }
+
+        return $this->defaultAvatarUrl();
+    }
+
+    private function defaultAvatarUrl(): string
+    {
+        return '/assets/frontend/home/v1/images/bannergame.png';
     }
 }

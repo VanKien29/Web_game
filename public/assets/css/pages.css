@@ -1695,6 +1695,714 @@ html body .welcome-popup-overlay * {
     }
 }
 
+/* Absolute last overrides: FontAwesome must beat global font, comments must scroll */
+.fa,
+.fa-classic,
+.fa-sharp,
+.fas,
+.fa-solid {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.fab,
+.fa-brands {
+    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.fa::before,
+.fa-classic::before,
+.fa-sharp::before,
+.fas::before,
+.fa-solid::before,
+.far::before,
+.fa-regular::before,
+.fab::before,
+.fa-brands::before {
+    font-family: inherit !important;
+}
+
+.fb-comments-shell {
+    overflow: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+}
+
+.fb-comments {
+    display: grid !important;
+    max-height: clamp(300px, 45vh, 520px) !important;
+    margin-top: 0 !important;
+    padding: 14px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.fb-comments::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fb-comments::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fb-comments::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    .fb-comments {
+        max-height: 360px !important;
+        padding: 12px 10px !important;
+    }
+}
+
+/* Final client polish: Font Awesome 6, readable navbar, stable post comments */
+.fa,
+.fa-classic,
+.fa-sharp,
+.fas,
+.fa-solid {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.fab,
+.fa-brands {
+    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.game-nav__link,
+.game-nav__link:link,
+.game-nav__link:visited,
+.game-nav__link:active,
+.game-nav__link--logout,
+.game-nav__link--logout:link,
+.game-nav__link--logout:visited,
+.game-nav__link--logout:active {
+    color: #111827 !important;
+    text-shadow: none !important;
+}
+
+.game-nav__link:hover,
+.game-nav__link.router-link-active,
+.game-nav__link.router-link-exact-active,
+.game-nav__link--logout:hover {
+    color: #111827 !important;
+}
+
+.game-nav__link .text,
+.game-nav__link span,
+.game-nav__link--logout .text,
+.game-nav__link--logout span {
+    color: inherit !important;
+}
+
+.client-page--post .post-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 300px) !important;
+    gap: 22px !important;
+    align-items: start !important;
+}
+
+.client-page--post .post-sidebar {
+    position: sticky !important;
+    top: 92px !important;
+}
+
+.client-page--post .fb-comments-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: min(560px, 52vh) !important;
+    overflow: hidden !important;
+}
+
+.client-page--post .fb-comments {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.client-page--post .fb-comment {
+    min-width: 0 !important;
+}
+
+.client-page--post .fb-comment__main,
+.client-page--post .fb-bubble {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.client-page--post .fb-bubble p {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 980px) {
+    .client-page--post .post-wrapper {
+        grid-template-columns: 1fr !important;
+    }
+
+    .client-page--post .post-sidebar {
+        position: static !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .client-page--post {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .client-page--post .post-detail,
+    .client-page--post .sidebar-widget {
+        border-radius: 10px !important;
+    }
+
+    .client-page--post .fb-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .client-page--post .fb-action {
+        min-width: 0 !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        font-size: 13px !important;
+    }
+
+    .client-page--post .fb-composer {
+        align-items: flex-start !important;
+    }
+
+    .client-page--post .fb-composer__foot {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .client-page--post .fb-comments-shell {
+        max-height: 430px !important;
+    }
+}
+
+/* Stable post-detail reset */
+.client-page--post {
+    width: min(1080px, calc(100% - 28px)) !important;
+}
+
+.client-page--post .post-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 720px) minmax(240px, 300px) !important;
+    gap: 22px !important;
+    align-items: start !important;
+    justify-content: center !important;
+}
+
+.client-page--post .post-detail,
+.client-page--post .sidebar-widget {
+    background: #fff8e8 !important;
+    border: 1px solid rgba(176, 115, 38, 0.22) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 18px 44px rgba(2, 8, 23, 0.28) !important;
+}
+
+.client-page--post .post-detail {
+    padding: 20px !important;
+    overflow: hidden !important;
+}
+
+.client-page--post .post-detail h1 {
+    color: #172033 !important;
+    font-size: clamp(24px, 3vw, 34px) !important;
+    line-height: 1.2 !important;
+    margin: 8px 0 14px !important;
+}
+
+.client-page--post .client-panel__eyebrow {
+    color: #b45f12 !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+}
+
+.client-page--post .post-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+}
+
+.client-page--post .post-meta span {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 7px 12px !important;
+    border-radius: 999px !important;
+    background: rgba(21, 54, 95, 0.08) !important;
+    color: #566176 !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+}
+
+.client-page--post .content-preview,
+.client-page--post .post-content {
+    color: #1f2937 !important;
+}
+
+.client-page--post .content-preview-text,
+.client-page--post .post-content {
+    max-width: 100%;
+    line-height: 1.75 !important;
+}
+
+.client-page--post .content-preview-text {
+    max-height: 260px !important;
+    overflow: hidden !important;
+    position: relative;
+}
+
+.client-page--post .content-preview-text::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 70px;
+    background: linear-gradient(180deg, rgba(255, 248, 232, 0), #fff8e8);
+}
+
+.client-page--post .content-read-more-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #0f7182 !important;
+    font-weight: 900 !important;
+}
+
+.client-page--post .fb-engagement {
+    margin-top: 20px !important;
+    border-top: 1px solid rgba(124, 82, 34, 0.16) !important;
+}
+
+.client-page--post .fb-engagement__summary {
+    min-height: 46px !important;
+    color: #5f6b7d !important;
+}
+
+.client-page--post .fb-engagement__summary button,
+.client-page--post .fb-action,
+.client-page--post .fb-comment__actions button {
+    color: #5f6b7d !important;
+}
+
+.client-page--post .fb-actions {
+    border-color: rgba(124, 82, 34, 0.14) !important;
+}
+
+.client-page--post .fb-action {
+    min-height: 42px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+}
+
+.client-page--post .fb-action:hover,
+.client-page--post .fb-action.active {
+    background: rgba(24, 119, 242, 0.1) !important;
+    color: #1877f2 !important;
+}
+
+.client-page--post .fb-composer {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    align-items: start !important;
+}
+
+.client-page--post .fb-composer textarea {
+    min-height: 50px !important;
+    max-height: 130px !important;
+    border: 0 !important;
+    border-radius: 18px !important;
+    background: #eef2f7 !important;
+    color: #111827 !important;
+}
+
+.client-page--post .fb-composer textarea::placeholder {
+    color: #9aa4b2 !important;
+}
+
+.client-page--post .fb-composer__foot {
+    color: #7a8699 !important;
+}
+
+.client-page--post .fb-composer__foot button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    background: #1877f2 !important;
+    color: #fff !important;
+}
+
+.client-page--post .fb-comments-shell {
+    margin-top: 16px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(124, 82, 34, 0.16) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+}
+
+.client-page--post .fb-comments-head {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+}
+
+.client-page--post .fb-comments-head strong {
+    color: #172033 !important;
+}
+
+.client-page--post .fb-comments-head span {
+    color: #667085 !important;
+}
+
+.client-page--post .fb-comments {
+    display: grid !important;
+    gap: 14px !important;
+    max-height: clamp(300px, 46vh, 520px) !important;
+    min-height: 150px !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #ffffff !important;
+}
+
+.client-page--post .fb-empty {
+    background: #f8fafc !important;
+    color: #667085 !important;
+}
+
+.client-page--post .fb-comment-thread {
+    display: grid !important;
+    gap: 10px !important;
+}
+
+.client-page--post .fb-comment {
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: start !important;
+}
+
+.client-page--post .fb-comment--compact {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+}
+
+.client-page--post .fb-avatar {
+    background: linear-gradient(135deg, #e59a13, #3b82f6) !important;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+}
+
+.client-page--post .fb-avatar--small {
+    width: 38px !important;
+    height: 38px !important;
+    border: 2px solid #ffffff !important;
+}
+
+.client-page--post .fb-comment--compact .fb-avatar--small {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.client-page--post .fb-bubble {
+    display: inline-block !important;
+    max-width: min(100%, 560px) !important;
+    padding: 9px 13px !important;
+    border-radius: 18px !important;
+    background: #f0f2f5 !important;
+    color: #111827 !important;
+}
+
+.client-page--post .fb-bubble strong {
+    color: #111827 !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.client-page--post .fb-bubble p {
+    color: #1f2937 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+.client-page--post .fb-comment__actions {
+    gap: 10px !important;
+    padding: 5px 0 0 12px !important;
+    color: #667085 !important;
+}
+
+.client-page--post .fb-comment__actions button,
+.client-page--post .fb-comment__actions span {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.client-page--post .fb-comment__actions button:hover,
+.client-page--post .fb-comment__actions button.active {
+    color: #1877f2 !important;
+}
+
+.client-page--post .fb-replies {
+    display: grid !important;
+    gap: 10px !important;
+    margin-left: 52px !important;
+    padding-left: 12px !important;
+    border-left: 2px solid #e5e7eb !important;
+}
+
+.client-page--post .post-sidebar {
+    position: sticky !important;
+    top: 92px !important;
+    display: grid !important;
+    gap: 14px !important;
+}
+
+.client-page--post .sidebar-widget {
+    padding: 18px !important;
+}
+
+.client-page--post .sidebar-widget h4 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #172033 !important;
+}
+
+.client-page--post .widget-link,
+.client-page--post .sidebar-widget p {
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 10px 8px !important;
+    border-radius: 8px !important;
+    color: #0f7182 !important;
+}
+
+.client-page--post .widget-link:hover {
+    background: #eef2f7 !important;
+    color: #1877f2 !important;
+}
+
+.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid, .far, .fa-regular, .fab, .fa-brands),
+.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid, .far, .fa-regular, .fab, .fa-brands)::before {
+    font-style: normal !important;
+    font-synthesis: none !important;
+    line-height: 1 !important;
+}
+
+.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid)::before,
+.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid) {
+    font-family: "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+}
+
+.client-page--post :is(.far, .fa-regular)::before,
+.client-page--post :is(.far, .fa-regular) {
+    font-family: "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.client-page--post :is(.fab, .fa-brands)::before,
+.client-page--post :is(.fab, .fa-brands) {
+    font-family: "Font Awesome 7 Brands", "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+@media (max-width: 900px) {
+    .client-page--post {
+        width: min(100% - 20px, 720px) !important;
+    }
+
+    .client-page--post .post-wrapper {
+        grid-template-columns: 1fr !important;
+    }
+
+    .client-page--post .post-sidebar {
+        position: static !important;
+        order: -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .client-page--post {
+        width: calc(100% - 14px) !important;
+    }
+
+    .client-page--post .post-detail,
+    .client-page--post .sidebar-widget {
+        padding: 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .client-page--post .post-detail h1 {
+        font-size: 22px !important;
+    }
+
+    .client-page--post .post-meta {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .client-page--post .fb-engagement__summary {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        padding: 10px 0 !important;
+    }
+
+    .client-page--post .fb-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+    }
+
+    .client-page--post .fb-action {
+        gap: 5px !important;
+        padding: 0 4px !important;
+        font-size: 12px !important;
+    }
+
+    .client-page--post .fb-composer {
+        grid-template-columns: 36px minmax(0, 1fr) !important;
+    }
+
+    .client-page--post .fb-composer__foot span {
+        display: none !important;
+    }
+
+    .client-page--post .fb-comments {
+        max-height: 360px !important;
+        padding: 12px 10px !important;
+    }
+
+    .client-page--post .fb-comment {
+        grid-template-columns: 34px minmax(0, 1fr) !important;
+    }
+
+    .client-page--post .fb-avatar--small {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .client-page--post .fb-replies,
+    .client-page--post .fb-composer--reply {
+        margin-left: 18px !important;
+    }
+}
+
+/* Final FontAwesome/comment fixes */
+.fa,
+.fa-classic,
+.fa-sharp,
+.fas,
+.fa-solid {
+    font-family: "Font Awesome 7 Free" !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-family: "Font Awesome 7 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fab,
+.fa-brands {
+    font-family: "Font Awesome 7 Brands" !important;
+    font-weight: 400 !important;
+}
+
+.fa::before,
+.fa-classic::before,
+.fa-sharp::before,
+.fas::before,
+.fa-solid::before,
+.far::before,
+.fa-regular::before,
+.fab::before,
+.fa-brands::before {
+    font-family: inherit !important;
+}
+
+.fb-comments-shell {
+    overflow: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+}
+
+.fb-comments {
+    display: grid !important;
+    max-height: clamp(300px, 45vh, 520px) !important;
+    margin-top: 0 !important;
+    padding: 14px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.fb-comments::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fb-comments::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fb-comments::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    .fb-comments {
+        max-height: 360px !important;
+        padding: 12px 10px !important;
+    }
+}
+
 /* Post detail comment polish */
 .client-page--post {
     width: min(1060px, calc(100% - 32px)) !important;
@@ -6574,14 +7282,14 @@ html body .sidebar_right * {
     min-width: 92px;
     height: 38px;
     padding: 0 14px;
-    background: rgba(7, 20, 45, 0.54) !important;
+    background: rgba(255, 248, 232, 0.92) !important;
     background-image: none !important;
-    border: 1px solid rgba(255, 214, 138, 0.28);
+    border: 1px solid rgba(124, 82, 34, 0.28);
     border-radius: 999px;
-    color: #fff3d4;
+    color: #111827 !important;
     font-size: 13px;
     font-weight: 700;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    text-shadow: none !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -6591,9 +7299,9 @@ html body .sidebar_right * {
 .game-nav__link.router-link-active,
 .game-nav__link.router-link-exact-active,
 .game-nav__btn.router-link-active {
-    background: rgba(217, 154, 36, 0.22) !important;
-    border-color: rgba(255, 216, 138, 0.64);
-    color: #fff8e8 !important;
+    background: rgba(255, 226, 150, 0.96) !important;
+    border-color: rgba(161, 98, 7, 0.56);
+    color: #111827 !important;
     filter: none;
 }
 
@@ -7655,5 +8363,79 @@ html body .sidebar_right * {
         right: 8px !important;
         bottom: -48px !important;
         width: min(190px, 56%) !important;
+    }
+}
+
+/* Runtime guard: keep icon fonts and comment scroll working after all overrides */
+.fa,
+.fa-classic,
+.fa-sharp,
+.fas,
+.fa-solid {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.fab,
+.fa-brands {
+    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-weight: 400 !important;
+}
+
+.fa::before,
+.fa-classic::before,
+.fa-sharp::before,
+.fas::before,
+.fa-solid::before,
+.far::before,
+.fa-regular::before,
+.fab::before,
+.fa-brands::before {
+    font-family: inherit !important;
+}
+
+.fb-comments-shell {
+    overflow: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+}
+
+.fb-comments {
+    display: grid !important;
+    max-height: clamp(300px, 45vh, 520px) !important;
+    margin-top: 0 !important;
+    padding: 14px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.fb-comments::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fb-comments::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fb-comments::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    .fb-comments {
+        max-height: 360px !important;
+        padding: 12px 10px !important;
     }
 }

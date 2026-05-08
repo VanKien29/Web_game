@@ -147,6 +147,22 @@
                         </router-link>
                     </div>
 
+                    <div class="nav-heading">Bài Viết</div>
+                    <hr class="nav-line" />
+                    <div class="nav-item">
+                        <router-link
+                            to="/admin/posts"
+                            class="nav-link"
+                            :class="{
+                                active: $route.name?.startsWith('admin.posts'),
+                            }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">article</span>
+                            <span class="text">Quản lý bài viết</span>
+                        </router-link>
+                    </div>
+
                     <div class="nav-heading">Thêm Vật Phẩm</div>
                     <hr class="nav-line" />
                     <div class="nav-item">
@@ -427,6 +443,9 @@ export default {
             prefetchAdminPages([
                 "accounts",
                 "giftcodes",
+                "posts",
+                "postForm",
+                "postComments",
                 "items",
                 "badges",
                 "costumes",
