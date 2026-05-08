@@ -95,7 +95,10 @@
                         </div>
 
                         <form class="fb-composer" @submit.prevent="submitComment()">
-                            <div class="fb-avatar">{{ currentInitial }}</div>
+                            <div class="fb-avatar">
+                                <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                                <span v-else>{{ currentInitial }}</span>
+                            </div>
                             <div class="fb-composer__body">
                                 <textarea
                                     ref="commentInput"
@@ -134,21 +137,80 @@
                                 :key="comment.id"
                                 class="fb-comment-thread"
                             >
-                                <CommentItem
-                                    :comment="comment"
-                                    @reply="startReply"
-                                    @like="toggleCommentLike"
-                                />
+                                <div class="fb-comment">
+                                    <div class="fb-avatar fb-avatar--small">
+                                        <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="" />
+                                        <span v-else>{{ commentInitial(comment.username) }}</span>
+                                    </div>
+                                    <div class="fb-comment__main">
+                                        <div class="fb-bubble">
+                                            <strong>{{ comment.username }}</strong>
+                                            <p>{{ commentContent(comment) }}</p>
+                                        </div>
+                                        <div class="fb-comment__actions">
+                                            <button
+                                                type="button"
+                                                :class="{ active: comment.liked }"
+                                                @click="toggleCommentLike(comment)"
+                                            >
+                                                <i class="fa-solid fa-thumbs-up"></i>
+                                                Thích
+                                            </button>
+                                            <button type="button" @click="startReply(comment)">
+                                                <i class="fa-solid fa-reply"></i>
+                                                Phản hồi
+                                            </button>
+                                            <span>
+                                                <i class="fa-regular fa-clock"></i>
+                                                {{ formatRelative(comment.created_at) }}
+                                            </span>
+                                            <span v-if="comment.likes">
+                                                <i class="fa-solid fa-heart"></i>
+                                                {{ comment.likes }} thích
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div v-if="comment.replies?.length" class="fb-replies">
-                                    <CommentItem
+                                    <div
                                         v-for="reply in comment.replies"
                                         :key="reply.id"
-                                        :comment="reply"
-                                        compact
-                                        @reply="startReply"
-                                        @like="toggleCommentLike"
-                                    />
+                                        class="fb-comment fb-comment--compact"
+                                    >
+                                        <div class="fb-avatar fb-avatar--small">
+                                            <img v-if="reply.avatar_url" :src="reply.avatar_url" alt="" />
+                                            <span v-else>{{ commentInitial(reply.username) }}</span>
+                                        </div>
+                                        <div class="fb-comment__main">
+                                            <div class="fb-bubble">
+                                                <strong>{{ reply.username }}</strong>
+                                                <p>{{ commentContent(reply) }}</p>
+                                            </div>
+                                            <div class="fb-comment__actions">
+                                                <button
+                                                    type="button"
+                                                    :class="{ active: reply.liked }"
+                                                    @click="toggleCommentLike(reply)"
+                                                >
+                                                    <i class="fa-solid fa-thumbs-up"></i>
+                                                    Thích
+                                                </button>
+                                                <button type="button" @click="startReply(reply)">
+                                                    <i class="fa-solid fa-reply"></i>
+                                                    Phản hồi
+                                                </button>
+                                                <span>
+                                                    <i class="fa-regular fa-clock"></i>
+                                                    {{ formatRelative(reply.created_at) }}
+                                                </span>
+                                                <span v-if="reply.likes">
+                                                    <i class="fa-solid fa-heart"></i>
+                                                    {{ reply.likes }} thích
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <form
@@ -156,7 +218,10 @@
                                     class="fb-composer fb-composer--reply"
                                     @submit.prevent="submitComment(comment.id)"
                                 >
-                                    <div class="fb-avatar">{{ currentInitial }}</div>
+                                    <div class="fb-avatar">
+                                        <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                                        <span v-else>{{ currentInitial }}</span>
+                                    </div>
                                     <div class="fb-composer__body">
                                         <textarea
                                             v-model="replyText"
@@ -213,61 +278,8 @@
 <script>
 import axios from "axios";
 
-const CommentItem = {
-    name: "CommentItem",
-    props: {
-        comment: { type: Object, required: true },
-        compact: { type: Boolean, default: false },
-    },
-    emits: ["reply", "like"],
-    methods: {
-        formatRelative(date) {
-            const value = date ? new Date(date).getTime() : 0;
-            const diff = Math.max(1, Math.floor((Date.now() - value) / 1000));
-            if (diff < 60) return "Vừa xong";
-            if (diff < 3600) return `${Math.floor(diff / 60)} phút`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)} giờ`;
-            return new Date(date).toLocaleDateString("vi-VN");
-        },
-        initial(name) {
-            return String(name || "?").trim().slice(0, 1).toUpperCase();
-        },
-    },
-    template: `
-        <div class="fb-comment" :class="{ 'fb-comment--compact': compact }">
-            <div class="fb-avatar fb-avatar--small">
-                <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="" />
-                <span v-else>{{ initial(comment.username) }}</span>
-            </div>
-            <div class="fb-comment__main">
-                <div class="fb-bubble">
-                    <strong>{{ comment.username }}</strong>
-                    <p>{{ comment.content }}</p>
-                </div>
-                <div class="fb-comment__actions">
-                    <button
-                        type="button"
-                        :class="{ active: comment.liked }"
-                        @click="$emit('like', comment)"
-                    >
-                        <i class="fa-solid fa-thumbs-up"></i>
-                        Thích
-                    </button>
-                    <button type="button" @click="$emit('reply', comment)">
-                        <i class="fa-regular fa-comment"></i>
-                        Phản hồi
-                    </button>
-                    <span><i class="fa-regular fa-clock"></i> {{ formatRelative(comment.created_at) }}</span>
-                    <span v-if="comment.likes"><i class="fa-solid fa-heart"></i> {{ comment.likes }} thích</span>
-                </div>
-            </div>
-        </div>
-    `,
-};
-
 export default {
     name: "PostDetailPage",
-    components: { CommentItem },
     data() {
         return {
             post: null,
@@ -280,6 +292,7 @@ export default {
             replyingTo: null,
             commentSubmitting: false,
             interactionMessage: "",
+            currentAvatarUrl: "",
         };
     },
     computed: {
@@ -301,6 +314,20 @@ export default {
         formatDate(d) {
             return d ? new Date(d).toLocaleDateString("vi-VN") : "";
         },
+        formatRelative(date) {
+            const value = date ? new Date(date).getTime() : 0;
+            const diff = Math.max(1, Math.floor((Date.now() - value) / 1000));
+            if (diff < 60) return "Vừa xong";
+            if (diff < 3600) return `${Math.floor(diff / 60)} phút`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} giờ`;
+            return new Date(date).toLocaleDateString("vi-VN");
+        },
+        commentInitial(name) {
+            return String(name || "?").trim().slice(0, 1).toUpperCase();
+        },
+        commentContent(comment) {
+            return String(comment?.content || comment?.body || comment?.message || "");
+        },
         authHeaders() {
             const token = localStorage.getItem("token");
             return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
@@ -319,6 +346,15 @@ export default {
             if (data.ok) {
                 this.comments = data.data || [];
                 this.engagement = data.engagement || this.engagement;
+            }
+        },
+        async loadCurrentProfileAvatar() {
+            if (!this.isLoggedIn) return;
+            try {
+                const { data } = await axios.get("/api/profile", this.authHeaders());
+                this.currentAvatarUrl = data?.data?.player?.avatar_url || "";
+            } catch {
+                this.currentAvatarUrl = "";
             }
         },
         async togglePostLike() {
@@ -404,6 +440,7 @@ export default {
     async mounted() {
         const slug = this.$route.params.slug;
         try {
+            this.loadCurrentProfileAvatar();
             const [{ data }] = await Promise.all([
                 axios.get(`/api/posts/${slug}`),
             ]);

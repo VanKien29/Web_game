@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Admin\GiftcodeController;
 use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
 use App\Http\Controllers\Api\Admin\PetController;
+use App\Http\Controllers\Api\Admin\PostController;
 use App\Http\Controllers\Api\Admin\PlayerController;
 use App\Http\Controllers\Api\Admin\ShopController;
 use App\Http\Controllers\Api\Admin\TitleItemController;
@@ -58,6 +59,16 @@ Route::prefix('admin')->group(function () {
         Route::post('/api/giftcodes', [GiftcodeController::class, 'store']);
         Route::put('/api/giftcodes/{id}', [GiftcodeController::class, 'update'])->whereNumber('id');
         Route::delete('/api/giftcodes/{id}', [GiftcodeController::class, 'destroy'])->whereNumber('id');
+
+        Route::get('/api/posts/categories', [PostController::class, 'categories']);
+        Route::get('/api/posts', [PostController::class, 'index']);
+        Route::post('/api/posts', [PostController::class, 'store']);
+        Route::get('/api/posts/{id}', [PostController::class, 'show'])->whereNumber('id');
+        Route::put('/api/posts/{id}', [PostController::class, 'update'])->whereNumber('id');
+        Route::delete('/api/posts/{id}', [PostController::class, 'destroy'])->whereNumber('id');
+        Route::get('/api/posts/{id}/comments', [PostController::class, 'comments'])->whereNumber('id');
+        Route::put('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'updateComment'])->whereNumber('postId')->whereNumber('commentId');
+        Route::delete('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'destroyComment'])->whereNumber('postId')->whereNumber('commentId');
 
         Route::get('/api/admin-logs', [AdminLogController::class, 'index']);
 
