@@ -1695,6 +1695,397 @@ html body .welcome-popup-overlay * {
     }
 }
 
+/* Post detail comment polish */
+.client-page--post {
+    width: min(1060px, calc(100% - 32px)) !important;
+}
+
+.post-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 720px) minmax(240px, 300px) !important;
+    align-items: start !important;
+    justify-content: center !important;
+    gap: 22px !important;
+}
+
+.post-detail {
+    overflow: hidden;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 20px 46px rgba(2, 8, 23, 0.28) !important;
+}
+
+.post-detail > .client-panel__eyebrow,
+.post-detail > h1,
+.post-detail > .post-meta,
+.post-detail > .content-preview,
+.post-detail > .post-content,
+.post-detail > .fb-engagement {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.post-detail > .client-panel__eyebrow {
+    margin-top: 18px;
+    color: #b56a10;
+}
+
+.post-detail h1 {
+    margin-top: 6px;
+    margin-bottom: 10px;
+    color: #111827 !important;
+    font-size: 26px;
+    line-height: 1.25;
+}
+
+.post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px !important;
+    margin-bottom: 14px;
+}
+
+.post-meta span {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    background: #f3f4f6 !important;
+    color: #667085 !important;
+    font-size: 12px !important;
+}
+
+.content-preview,
+.post-content {
+    color: #1f2937 !important;
+}
+
+.content-read-more-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 7px;
+    padding: 0 !important;
+    border: 0;
+    background: transparent !important;
+    color: #e18a08 !important;
+    font-weight: 900 !important;
+}
+
+.fb-engagement {
+    margin-top: 18px !important;
+    padding-bottom: 18px;
+    border-top: 1px solid #e5e7eb !important;
+}
+
+.fb-engagement__summary {
+    min-height: 44px !important;
+    color: #667085 !important;
+}
+
+.fb-engagement__summary > span,
+.fb-engagement__summary button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.fb-like-dot {
+    width: 22px !important;
+    height: 22px !important;
+    margin-right: 0 !important;
+    background: #1877f2 !important;
+    font-size: 11px !important;
+}
+
+.fb-actions {
+    gap: 4px !important;
+    padding: 6px 0 !important;
+    border-color: #e5e7eb !important;
+}
+
+.fb-action {
+    min-height: 40px !important;
+    border-radius: 8px !important;
+    color: #667085 !important;
+}
+
+.fb-action i,
+.fb-comment__actions i,
+.widget-link i,
+.sidebar-widget h4 i,
+.sidebar-widget p i {
+    width: 16px;
+    text-align: center;
+}
+
+.fb-action:hover,
+.fb-action.active {
+    background: #eef5ff !important;
+    color: #1877f2 !important;
+}
+
+.fb-composer {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    margin-top: 12px !important;
+}
+
+.fb-composer textarea {
+    min-height: 42px !important;
+    max-height: 130px;
+    resize: vertical !important;
+    border: 0 !important;
+    border-radius: 20px !important;
+    background: #f0f2f5 !important;
+    color: #111827 !important;
+}
+
+.fb-composer textarea:focus {
+    background: #fff !important;
+    box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.14) !important;
+}
+
+.fb-composer__foot button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #1877f2 !important;
+}
+
+.fb-comments-shell {
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.fb-comments-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.96);
+}
+
+.fb-comments-head > div {
+    display: grid;
+    gap: 2px;
+}
+
+.fb-comments-head strong {
+    color: #111827;
+    font-size: 15px;
+}
+
+.fb-comments-head span {
+    color: #667085;
+    font-size: 12px;
+}
+
+.fb-comments-head > i {
+    color: #98a2b3;
+}
+
+.fb-comments {
+    max-height: clamp(280px, 46vh, 520px);
+    margin-top: 0 !important;
+    padding: 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.fb-comments::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fb-comments::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.fb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #f8fafc !important;
+    color: #667085 !important;
+}
+
+.fb-comment-thread {
+    gap: 10px !important;
+}
+
+.fb-comment {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+    gap: 10px !important;
+}
+
+.fb-comment--compact {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+}
+
+.fb-avatar {
+    background: linear-gradient(135deg, #f59e0b, #3b82f6) !important;
+    box-shadow: none !important;
+}
+
+.fb-avatar--small {
+    width: 36px !important;
+    height: 36px !important;
+    border: 2px solid #fff;
+}
+
+.fb-comment--compact .fb-avatar--small {
+    width: 30px !important;
+    height: 30px !important;
+}
+
+.fb-bubble {
+    max-width: min(100%, 560px) !important;
+    padding: 9px 12px !important;
+    border-radius: 18px !important;
+    background: #f0f2f5 !important;
+}
+
+.fb-bubble strong {
+    color: #111827 !important;
+}
+
+.fb-bubble p {
+    color: #1f2937 !important;
+}
+
+.fb-comment__actions {
+    gap: 9px !important;
+    padding-left: 12px !important;
+    color: #667085 !important;
+}
+
+.fb-comment__actions button,
+.fb-comment__actions span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.fb-replies {
+    position: relative;
+    margin-left: 48px !important;
+    padding-left: 12px;
+    border-left: 2px solid #e5e7eb;
+}
+
+.post-sidebar {
+    position: sticky;
+    top: 96px;
+    display: grid;
+    gap: 14px;
+}
+
+.sidebar-widget {
+    padding: 18px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.sidebar-widget h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #111827 !important;
+}
+
+.widget-link,
+.sidebar-widget p {
+    display: flex !important;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    color: #344054 !important;
+}
+
+.widget-link:hover {
+    background: #f0f2f5;
+    color: #1877f2 !important;
+}
+
+@media (max-width: 900px) {
+    .post-wrapper {
+        grid-template-columns: 1fr !important;
+    }
+
+    .post-sidebar {
+        position: static;
+        grid-row: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .client-page--post {
+        width: calc(100% - 18px) !important;
+    }
+
+    .post-detail > .client-panel__eyebrow,
+    .post-detail > h1,
+    .post-detail > .post-meta,
+    .post-detail > .content-preview,
+    .post-detail > .post-content,
+    .post-detail > .fb-engagement {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+    .post-detail h1 {
+        font-size: 21px;
+    }
+
+    .post-meta {
+        gap: 6px !important;
+    }
+
+    .fb-engagement__summary {
+        align-items: stretch !important;
+    }
+
+    .fb-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .fb-action {
+        gap: 5px !important;
+        padding: 0 4px;
+        font-size: 12px !important;
+    }
+
+    .fb-composer {
+        grid-template-columns: 36px minmax(0, 1fr) !important;
+    }
+
+    .fb-comments {
+        max-height: 380px;
+        padding: 12px 10px;
+    }
+
+    .fb-replies,
+    .fb-composer--reply {
+        margin-left: 18px !important;
+    }
+}
+
 /* Final header logo switch: PC logo_horizon, mobile bannergame */
 .game-header {
     height: 84px !important;
