@@ -21,9 +21,18 @@
                     <h1>{{ post.title }}</h1>
 
                     <div class="post-meta">
-                        <span>{{ post.author_username || post.author || "Admin" }}</span>
-                        <span>{{ formatDate(post.created_at) }}</span>
-                        <span>{{ post.views || 0 }} lượt xem</span>
+                        <span>
+                            <i class="fa-solid fa-user-pen"></i>
+                            {{ post.author_username || post.author || "Admin" }}
+                        </span>
+                        <span>
+                            <i class="fa-regular fa-clock"></i>
+                            {{ formatDate(post.created_at) }}
+                        </span>
+                        <span>
+                            <i class="fa-regular fa-eye"></i>
+                            {{ post.views || 0 }} lượt xem
+                        </span>
                     </div>
 
                     <div class="content-preview" v-if="!showFullContent">
@@ -36,6 +45,7 @@
                                 class="content-read-more-btn"
                                 @click="showFullContent = true"
                             >
+                                <i class="fa-solid fa-chevron-down"></i>
                                 Xem thêm
                             </button>
                         </div>
@@ -49,10 +59,13 @@
                     <section class="fb-engagement">
                         <div class="fb-engagement__summary">
                             <span>
-                                <span class="fb-like-dot">👍</span>
+                                <span class="fb-like-dot">
+                                    <i class="fa-solid fa-thumbs-up"></i>
+                                </span>
                                 {{ engagement.likes }} lượt thích
                             </span>
                             <button type="button" @click="focusCommentBox">
+                                <i class="fa-regular fa-comment-dots"></i>
                                 {{ engagement.comments }} bình luận
                             </button>
                         </div>
@@ -64,15 +77,15 @@
                                 :class="{ active: engagement.liked }"
                                 @click="togglePostLike"
                             >
-                                <span>👍</span>
+                                <i class="fa-solid fa-thumbs-up"></i>
                                 Thích
                             </button>
                             <button type="button" class="fb-action" @click="focusCommentBox">
-                                <span>💬</span>
+                                <i class="fa-regular fa-comment"></i>
                                 Bình luận
                             </button>
                             <button type="button" class="fb-action" @click="sharePost">
-                                <span>↗</span>
+                                <i class="fa-solid fa-share"></i>
                                 Chia sẻ
                             </button>
                         </div>
@@ -94,14 +107,25 @@
                                 <div class="fb-composer__foot">
                                     <span>Enter để gửi, Shift + Enter để xuống dòng</span>
                                     <button type="submit" :disabled="commentSubmitting">
-                                        Gửi
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>Gửi</span>
                                     </button>
                                 </div>
                             </div>
                         </form>
 
+                        <div class="fb-comments-shell">
+                            <div class="fb-comments-head">
+                                <div>
+                                    <strong>Bình luận</strong>
+                                    <span>{{ comments.length }} cuộc trò chuyện</span>
+                                </div>
+                                <i class="fa-solid fa-angles-down"></i>
+                            </div>
+
                         <div class="fb-comments">
                             <p v-if="!comments.length" class="fb-empty">
+                                <i class="fa-regular fa-comments"></i>
                                 Chưa có bình luận nào.
                             </p>
 
@@ -152,25 +176,30 @@
                                 </form>
                             </div>
                         </div>
+                        </div>
                     </section>
                 </article>
 
                 <aside class="post-sidebar">
                     <div class="client-panel sidebar-widget">
-                        <h4>Bài viết khác</h4>
-                        <router-link to="/" class="widget-link"
-                            >Quay lại danh sách</router-link
-                        >
-                        <router-link to="/bxh" class="widget-link"
-                            >Xếp hạng hôm nay</router-link
-                        >
-                        <router-link to="/giftcode" class="widget-link"
-                            >Mã quà tặng</router-link
-                        >
+                        <h4><i class="fa-solid fa-compass"></i> Điều hướng</h4>
+                        <router-link to="/" class="widget-link">
+                            <i class="fa-solid fa-house"></i>
+                            Quay lại danh sách
+                        </router-link>
+                        <router-link to="/bxh" class="widget-link">
+                            <i class="fa-solid fa-ranking-star"></i>
+                            Xếp hạng hôm nay
+                        </router-link>
+                        <router-link to="/giftcode" class="widget-link">
+                            <i class="fa-solid fa-gift"></i>
+                            Mã quà tặng
+                        </router-link>
                     </div>
                     <div class="client-panel sidebar-widget">
-                        <h4>Thông tin</h4>
+                        <h4><i class="fa-solid fa-circle-info"></i> Thông tin</h4>
                         <p>
+                            <i class="fa-regular fa-calendar"></i>
                             Bài viết được đăng lúc
                             <strong>{{ formatDate(post.created_at) }}</strong>
                         </p>
@@ -221,13 +250,15 @@ const CommentItem = {
                         :class="{ active: comment.liked }"
                         @click="$emit('like', comment)"
                     >
+                        <i class="fa-solid fa-thumbs-up"></i>
                         Thích
                     </button>
                     <button type="button" @click="$emit('reply', comment)">
+                        <i class="fa-regular fa-comment"></i>
                         Phản hồi
                     </button>
-                    <span>{{ formatRelative(comment.created_at) }}</span>
-                    <span v-if="comment.likes">{{ comment.likes }} thích</span>
+                    <span><i class="fa-regular fa-clock"></i> {{ formatRelative(comment.created_at) }}</span>
+                    <span v-if="comment.likes"><i class="fa-solid fa-heart"></i> {{ comment.likes }} thích</span>
                 </div>
             </div>
         </div>
