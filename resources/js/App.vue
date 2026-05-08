@@ -143,11 +143,11 @@
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <img
-                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
                         alt="Logo"
                         class="game-footer__logo"
                     />
-                    <p class="game-footer__brand">NGỌC RỒNG Horizon</p>
+                    <p class="game-footer__brand">Ngọc Rồng Horizon</p>
                     <p class="game-footer__tagline">
                         Game Ngọc Rồng Private Server
                     </p>
@@ -299,7 +299,7 @@ export default {
         headerLogoSrc() {
             return this.isMobileHeader
                 ? "/assets/frontend/home/v1/images/bannergame.png"
-                : "/assets/frontend/home/v1/images/logo_horizon.png";
+                : "/assets/frontend/home/v1/images/logo_horizon.png?v=2";
         },
     },
     watch: {
