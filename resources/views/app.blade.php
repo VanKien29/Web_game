@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Ngọc Rồng Horizon</title>
-    <link rel="shortcut icon" type="image/png" href="/assets/frontend/home/v1/images/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/assets/frontend/home/v1/images/favicon1.png" />
 
     <!-- Readable Vietnamese UI font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="/assets/css/game.css?v={{ filemtime(public_path('assets/css/game.css')) }}" />
     <link rel="stylesheet" href="/assets/css/pages.css?v={{ filemtime(public_path('assets/css/pages.css')) }}" />
     <link rel="stylesheet" href="/assets/css/auth.css?v={{ filemtime(public_path('assets/css/auth.css')) }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite('resources/js/app.js')
 </head>
 
