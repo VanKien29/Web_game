@@ -151,5 +151,5 @@ Route::prefix('admin')->group(function () {
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
-    })->where('any', '.*')->middleware('admin.auth');
+    })->where('any', '^(?!api(?:/|$)).*')->middleware('admin.auth');
 });

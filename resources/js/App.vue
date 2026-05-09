@@ -143,7 +143,7 @@
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <img
-                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        src="/assets/frontend/home/v1/images/logo_horizon.png"
                         alt="Logo"
                         class="game-footer__logo"
                     />

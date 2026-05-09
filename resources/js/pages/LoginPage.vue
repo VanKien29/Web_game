@@ -9,7 +9,7 @@
             <section class="client-panel client-auth-card">
                 <div class="client-auth-art">
                     <img
-                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        src="/assets/frontend/home/v1/images/logo_horizon.png"
                         alt="Ngọc Rồng Horizon"
                         class="client-auth-logo"
                     />
