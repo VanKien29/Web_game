@@ -891,9 +891,13 @@ class ForumController extends Controller
 
     private function avatarUrlForAccount(Account $account): string
     {
-        $account->loadMissing('player');
+        try {
+            $account->loadMissing('player');
 
-        return $this->avatarUrlFromHead($account->player?->head);
+            return $this->avatarUrlFromHead($account->player?->head);
+        } catch (\Throwable) {
+            return $this->defaultAvatarUrl();
+        }
     }
 
     private function avatarUrlFromHead($head): string
@@ -902,17 +906,24 @@ class ForumController extends Controller
             return $this->defaultAvatarUrl();
         }
 
-        $headAvatar = HeadAvatar::query()->where('head_id', $head)->first();
+        try {
+            $headAvatar = HeadAvatar::query()->where('head_id', $head)->first();
+        } catch (\Throwable) {
+            return $this->defaultAvatarUrl();
+        }
+
         if (!$headAvatar) {
             return $this->defaultAvatarUrl();
         }
 
-        if (!empty($headAvatar->avatar_id)) {
-            return '/assets/frontend/home/v1/images/x4/' . $headAvatar->avatar_id . '.png';
+        $avatarId = data_get($headAvatar, 'avatar_id');
+        if (!empty($avatarId)) {
+            return '/assets/frontend/home/v1/images/x4/' . $avatarId . '.png';
         }
 
-        if (!empty($headAvatar->avatar_url)) {
-            return (string) $headAvatar->avatar_url;
+        $avatarUrl = data_get($headAvatar, 'avatar_url');
+        if (!empty($avatarUrl)) {
+            return (string) $avatarUrl;
         }
 
         return $this->defaultAvatarUrl();
