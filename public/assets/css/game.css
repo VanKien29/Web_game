@@ -29,11 +29,11 @@ body {
     body {
         background: url(/assets/frontend/teaser/images/thumb-mobile.jpg) #0b1a3b;
         background-repeat: no-repeat;
-        background-position: center top;
+        background-position: center 60px;
         background-size: contain;
     }
     .game--brand__show .limit__game {
-        min-height: calc(125vw);
+        min-height: calc(140vw);
         display: flex;
         flex-direction: column;
         justify-content: flex-end;

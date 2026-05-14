@@ -143,7 +143,7 @@
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <img
-                        src="/assets/frontend/home/v1/images/logo_horizon.png"
+                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
                         alt="Logo"
                         class="game-footer__logo"
                     />
@@ -299,7 +299,7 @@ export default {
         headerLogoSrc() {
             return this.isMobileHeader
                 ? "/assets/frontend/home/v1/images/bannergame.png"
-                : "/assets/frontend/home/v1/images/logo_horizon.png";
+                : "/assets/frontend/home/v1/images/logo_horizon.png?v=2";
         },
     },
     watch: {
