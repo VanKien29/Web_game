@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Api\Admin\ShopController as AdminShopController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BxhController;
+use App\Http\Controllers\Api\ForumController;
 use App\Http\Controllers\Api\GiftcodeController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\PostInteractionController;
@@ -20,6 +21,10 @@ Route::prefix('api')->group(function () {
     Route::get('/home', [HomeController::class, 'index']);
     Route::get('/bxh', [BxhController::class, 'index']);
     Route::get('/giftcodes', [GiftcodeController::class, 'index']);
+    Route::get('/forum/posts', [ForumController::class, 'index']);
+    Route::get('/forum/posts/{post}', [ForumController::class, 'show'])->whereNumber('post');
+    Route::get('/forum/posts/{post}/comments', [ForumController::class, 'comments'])->whereNumber('post');
+    Route::post('/forum/posts/{post}/share', [ForumController::class, 'share'])->whereNumber('post');
     Route::get('/posts/{slug}', [HomeController::class, 'postDetail']);
     Route::get('/posts/{slug}/engagement', [PostInteractionController::class, 'engagement']);
     Route::get('/posts/{slug}/comments', [PostInteractionController::class, 'comments']);
@@ -40,6 +45,18 @@ Route::prefix('api')->group(function () {
         Route::post('/posts/{slug}/like', [PostInteractionController::class, 'togglePostLike']);
         Route::post('/posts/{slug}/comments', [PostInteractionController::class, 'storeComment']);
         Route::post('/comments/{comment}/like', [PostInteractionController::class, 'toggleCommentLike'])->whereNumber('comment');
+
+        Route::post('/forum/posts', [ForumController::class, 'store']);
+        Route::put('/forum/posts/{post}', [ForumController::class, 'update'])->whereNumber('post');
+        Route::delete('/forum/posts/{post}', [ForumController::class, 'destroy'])->whereNumber('post');
+        Route::post('/forum/posts/read-all', [ForumController::class, 'markAllRead']);
+        Route::post('/forum/posts/{post}/read', [ForumController::class, 'markRead'])->whereNumber('post');
+        Route::post('/forum/posts/{post}/reaction', [ForumController::class, 'toggleReaction'])->whereNumber('post');
+        Route::post('/forum/posts/{post}/save', [ForumController::class, 'toggleSave'])->whereNumber('post');
+        Route::post('/forum/posts/{post}/comments', [ForumController::class, 'storeComment'])->whereNumber('post');
+        Route::put('/forum/comments/{comment}', [ForumController::class, 'updateComment'])->whereNumber('comment');
+        Route::delete('/forum/comments/{comment}', [ForumController::class, 'destroyComment'])->whereNumber('comment');
+        Route::post('/forum/comments/{comment}/reaction', [ForumController::class, 'toggleCommentReaction'])->whereNumber('comment');
     });
 
     Route::post('/sepay/webhook', [SePayController::class, 'webhook']);
