@@ -151,6 +151,19 @@
                     <hr class="nav-line" />
                     <div class="nav-item">
                         <router-link
+                            to="/admin/forum"
+                            class="nav-link"
+                            :class="{
+                                active: $route.name?.startsWith('admin.forum'),
+                            }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">forum</span>
+                            <span class="text">Diễn đàn</span>
+                        </router-link>
+                    </div>
+                    <div class="nav-item">
+                        <router-link
                             to="/admin/posts"
                             class="nav-link"
                             :class="{
@@ -444,6 +457,7 @@ export default {
                 "accounts",
                 "giftcodes",
                 "posts",
+                "forum",
                 "postForm",
                 "postComments",
                 "items",

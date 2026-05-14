@@ -4,6 +4,7 @@ const pageLoaders = {
     home: () => import("../pages/HomePage.vue"),
     bxh: () => import("../pages/BxhPage.vue"),
     giftcode: () => import("../pages/GiftcodePage.vue"),
+    forum: () => import("../pages/ForumPage.vue"),
     login: () => import("../pages/LoginPage.vue"),
     register: () => import("../pages/RegisterPage.vue"),
     profile: () => import("../pages/ProfilePage.vue"),
@@ -44,6 +45,11 @@ const routes = [
         path: "/giftcode",
         name: "giftcode",
         component: () => loadPage("giftcode"),
+    },
+    {
+        path: "/forum",
+        name: "forum",
+        component: () => loadPage("forum"),
     },
     {
         path: "/login",

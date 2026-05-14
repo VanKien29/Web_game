@@ -48,6 +48,13 @@
                         Giftcode
                     </router-link>
                     <router-link
+                        to="/forum"
+                        class="game-nav__link"
+                        @click="menuOpen = false"
+                    >
+                        Diễn đàn
+                    </router-link>
+                    <router-link
                         to="/nap-atm"
                         class="game-nav__link"
                         @click="menuOpen = false"
@@ -110,7 +117,7 @@
         </header>
 
         <!-- PAGE CONTENT -->
-        <main :class="{ 'inner-page': !isHome }">
+        <main :class="{ 'inner-page': !isHome, 'inner-page--forum': isForum }">
             <router-view v-slot="{ Component }">
                 <transition name="page-switch" mode="out-in">
                     <component :is="Component" />
@@ -147,7 +154,7 @@
                         alt="Logo"
                         class="game-footer__logo"
                     />
-                    <p class="game-footer__brand">NGỌC RỒNG Horizon</p>
+                    <p class="game-footer__brand">Ngọc Rồng Horizon</p>
                     <p class="game-footer__tagline">
                         Game Ngọc Rồng Private Server
                     </p>
@@ -296,6 +303,9 @@ export default {
         isHome() {
             return this.$route.path === "/";
         },
+        isForum() {
+            return this.$route.path.startsWith("/forum");
+        },
         headerLogoSrc() {
             return this.isMobileHeader
                 ? "/assets/frontend/home/v1/images/bannergame.png"
@@ -350,6 +360,7 @@ export default {
             prefetchPages([
                 "bxh",
                 "giftcode",
+                "forum",
                 "login",
                 "register",
                 "profile",
@@ -385,3 +396,15 @@ export default {
     },
 };
 </script>
+
+<style>
+.inner-page.inner-page--forum {
+    padding-top: 62px !important;
+}
+
+@media (max-width: 820px) {
+    .inner-page.inner-page--forum {
+        padding-top: 68px !important;
+    }
+}
+</style>

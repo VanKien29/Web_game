@@ -12,6 +12,7 @@ const pageLoaders = {
     posts: () => import("./features/posts/PostsPage.vue"),
     postForm: () => import("./features/posts/PostFormPage.vue"),
     postComments: () => import("./features/posts/PostCommentsPage.vue"),
+    forum: () => import("./features/forum/ForumPage.vue"),
     items: () => import("./features/items/ItemsPage.vue"),
     badges: () => import("./features/game-assets/BadgesPage.vue"),
     costumes: () => import("./features/game-assets/CostumesPage.vue"),
@@ -127,6 +128,12 @@ const routes = [
         path: "/admin/posts/:id/comments",
         name: "admin.posts.comments",
         component: () => loadAdminPage("postComments"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/forum",
+        name: "admin.forum",
+        component: () => loadAdminPage("forum"),
         meta: { auth: true },
     },
     {
