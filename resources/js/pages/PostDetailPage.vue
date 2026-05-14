@@ -161,7 +161,7 @@
                                     <i class="fa-solid fa-thumbs-up"></i>
                                 </span>
                                 <span class="pp-stats-count">{{ engagement.likes }}</span>
-                            </div>
+                            </span>
                             <button class="pp-stats-btn" @click="focusCommentBox">
                                 {{ engagement.comments }} bình luận
                             </button>
@@ -234,10 +234,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <p class="pp-composer-hint">
-                                <i class="fa-regular fa-keyboard"></i>
-                                Enter để gửi · Shift+Enter xuống dòng
-                            </p>
+                        </form>
 
                         <div class="post-comments-shell">
                             <div class="post-comments-head">
@@ -423,9 +420,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <button class="pp-reply-cancel" @click="cancelReply">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
                                     </div>
 
                                     <form
