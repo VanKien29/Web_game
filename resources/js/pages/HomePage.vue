@@ -412,3 +412,18 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.box-list-new .tab-content .tab-detail .item-new-box,
+.box-list-new .tab-content .tab-detail .item-new-box:link,
+.box-list-new .tab-content .tab-detail .item-new-box:visited,
+.box-list-new .tab-content .tab-detail .item-new-box .cat-des,
+.box-list-new .tab-content .tab-detail .item-new-box .date-open {
+    color: #1f140d !important;
+    text-shadow: none !important;
+}
+
+.box-list-new .tab-content .tab-detail .item-new-box:hover .cat-des {
+    color: #7b3b09 !important;
+}
+</style>

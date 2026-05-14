@@ -10,12 +10,18 @@
             <aside class="forum-rail forum-rail--left">
                 <div class="forum-panel forum-profile">
                     <div class="forum-profile__avatar">
-                        <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                        <img
+                            v-if="currentAvatarUrl"
+                            :src="currentAvatarUrl"
+                            alt=""
+                        />
                         <span v-else>{{ currentInitial }}</span>
                     </div>
                     <div>
                         <strong>{{ currentUsername || "Người chơi" }}</strong>
-                        <span>{{ isLoggedIn ? "Đang trực tuyến" : "Chưa đăng nhập" }}</span>
+                        <span>{{
+                            isLoggedIn ? "Đang trực tuyến" : "Chưa đăng nhập"
+                        }}</span>
                     </div>
                 </div>
 
@@ -37,13 +43,18 @@
             <main class="forum-feed">
                 <header class="forum-head">
                     <div>
-                        <div class="client-panel__eyebrow">Cộng đồng</div>
                         <h1>Diễn đàn người chơi</h1>
-                        <p>Bảng tin riêng cho thông báo admin, bài đăng người chơi và góp ý phát triển game.</p>
+                        <p>
+                            Bảng tin riêng cho thông báo admin, bài đăng người
+                            chơi và góp ý phát triển game.
+                        </p>
                     </div>
                     <form class="forum-search" @submit.prevent="loadFeed(true)">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input v-model="search" placeholder="Tìm bài viết, người đăng..." />
+                        <input
+                            v-model="search"
+                            placeholder="Tìm bài viết, người đăng..."
+                        />
                     </form>
                 </header>
 
@@ -66,21 +77,31 @@
                     <template v-if="isLoggedIn">
                         <div class="forum-composer__top">
                             <div class="forum-avatar">
-                                <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
+                                <img
+                                    v-if="currentAvatarUrl"
+                                    :src="currentAvatarUrl"
+                                    alt=""
+                                />
                                 <span v-else>{{ currentInitial }}</span>
                             </div>
                             <div class="forum-composer__fields">
                                 <div class="forum-segment">
                                     <button
                                         type="button"
-                                        :class="{ active: composer.type === 'player_post' }"
+                                        :class="{
+                                            active:
+                                                composer.type === 'player_post',
+                                        }"
                                         @click="composer.type = 'player_post'"
                                     >
                                         Bài viết
                                     </button>
                                     <button
                                         type="button"
-                                        :class="{ active: composer.type === 'feedback' }"
+                                        :class="{
+                                            active:
+                                                composer.type === 'feedback',
+                                        }"
                                         @click="composer.type = 'feedback'"
                                     >
                                         Góp ý
@@ -100,8 +121,14 @@
                             </div>
                         </div>
 
-                        <div v-if="composer.previews.length" class="forum-image-preview">
-                            <figure v-for="preview in composer.previews" :key="preview">
+                        <div
+                            v-if="composer.previews.length"
+                            class="forum-image-preview"
+                        >
+                            <figure
+                                v-for="preview in composer.previews"
+                                :key="preview"
+                            >
                                 <img :src="preview" alt="" />
                             </figure>
                         </div>
@@ -110,12 +137,21 @@
                             <label class="forum-tool">
                                 <i class="fa-regular fa-images"></i>
                                 <span>Ảnh</span>
-                                <input type="file" accept="image/*" multiple @change="selectImages" />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    @change="selectImages"
+                                />
                             </label>
                             <button
                                 type="button"
                                 class="forum-tool"
-                                @click="composer.content += composer.content ? '\n#hoi-dap ' : '#hoi-dap '"
+                                @click="
+                                    composer.content += composer.content
+                                        ? '\n#hoi-dap '
+                                        : '#hoi-dap '
+                                "
                             >
                                 <i class="fa-solid fa-hashtag"></i>
                                 <span>Chủ đề</span>
@@ -133,7 +169,10 @@
                     </template>
                     <div v-else class="forum-login-prompt">
                         <i class="fa-solid fa-user-lock"></i>
-                        <span>Đăng nhập để đăng bài, bình luận và thả cảm xúc.</span>
+                        <span
+                            >Đăng nhập để đăng bài, bình luận và thả cảm
+                            xúc.</span
+                        >
                         <router-link to="/login">Đăng nhập</router-link>
                     </div>
                 </section>
@@ -149,316 +188,562 @@
                 </p>
 
                 <template v-else>
-                <article
-                    v-for="post in posts"
-                    :key="post.id"
-                    :ref="(el) => observePostCard(el, post)"
-                    class="forum-panel forum-post"
-                    :class="[`forum-post--${post.type}`, { pinned: post.is_pinned, 'forum-post--unread': post.is_unread }]"
-                >
-                    <div class="forum-post__head">
-                        <div class="forum-avatar forum-avatar--post">
-                            <img v-if="post.author_avatar" :src="post.author_avatar" alt="" />
-                            <span v-else>{{ initial(post.author_username) }}</span>
-                        </div>
-                        <div class="forum-post__meta">
-                            <strong>{{ post.author_username }}</strong>
-                            <div>
-                                <span class="forum-badge">{{ post.type_label }}</span>
-                                <span v-if="post.is_pinned" class="forum-badge forum-badge--pin">
-                                    <i class="fa-solid fa-thumbtack"></i>
-                                    Ghim
-                                </span>
-                                <span v-if="post.is_unread" class="forum-badge forum-badge--new">
-                                    <i class="fa-solid fa-circle"></i>
-                                    Mới
-                                </span>
-                                <span>{{ formatRelative(post.created_at) }}</span>
-                            </div>
-                        </div>
-                        <div v-if="post.can_edit || post.can_delete" class="forum-post__owner">
-                            <button type="button" @click="startEditPost(post)">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" @click="deletePost(post)">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <form
-                        v-if="editingPostId === post.id"
-                        class="forum-edit-box"
-                        @submit.prevent="savePost(post)"
+                    <article
+                        v-for="post in posts"
+                        :key="post.id"
+                        :ref="(el) => observePostCard(el, post)"
+                        class="forum-panel forum-post"
+                        :class="[
+                            `forum-post--${post.type}`,
+                            {
+                                pinned: post.is_pinned,
+                                'forum-post--unread': post.is_unread,
+                            },
+                        ]"
                     >
-                        <div class="forum-segment">
-                            <button
-                                type="button"
-                                :class="{ active: editPost.type === 'player_post' }"
-                                @click="editPost.type = 'player_post'"
-                            >
-                                Bài viết
-                            </button>
-                            <button
-                                type="button"
-                                :class="{ active: editPost.type === 'feedback' }"
-                                @click="editPost.type = 'feedback'"
-                            >
-                                Góp ý
-                            </button>
-                        </div>
-                        <input v-model="editPost.title" maxlength="160" placeholder="Tiêu đề" />
-                        <textarea v-model="editPost.content" rows="5"></textarea>
-                        <div class="forum-edit-box__actions">
-                            <button type="button" class="plain" @click="cancelEditPost">Hủy</button>
-                            <button type="submit">Lưu</button>
-                        </div>
-                    </form>
-
-                    <template v-else>
-                        <h2 v-if="post.title">{{ post.title }}</h2>
-                        <div
-                            class="forum-post__content-wrap"
-                            :class="{ collapsed: isLongPost(post) && !post.contentExpanded }"
-                        >
+                        <div class="forum-post__head">
+                            <div class="forum-avatar forum-avatar--post">
+                                <img
+                                    v-if="post.author_avatar"
+                                    :src="post.author_avatar"
+                                    alt=""
+                                />
+                                <span v-else>{{
+                                    initial(post.author_username)
+                                }}</span>
+                            </div>
+                            <div class="forum-post__meta">
+                                <strong>{{ post.author_username }}</strong>
+                                <div>
+                                    <span class="forum-badge">{{
+                                        post.type_label
+                                    }}</span>
+                                    <span
+                                        v-if="post.is_pinned"
+                                        class="forum-badge forum-badge--pin"
+                                    >
+                                        <i class="fa-solid fa-thumbtack"></i>
+                                        Ghim
+                                    </span>
+                                    <span
+                                        v-if="post.is_unread"
+                                        class="forum-badge forum-badge--new"
+                                    >
+                                        <i class="fa-solid fa-circle"></i>
+                                        Mới
+                                    </span>
+                                    <span>{{
+                                        formatRelative(post.created_at)
+                                    }}</span>
+                                </div>
+                            </div>
                             <div
-                                v-if="post.type === 'announcement'"
-                                class="forum-post__content forum-post__content--rich"
-                                v-html="post.content"
-                            ></div>
-                            <p v-else class="forum-post__content">{{ post.content }}</p>
-                        </div>
-                        <button
-                            v-if="isLongPost(post)"
-                            type="button"
-                            class="forum-read-more"
-                            @click="togglePostContent(post)"
-                        >
-                            {{ post.contentExpanded ? "Thu gọn" : "Xem thêm" }}
-                            <i :class="post.contentExpanded ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"></i>
-                        </button>
-                    </template>
-
-                    <div v-if="post.images?.length" class="forum-post__images" :class="`count-${Math.min(post.images.length, 4)}`">
-                        <img v-for="image in post.images" :key="image" :src="image" alt="" />
-                    </div>
-
-                    <div class="forum-post__summary">
-                        <button type="button" @click="toggleReactionPicker(post.id)">
-                            <span class="forum-reaction-stack">
-                                <span v-for="reaction in topReactions(post)" :key="reaction">
-                                    {{ reactionEmoji(reaction) }}
-                                </span>
-                            </span>
-                            {{ post.reaction_count || 0 }}
-                        </button>
-                        <button type="button" @click="toggleComments(post)">
-                            {{ post.comment_count || 0 }} bình luận
-                        </button>
-                        <span>{{ post.share_count || 0 }} chia sẻ</span>
-                    </div>
-
-                    <div class="forum-actions">
-                        <div class="forum-reaction-wrap">
-                            <button
-                                type="button"
-                                class="forum-action"
-                                :class="{ active: post.user_reaction }"
-                                @click="post.user_reaction ? reactToPost(post, post.user_reaction) : toggleReactionPicker(post.id)"
+                                v-if="post.can_edit || post.can_delete"
+                                class="forum-post__owner"
                             >
-                                <span>{{ post.user_reaction ? reactionEmoji(post.user_reaction) : "👍" }}</span>
-                                {{ post.user_reaction ? reactionLabel(post.user_reaction) : "Cảm xúc" }}
-                            </button>
-                            <div v-if="reactionPickerPostId === post.id" class="forum-reaction-picker">
                                 <button
-                                    v-for="reaction in reactionOptions"
-                                    :key="reaction.key"
                                     type="button"
-                                    :title="reaction.label"
-                                    @click="reactToPost(post, reaction.key)"
+                                    @click="startEditPost(post)"
                                 >
-                                    <span>{{ reaction.emoji }}</span>
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </button>
+                                <button type="button" @click="deletePost(post)">
+                                    <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="forum-action" @click="toggleComments(post)">
-                            <i class="fa-regular fa-comment"></i>
-                            Bình luận
-                        </button>
-                        <button type="button" class="forum-action" @click="sharePost(post)">
-                            <i class="fa-solid fa-share"></i>
-                            Chia sẻ
-                        </button>
-                        <button
-                            type="button"
-                            class="forum-action"
-                            :class="{ active: post.is_saved }"
-                            @click="toggleSave(post)"
-                        >
-                            <i class="fa-regular fa-bookmark"></i>
-                            {{ post.is_saved ? "Đã lưu" : "Lưu" }}
-                        </button>
-                    </div>
-
-                    <section v-if="post.commentsOpen" class="forum-comments">
-                        <div v-if="post.commentsLoading" class="forum-comments__loading">
-                            Đang tải bình luận...
-                        </div>
 
                         <form
-                            v-if="isLoggedIn && !post.is_locked"
-                            class="forum-comment-form"
-                            @submit.prevent="submitComment(post)"
+                            v-if="editingPostId === post.id"
+                            class="forum-edit-box"
+                            @submit.prevent="savePost(post)"
                         >
-                            <div class="forum-avatar forum-avatar--comment">
-                                <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
-                                <span v-else>{{ currentInitial }}</span>
+                            <div class="forum-segment">
+                                <button
+                                    type="button"
+                                    :class="{
+                                        active: editPost.type === 'player_post',
+                                    }"
+                                    @click="editPost.type = 'player_post'"
+                                >
+                                    Bài viết
+                                </button>
+                                <button
+                                    type="button"
+                                    :class="{
+                                        active: editPost.type === 'feedback',
+                                    }"
+                                    @click="editPost.type = 'feedback'"
+                                >
+                                    Góp ý
+                                </button>
                             </div>
                             <input
-                                v-model="commentDrafts[post.id]"
-                                placeholder="Viết bình luận..."
+                                v-model="editPost.title"
+                                maxlength="160"
+                                placeholder="Tiêu đề"
                             />
-                            <button type="submit" :disabled="!commentDraft(post).trim()">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
+                            <textarea
+                                v-model="editPost.content"
+                                rows="5"
+                            ></textarea>
+                            <div class="forum-edit-box__actions">
+                                <button
+                                    type="button"
+                                    class="plain"
+                                    @click="cancelEditPost"
+                                >
+                                    Hủy
+                                </button>
+                                <button type="submit">Lưu</button>
+                            </div>
                         </form>
-                        <div v-else-if="post.is_locked" class="forum-locked">
-                            <i class="fa-solid fa-lock"></i>
-                            Bài viết đã khóa bình luận.
-                        </div>
+
+                        <template v-else>
+                            <h2 v-if="post.title">{{ post.title }}</h2>
+                            <div
+                                class="forum-post__content-wrap"
+                                :class="{
+                                    collapsed:
+                                        isLongPost(post) &&
+                                        !post.contentExpanded,
+                                }"
+                            >
+                                <div
+                                    v-if="post.type === 'announcement'"
+                                    class="forum-post__content forum-post__content--rich"
+                                    v-html="post.content"
+                                ></div>
+                                <p v-else class="forum-post__content">
+                                    {{ post.content }}
+                                </p>
+                            </div>
+                            <button
+                                v-if="isLongPost(post)"
+                                type="button"
+                                class="forum-read-more"
+                                @click="togglePostContent(post)"
+                            >
+                                {{
+                                    post.contentExpanded
+                                        ? "Thu gọn"
+                                        : "Xem thêm"
+                                }}
+                                <i
+                                    :class="
+                                        post.contentExpanded
+                                            ? 'fa-solid fa-chevron-up'
+                                            : 'fa-solid fa-chevron-down'
+                                    "
+                                ></i>
+                            </button>
+                        </template>
 
                         <div
-                            v-for="comment in post.comments || []"
-                            :key="comment.id"
-                            class="forum-comment-thread"
+                            v-if="post.images?.length"
+                            class="forum-post__images"
+                            :class="`count-${Math.min(post.images.length, 4)}`"
                         >
-                            <div class="forum-comment">
-                                <div class="forum-avatar forum-avatar--comment">
-                                    <img v-if="comment.avatar_url" :src="comment.avatar_url" alt="" />
-                                    <span v-else>{{ initial(comment.username) }}</span>
-                                </div>
-                                <div class="forum-comment__body">
-                                    <div class="forum-comment__bubble">
-                                        <strong>{{ comment.username }}</strong>
-                                        <template v-if="editingCommentId === comment.id">
-                                            <textarea v-model="editCommentContent" rows="2"></textarea>
-                                        </template>
-                                        <p v-else v-html="formatMentionText(comment.content)"></p>
-                                    </div>
-                                    <div class="forum-comment__actions">
-                                        <button
-                                            type="button"
-                                            :class="{ active: comment.liked }"
-                                            @click="toggleCommentReaction(comment)"
-                                        >
-                                            Thích
-                                        </button>
-                                        <button type="button" @click="startReply(post, comment)">Phản hồi</button>
-                                        <button
-                                            v-if="comment.can_edit"
-                                            type="button"
-                                            @click="startEditComment(comment)"
-                                        >
-                                            Sửa
-                                        </button>
-                                        <button
-                                            v-if="comment.can_delete"
-                                            type="button"
-                                            @click="deleteComment(post, comment)"
-                                        >
-                                            Xóa
-                                        </button>
-                                        <button
-                                            v-if="editingCommentId === comment.id"
-                                            type="button"
-                                            @click="saveComment(comment)"
-                                        >
-                                            Lưu
-                                        </button>
-                                        <span>{{ formatRelative(comment.created_at) }}</span>
-                                        <span v-if="comment.likes">{{ comment.likes }} thích</span>
-                                    </div>
+                            <img
+                                v-for="image in post.images"
+                                :key="image"
+                                :src="image"
+                                alt=""
+                            />
+                        </div>
+
+                        <div class="forum-post__summary">
+                            <button
+                                type="button"
+                                @click="toggleReactionPicker(post.id)"
+                            >
+                                <span class="forum-reaction-stack">
+                                    <span
+                                        v-for="reaction in topReactions(post)"
+                                        :key="reaction"
+                                    >
+                                        {{ reactionEmoji(reaction) }}
+                                    </span>
+                                </span>
+                                {{ post.reaction_count || 0 }}
+                            </button>
+                            <button type="button" @click="toggleComments(post)">
+                                {{ post.comment_count || 0 }} bình luận
+                            </button>
+                            <span>{{ post.share_count || 0 }} chia sẻ</span>
+                        </div>
+
+                        <div class="forum-actions">
+                            <div class="forum-reaction-wrap">
+                                <button
+                                    type="button"
+                                    class="forum-action"
+                                    :class="{ active: post.user_reaction }"
+                                    @click="
+                                        post.user_reaction
+                                            ? reactToPost(
+                                                  post,
+                                                  post.user_reaction,
+                                              )
+                                            : toggleReactionPicker(post.id)
+                                    "
+                                >
+                                    <span>{{
+                                        post.user_reaction
+                                            ? reactionEmoji(post.user_reaction)
+                                            : "👍"
+                                    }}</span>
+                                    {{
+                                        post.user_reaction
+                                            ? reactionLabel(post.user_reaction)
+                                            : "Cảm xúc"
+                                    }}
+                                </button>
+                                <div
+                                    v-if="reactionPickerPostId === post.id"
+                                    class="forum-reaction-picker"
+                                >
+                                    <button
+                                        v-for="reaction in reactionOptions"
+                                        :key="reaction.key"
+                                        type="button"
+                                        :title="reaction.label"
+                                        @click="reactToPost(post, reaction.key)"
+                                    >
+                                        <span>{{ reaction.emoji }}</span>
+                                    </button>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                class="forum-action"
+                                @click="toggleComments(post)"
+                            >
+                                <i class="fa-regular fa-comment"></i>
+                                Bình luận
+                            </button>
+                            <button
+                                type="button"
+                                class="forum-action"
+                                @click="sharePost(post)"
+                            >
+                                <i class="fa-solid fa-share"></i>
+                                Chia sẻ
+                            </button>
+                            <button
+                                type="button"
+                                class="forum-action"
+                                :class="{ active: post.is_saved }"
+                                @click="toggleSave(post)"
+                            >
+                                <i class="fa-regular fa-bookmark"></i>
+                                {{ post.is_saved ? "Đã lưu" : "Lưu" }}
+                            </button>
+                        </div>
 
-                            <div v-if="comment.replies?.length" class="forum-replies">
-                                <div
-                                    v-for="reply in comment.replies"
-                                    :key="reply.id"
-                                    class="forum-comment forum-comment--reply"
+                        <section
+                            v-if="post.commentsOpen"
+                            class="forum-comments"
+                        >
+                            <div
+                                v-if="post.commentsLoading"
+                                class="forum-comments__loading"
+                            >
+                                Đang tải bình luận...
+                            </div>
+
+                            <form
+                                v-if="isLoggedIn && !post.is_locked"
+                                class="forum-comment-form"
+                                @submit.prevent="submitComment(post)"
+                            >
+                                <div class="forum-avatar forum-avatar--comment">
+                                    <img
+                                        v-if="currentAvatarUrl"
+                                        :src="currentAvatarUrl"
+                                        alt=""
+                                    />
+                                    <span v-else>{{ currentInitial }}</span>
+                                </div>
+                                <input
+                                    v-model="commentDrafts[post.id]"
+                                    placeholder="Viết bình luận..."
+                                />
+                                <button
+                                    type="submit"
+                                    :disabled="!commentDraft(post).trim()"
                                 >
-                                    <div class="forum-avatar forum-avatar--comment">
-                                        <img v-if="reply.avatar_url" :src="reply.avatar_url" alt="" />
-                                        <span v-else>{{ initial(reply.username) }}</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                            <div
+                                v-else-if="post.is_locked"
+                                class="forum-locked"
+                            >
+                                <i class="fa-solid fa-lock"></i>
+                                Bài viết đã khóa bình luận.
+                            </div>
+
+                            <div
+                                v-for="comment in post.comments || []"
+                                :key="comment.id"
+                                class="forum-comment-thread"
+                            >
+                                <div class="forum-comment">
+                                    <div
+                                        class="forum-avatar forum-avatar--comment"
+                                    >
+                                        <img
+                                            v-if="comment.avatar_url"
+                                            :src="comment.avatar_url"
+                                            alt=""
+                                        />
+                                        <span v-else>{{
+                                            initial(comment.username)
+                                        }}</span>
                                     </div>
                                     <div class="forum-comment__body">
                                         <div class="forum-comment__bubble">
-                                            <strong>{{ reply.username }}</strong>
-                                            <template v-if="editingCommentId === reply.id">
-                                                <textarea v-model="editCommentContent" rows="2"></textarea>
+                                            <strong>{{
+                                                comment.username
+                                            }}</strong>
+                                            <template
+                                                v-if="
+                                                    editingCommentId ===
+                                                    comment.id
+                                                "
+                                            >
+                                                <textarea
+                                                    v-model="editCommentContent"
+                                                    rows="2"
+                                                ></textarea>
                                             </template>
-                                            <p v-else v-html="formatMentionText(reply.content)"></p>
+                                            <p
+                                                v-else
+                                                v-html="
+                                                    formatMentionText(
+                                                        comment.content,
+                                                    )
+                                                "
+                                            ></p>
                                         </div>
                                         <div class="forum-comment__actions">
                                             <button
                                                 type="button"
-                                                :class="{ active: reply.liked }"
-                                                @click="toggleCommentReaction(reply)"
+                                                :class="{
+                                                    active: comment.liked,
+                                                }"
+                                                @click="
+                                                    toggleCommentReaction(
+                                                        comment,
+                                                    )
+                                                "
                                             >
                                                 Thích
                                             </button>
-                                            <button type="button" @click="startReply(post, reply)">Phản hồi</button>
                                             <button
-                                                v-if="reply.can_edit"
                                                 type="button"
-                                                @click="startEditComment(reply)"
+                                                @click="
+                                                    startReply(post, comment)
+                                                "
+                                            >
+                                                Phản hồi
+                                            </button>
+                                            <button
+                                                v-if="comment.can_edit"
+                                                type="button"
+                                                @click="
+                                                    startEditComment(comment)
+                                                "
                                             >
                                                 Sửa
                                             </button>
                                             <button
-                                                v-if="reply.can_delete"
+                                                v-if="comment.can_delete"
                                                 type="button"
-                                                @click="deleteComment(post, reply)"
+                                                @click="
+                                                    deleteComment(post, comment)
+                                                "
                                             >
                                                 Xóa
                                             </button>
                                             <button
-                                                v-if="editingCommentId === reply.id"
+                                                v-if="
+                                                    editingCommentId ===
+                                                    comment.id
+                                                "
                                                 type="button"
-                                                @click="saveComment(reply)"
+                                                @click="saveComment(comment)"
                                             >
                                                 Lưu
                                             </button>
-                                            <span>{{ formatRelative(reply.created_at) }}</span>
-                                            <span v-if="reply.likes">{{ reply.likes }} thích</span>
+                                            <span>{{
+                                                formatRelative(
+                                                    comment.created_at,
+                                                )
+                                            }}</span>
+                                            <span v-if="comment.likes"
+                                                >{{ comment.likes }} thích</span
+                                            >
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <form
-                                v-if="replyingTo[post.id] === comment.id"
-                                class="forum-comment-form forum-comment-form--reply"
-                                @submit.prevent="submitComment(post, comment.id)"
-                            >
-                                <div class="forum-avatar forum-avatar--comment">
-                                    <img v-if="currentAvatarUrl" :src="currentAvatarUrl" alt="" />
-                                    <span v-else>{{ currentInitial }}</span>
+                                <div
+                                    v-if="comment.replies?.length"
+                                    class="forum-replies"
+                                >
+                                    <div
+                                        v-for="reply in comment.replies"
+                                        :key="reply.id"
+                                        class="forum-comment forum-comment--reply"
+                                    >
+                                        <div
+                                            class="forum-avatar forum-avatar--comment"
+                                        >
+                                            <img
+                                                v-if="reply.avatar_url"
+                                                :src="reply.avatar_url"
+                                                alt=""
+                                            />
+                                            <span v-else>{{
+                                                initial(reply.username)
+                                            }}</span>
+                                        </div>
+                                        <div class="forum-comment__body">
+                                            <div class="forum-comment__bubble">
+                                                <strong>{{
+                                                    reply.username
+                                                }}</strong>
+                                                <template
+                                                    v-if="
+                                                        editingCommentId ===
+                                                        reply.id
+                                                    "
+                                                >
+                                                    <textarea
+                                                        v-model="
+                                                            editCommentContent
+                                                        "
+                                                        rows="2"
+                                                    ></textarea>
+                                                </template>
+                                                <p
+                                                    v-else
+                                                    v-html="
+                                                        formatMentionText(
+                                                            reply.content,
+                                                        )
+                                                    "
+                                                ></p>
+                                            </div>
+                                            <div class="forum-comment__actions">
+                                                <button
+                                                    type="button"
+                                                    :class="{
+                                                        active: reply.liked,
+                                                    }"
+                                                    @click="
+                                                        toggleCommentReaction(
+                                                            reply,
+                                                        )
+                                                    "
+                                                >
+                                                    Thích
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="
+                                                        startReply(post, reply)
+                                                    "
+                                                >
+                                                    Phản hồi
+                                                </button>
+                                                <button
+                                                    v-if="reply.can_edit"
+                                                    type="button"
+                                                    @click="
+                                                        startEditComment(reply)
+                                                    "
+                                                >
+                                                    Sửa
+                                                </button>
+                                                <button
+                                                    v-if="reply.can_delete"
+                                                    type="button"
+                                                    @click="
+                                                        deleteComment(
+                                                            post,
+                                                            reply,
+                                                        )
+                                                    "
+                                                >
+                                                    Xóa
+                                                </button>
+                                                <button
+                                                    v-if="
+                                                        editingCommentId ===
+                                                        reply.id
+                                                    "
+                                                    type="button"
+                                                    @click="saveComment(reply)"
+                                                >
+                                                    Lưu
+                                                </button>
+                                                <span>{{
+                                                    formatRelative(
+                                                        reply.created_at,
+                                                    )
+                                                }}</span>
+                                                <span v-if="reply.likes"
+                                                    >{{
+                                                        reply.likes
+                                                    }}
+                                                    thích</span
+                                                >
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <input
-                                    v-model="replyDrafts[comment.id]"
-                                    :placeholder="replyPlaceholder(comment)"
-                                />
-                                <button type="button" class="plain" @click="cancelReply(post, comment)">
-                                    Hủy
-                                </button>
-                                <button type="submit" :disabled="!replyDraft(comment).trim()">
-                                    Gửi
-                                </button>
-                            </form>
-                        </div>
-                    </section>
-                </article>
+
+                                <form
+                                    v-if="replyingTo[post.id] === comment.id"
+                                    class="forum-comment-form forum-comment-form--reply"
+                                    @submit.prevent="
+                                        submitComment(post, comment.id)
+                                    "
+                                >
+                                    <div
+                                        class="forum-avatar forum-avatar--comment"
+                                    >
+                                        <img
+                                            v-if="currentAvatarUrl"
+                                            :src="currentAvatarUrl"
+                                            alt=""
+                                        />
+                                        <span v-else>{{ currentInitial }}</span>
+                                    </div>
+                                    <input
+                                        v-model="replyDrafts[comment.id]"
+                                        :placeholder="replyPlaceholder(comment)"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="plain"
+                                        @click="cancelReply(post, comment)"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        :disabled="!replyDraft(comment).trim()"
+                                    >
+                                        Gửi
+                                    </button>
+                                </form>
+                            </div>
+                        </section>
+                    </article>
                 </template>
 
                 <button
@@ -515,17 +800,60 @@ export default {
             readObserver: null,
             readTimers: {},
             filterTabs: [
-                { key: "all", label: "Tất cả", icon: "fa-solid fa-table-cells-large", countKey: "all" },
-                { key: "unread", label: "Chưa đọc", icon: "fa-regular fa-circle-dot", countKey: "unread" },
-                { key: "announcements", label: "Thông báo", icon: "fa-solid fa-bullhorn", countKey: "announcements" },
-                { key: "players", label: "Người chơi", icon: "fa-regular fa-newspaper", countKey: "players" },
-                { key: "feedback", label: "Góp ý", icon: "fa-regular fa-lightbulb", countKey: "feedback" },
-                { key: "mine", label: "Bài của tôi", icon: "fa-regular fa-user", countKey: "mine" },
-                { key: "saved", label: "Đã lưu", icon: "fa-regular fa-bookmark", countKey: "saved" },
+                {
+                    key: "all",
+                    label: "Tất cả",
+                    icon: "fa-solid fa-table-cells-large",
+                    countKey: "all",
+                },
+                {
+                    key: "unread",
+                    label: "Chưa đọc",
+                    icon: "fa-regular fa-circle-dot",
+                    countKey: "unread",
+                },
+                {
+                    key: "announcements",
+                    label: "Thông báo",
+                    icon: "fa-solid fa-bullhorn",
+                    countKey: "announcements",
+                },
+                {
+                    key: "players",
+                    label: "Người chơi",
+                    icon: "fa-regular fa-newspaper",
+                    countKey: "players",
+                },
+                {
+                    key: "feedback",
+                    label: "Góp ý",
+                    icon: "fa-regular fa-lightbulb",
+                    countKey: "feedback",
+                },
+                {
+                    key: "mine",
+                    label: "Bài của tôi",
+                    icon: "fa-regular fa-user",
+                    countKey: "mine",
+                },
+                {
+                    key: "saved",
+                    label: "Đã lưu",
+                    icon: "fa-regular fa-bookmark",
+                    countKey: "saved",
+                },
             ],
             sortOptions: [
-                { key: "unread", label: "Ưu tiên chưa đọc", icon: "fa-regular fa-circle-dot" },
-                { key: "latest", label: "Mới nhất", icon: "fa-regular fa-clock" },
+                {
+                    key: "unread",
+                    label: "Chưa đọc",
+                    icon: "fa-regular fa-circle-dot",
+                },
+                {
+                    key: "latest",
+                    label: "Mới nhất",
+                    icon: "fa-regular fa-clock",
+                },
                 { key: "hot", label: "Sôi nổi", icon: "fa-solid fa-fire" },
             ],
             reactionOptions: [
@@ -544,7 +872,10 @@ export default {
         },
         currentUsername() {
             try {
-                return JSON.parse(localStorage.getItem("user") || "{}").username || "";
+                return (
+                    JSON.parse(localStorage.getItem("user") || "{}").username ||
+                    ""
+                );
             } catch {
                 return "";
             }
@@ -554,7 +885,10 @@ export default {
         },
     },
     async mounted() {
-        await Promise.all([this.loadFeed(true), this.loadCurrentProfileAvatar()]);
+        await Promise.all([
+            this.loadFeed(true),
+            this.loadCurrentProfileAvatar(),
+        ]);
     },
     beforeUnmount() {
         this.teardownReadObserver();
@@ -562,7 +896,9 @@ export default {
     methods: {
         authHeaders() {
             const token = localStorage.getItem("token");
-            return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+            return token
+                ? { headers: { Authorization: `Bearer ${token}` } }
+                : {};
         },
         requireLogin() {
             if (this.isLoggedIn) return true;
@@ -572,7 +908,10 @@ export default {
         async loadCurrentProfileAvatar() {
             if (!this.isLoggedIn) return;
             try {
-                const { data } = await axios.get("/api/profile", this.authHeaders());
+                const { data } = await axios.get(
+                    "/api/profile",
+                    this.authHeaders(),
+                );
                 this.currentAvatarUrl = data?.data?.player?.avatar_url || "";
             } catch {
                 this.currentAvatarUrl = "";
@@ -588,10 +927,16 @@ export default {
                 const params = new URLSearchParams({
                     page: String(this.page),
                     filter: this.filter,
-                    sort: this.isLoggedIn || this.sort !== "unread" ? this.sort : "latest",
+                    sort:
+                        this.isLoggedIn || this.sort !== "unread"
+                            ? this.sort
+                            : "latest",
                     search: this.search,
                 });
-                const { data } = await axios.get(`/api/forum/posts?${params}`, this.authHeaders());
+                const { data } = await axios.get(
+                    `/api/forum/posts?${params}`,
+                    this.authHeaders(),
+                );
                 const rows = (data.data || []).map((post) => ({
                     ...post,
                     contentExpanded: !this.isLongPost(post),
@@ -608,7 +953,8 @@ export default {
                 this.page = data.page || this.page;
                 this.totalPages = data.total_pages || 1;
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể tải diễn đàn.";
+                this.message =
+                    err.response?.data?.message || "Không thể tải diễn đàn.";
             } finally {
                 this.loading = false;
                 this.loadingMore = false;
@@ -621,7 +967,13 @@ export default {
             await this.loadFeed(false);
         },
         setFilter(filter) {
-            if ((filter === "mine" || filter === "saved" || filter === "unread") && !this.requireLogin()) return;
+            if (
+                (filter === "mine" ||
+                    filter === "saved" ||
+                    filter === "unread") &&
+                !this.requireLogin()
+            )
+                return;
             this.filter = filter;
             this.loadFeed(true);
         },
@@ -639,7 +991,9 @@ export default {
             this.composer.previews.forEach((url) => URL.revokeObjectURL(url));
             const files = Array.from(event.target.files || []).slice(0, 8);
             this.composer.images = files;
-            this.composer.previews = files.map((file) => URL.createObjectURL(file));
+            this.composer.previews = files.map((file) =>
+                URL.createObjectURL(file),
+            );
         },
         async submitPost() {
             if (!this.requireLogin() || !this.composer.content.trim()) return;
@@ -650,14 +1004,20 @@ export default {
                 form.append("type", this.composer.type);
                 form.append("title", this.composer.title);
                 form.append("content", this.composer.content);
-                this.composer.images.forEach((file) => form.append("images[]", file));
+                this.composer.images.forEach((file) =>
+                    form.append("images[]", file),
+                );
                 await axios.post("/api/forum/posts", form, this.authHeaders());
-                this.composer.previews.forEach((url) => URL.revokeObjectURL(url));
+                this.composer.previews.forEach((url) =>
+                    URL.revokeObjectURL(url),
+                );
                 this.composer = emptyComposer();
                 this.message = "Đã đăng bài lên diễn đàn.";
                 await this.loadFeed(true);
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể đăng bài lúc này.";
+                this.message =
+                    err.response?.data?.message ||
+                    "Không thể đăng bài lúc này.";
             } finally {
                 this.posting = false;
             }
@@ -687,21 +1047,27 @@ export default {
                     this.cancelEditPost();
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể lưu bài viết.";
+                this.message =
+                    err.response?.data?.message || "Không thể lưu bài viết.";
             }
         },
         async deletePost(post) {
             if (!confirm("Xóa bài viết này khỏi diễn đàn?")) return;
             try {
-                await axios.delete(`/api/forum/posts/${post.id}`, this.authHeaders());
+                await axios.delete(
+                    `/api/forum/posts/${post.id}`,
+                    this.authHeaders(),
+                );
                 this.posts = this.posts.filter((item) => item.id !== post.id);
                 this.message = "Đã xóa bài viết.";
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể xóa bài viết.";
+                this.message =
+                    err.response?.data?.message || "Không thể xóa bài viết.";
             }
         },
         toggleReactionPicker(postId) {
-            this.reactionPickerPostId = this.reactionPickerPostId === postId ? null : postId;
+            this.reactionPickerPostId =
+                this.reactionPickerPostId === postId ? null : postId;
         },
         async reactToPost(post, reaction) {
             if (!this.requireLogin()) return;
@@ -719,7 +1085,8 @@ export default {
                     this.markPostRead(post, { silent: true });
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể thả cảm xúc.";
+                this.message =
+                    err.response?.data?.message || "Không thể thả cảm xúc.";
             }
         },
         async toggleSave(post) {
@@ -735,16 +1102,22 @@ export default {
                     this.markPostRead(post, { silent: true });
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể lưu bài viết.";
+                this.message =
+                    err.response?.data?.message || "Không thể lưu bài viết.";
             }
         },
         async sharePost(post) {
             try {
-                const { data } = await axios.post(`/api/forum/posts/${post.id}/share`);
+                const { data } = await axios.post(
+                    `/api/forum/posts/${post.id}/share`,
+                );
                 post.share_count = data.share_count;
                 const url = `${window.location.origin}/forum?post=${post.id}`;
                 if (navigator.share) {
-                    await navigator.share({ title: post.title || "Bài viết diễn đàn", url });
+                    await navigator.share({
+                        title: post.title || "Bài viết diễn đàn",
+                        url,
+                    });
                 } else {
                     await navigator.clipboard.writeText(url);
                     this.message = "Đã sao chép liên kết bài viết.";
@@ -772,7 +1145,8 @@ export default {
                 post.comments = data.data || [];
                 post.commentsLoaded = true;
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể tải bình luận.";
+                this.message =
+                    err.response?.data?.message || "Không thể tải bình luận.";
             } finally {
                 post.commentsLoading = false;
             }
@@ -788,7 +1162,9 @@ export default {
         },
         async submitComment(post, parentId = null) {
             if (!this.requireLogin()) return;
-            const content = parentId ? this.replyDrafts[parentId] || "" : this.commentDrafts[post.id] || "";
+            const content = parentId
+                ? this.replyDrafts[parentId] || ""
+                : this.commentDrafts[post.id] || "";
             if (!content.trim()) return;
 
             try {
@@ -810,7 +1186,8 @@ export default {
                     await this.loadComments(post);
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể gửi bình luận.";
+                this.message =
+                    err.response?.data?.message || "Không thể gửi bình luận.";
             }
         },
         startReply(post, comment) {
@@ -818,7 +1195,10 @@ export default {
             const rootId = comment.parent_comment_id || comment.id;
             this.replyingTo[post.id] = rootId;
             this.replyTargets[rootId] = comment.username;
-            this.replyDrafts[rootId] = this.withMentionPrefix(this.replyDrafts[rootId] || "", comment.username);
+            this.replyDrafts[rootId] = this.withMentionPrefix(
+                this.replyDrafts[rootId] || "",
+                comment.username,
+            );
         },
         cancelReply(post, comment) {
             this.replyingTo[post.id] = null;
@@ -839,7 +1219,10 @@ export default {
         },
         formatMentionText(value) {
             const escaped = this.escapeHtml(value);
-            return escaped.replace(/(^|[\s>])(@[\p{L}\p{N}_.-]{1,32})/gu, '$1<span class="forum-mention">$2</span>');
+            return escaped.replace(
+                /(^|[\s>])(@[\p{L}\p{N}_.-]{1,32})/gu,
+                '$1<span class="forum-mention">$2</span>',
+            );
         },
         escapeHtml(value) {
             return String(value || "")
@@ -862,7 +1245,8 @@ export default {
                     comment.likes = data.likes;
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể thích bình luận.";
+                this.message =
+                    err.response?.data?.message || "Không thể thích bình luận.";
             }
         },
         startEditComment(comment) {
@@ -883,21 +1267,29 @@ export default {
                     this.editCommentContent = "";
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể sửa bình luận.";
+                this.message =
+                    err.response?.data?.message || "Không thể sửa bình luận.";
             }
         },
         async deleteComment(post, comment) {
             if (!confirm("Xóa bình luận này?")) return;
             try {
-                await axios.delete(`/api/forum/comments/${comment.id}`, this.authHeaders());
+                await axios.delete(
+                    `/api/forum/comments/${comment.id}`,
+                    this.authHeaders(),
+                );
                 await this.loadComments(post);
                 post.comment_count = Math.max(0, (post.comment_count || 1) - 1);
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể xóa bình luận.";
+                this.message =
+                    err.response?.data?.message || "Không thể xóa bình luận.";
             }
         },
         isLongPost(post) {
-            const content = String(post?.content || "").replace(/<[^>]+>/g, " ");
+            const content = String(post?.content || "").replace(
+                /<[^>]+>/g,
+                " ",
+            );
             return content.length > 420 || content.split(/\r?\n/).length > 6;
         },
         togglePostContent(post) {
@@ -914,15 +1306,25 @@ export default {
             this.readObserver.observe(el);
         },
         ensureReadObserver() {
-            if (this.readObserver || typeof window === "undefined" || !("IntersectionObserver" in window)) return;
-            this.readObserver = new IntersectionObserver(this.handleReadIntersections, {
-                threshold: [0, 0.35, 0.75],
-            });
+            if (
+                this.readObserver ||
+                typeof window === "undefined" ||
+                !("IntersectionObserver" in window)
+            )
+                return;
+            this.readObserver = new IntersectionObserver(
+                this.handleReadIntersections,
+                {
+                    threshold: [0, 0.35, 0.75],
+                },
+            );
         },
         handleReadIntersections(entries) {
             entries.forEach((entry) => {
                 const postId = Number(entry.target.dataset.postId);
-                const post = this.posts.find((item) => Number(item.id) === postId);
+                const post = this.posts.find(
+                    (item) => Number(item.id) === postId,
+                );
                 if (!post?.is_unread) {
                     this.readObserver?.unobserve(entry.target);
                     return;
@@ -944,7 +1346,9 @@ export default {
         },
         resetReadObserver() {
             this.readObserver?.disconnect();
-            Object.values(this.readTimers).forEach((timer) => window.clearTimeout(timer));
+            Object.values(this.readTimers).forEach((timer) =>
+                window.clearTimeout(timer),
+            );
             this.readTimers = {};
         },
         teardownReadObserver() {
@@ -968,7 +1372,9 @@ export default {
                 post.is_unread = true;
                 this.stats.unread = (this.stats.unread || 0) + 1;
                 if (!silent) {
-                    this.message = err.response?.data?.message || "Không thể đánh dấu đã đọc.";
+                    this.message =
+                        err.response?.data?.message ||
+                        "Không thể đánh dấu đã đọc.";
                 }
             }
         },
@@ -985,20 +1391,30 @@ export default {
                         post.is_unread = false;
                     });
                     this.stats.unread = 0;
-                    this.message = data.marked ? `Đã đánh dấu ${data.marked} bài là đã đọc.` : "Không còn bài chưa đọc.";
+                    this.message = data.marked
+                        ? `Đã đánh dấu ${data.marked} bài là đã đọc.`
+                        : "Không còn bài chưa đọc.";
                     if (this.filter === "unread") {
                         await this.loadFeed(true);
                     }
                 }
             } catch (err) {
-                this.message = err.response?.data?.message || "Không thể đánh dấu tất cả đã đọc.";
+                this.message =
+                    err.response?.data?.message ||
+                    "Không thể đánh dấu tất cả đã đọc.";
             }
         },
         reactionEmoji(key) {
-            return this.reactionOptions.find((item) => item.key === key)?.emoji || "👍";
+            return (
+                this.reactionOptions.find((item) => item.key === key)?.emoji ||
+                "👍"
+            );
         },
         reactionLabel(key) {
-            return this.reactionOptions.find((item) => item.key === key)?.label || "Thích";
+            return (
+                this.reactionOptions.find((item) => item.key === key)?.label ||
+                "Thích"
+            );
         },
         topReactions(post) {
             return Object.entries(post.reaction_counts || {})
@@ -1007,7 +1423,10 @@ export default {
                 .map(([key]) => key);
         },
         initial(value) {
-            return String(value || "?").trim().slice(0, 1).toUpperCase();
+            return String(value || "?")
+                .trim()
+                .slice(0, 1)
+                .toUpperCase();
         },
         formatRelative(value) {
             const time = value ? new Date(value).getTime() : 0;
@@ -1149,6 +1568,7 @@ export default {
     gap: 12px;
     min-width: 0;
     align-self: start;
+    margin-top: -67px;
 }
 
 .forum-head {
@@ -1234,7 +1654,16 @@ export default {
     color: #3e2b1d;
     font: inherit;
 }
-
+.forum-search input::placeholder,
+.forum-title-input::placeholder,
+.forum-composer textarea::placeholder,
+.forum-edit-box input::placeholder,
+.forum-edit-box textarea::placeholder,
+.forum-comment-form input::placeholder,
+.forum-comment__bubble textarea::placeholder {
+    color: rgba(62, 43, 29, 0.65);
+    opacity: 1;
+}
 .forum-search input {
     border: 0;
     background: transparent;
@@ -1500,7 +1929,11 @@ export default {
     right: 0;
     bottom: 0;
     height: 54px;
-    background: linear-gradient(180deg, rgba(255, 248, 232, 0), rgba(255, 248, 232, 0.98));
+    background: linear-gradient(
+        180deg,
+        rgba(255, 248, 232, 0),
+        rgba(255, 248, 232, 0.98)
+    );
     pointer-events: none;
 }
 
