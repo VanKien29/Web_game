@@ -135,7 +135,9 @@ class GameAssetService
 
     public function saveGamePngPyramid($file, string $baseDir, string $filename, ?int $maxX4Size = null): array
     {
-        $source = @imagecreatefrompng($file->getRealPath());
+        $this->ensureGdAvailable();
+
+        $source = @\imagecreatefrompng($file->getRealPath());
         if (!$source) {
             throw new \RuntimeException('File ' . $file->getClientOriginalName() . ' không phải PNG hợp lệ.');
         }
@@ -145,7 +147,9 @@ class GameAssetService
 
     public function saveGamePngPyramidFromBytes(string $bytes, string $originalName, string $baseDir, string $filename, ?int $maxX4Size = null): array
     {
-        $source = @imagecreatefromstring($bytes);
+        $this->ensureGdAvailable();
+
+        $source = @\imagecreatefromstring($bytes);
         if (!$source) {
             throw new \RuntimeException('File ' . $originalName . ' không phải PNG hợp lệ.');
         }
@@ -488,11 +492,18 @@ class GameAssetService
         return $iconId === 2955 && $dx === 0 && $dy === 0;
     }
 
+    private function ensureGdAvailable(): void
+    {
+        if (!\extension_loaded('gd') || !\function_exists('imagecreatefromstring')) {
+            throw new \RuntimeException('PHP chua bat extension GD. Hay bat extension=gd trong php.ini va khoi dong lai PHP/Apache.');
+        }
+    }
+
     private function saveGamePngPyramidResource($source, string $baseDir, string $filename, ?int $maxX4Size = null): array
     {
-        imagesavealpha($source, true);
-        $width = imagesx($source);
-        $height = imagesy($source);
+        \imagesavealpha($source, true);
+        $width = \imagesx($source);
+        $height = \imagesy($source);
         $baseScale = 1.0;
         if ($maxX4Size && max($width, $height) > $maxX4Size) {
             $baseScale = $maxX4Size / max($width, $height);
@@ -506,22 +517,22 @@ class GameAssetService
             File::ensureDirectoryExists(dirname($path), 0775, true);
 
             if ($targetWidth === $width && $targetHeight === $height) {
-                imagepng($source, $path);
+                \imagepng($source, $path);
             } else {
-                $target = imagecreatetruecolor($targetWidth, $targetHeight);
-                imagealphablending($target, false);
-                imagesavealpha($target, true);
-                $transparent = imagecolorallocatealpha($target, 0, 0, 0, 127);
-                imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $transparent);
-                imagecopyresampled($target, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
-                imagepng($target, $path);
-                imagedestroy($target);
+                $target = \imagecreatetruecolor($targetWidth, $targetHeight);
+                \imagealphablending($target, false);
+                \imagesavealpha($target, true);
+                $transparent = \imagecolorallocatealpha($target, 0, 0, 0, 127);
+                \imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $transparent);
+                \imagecopyresampled($target, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+                \imagepng($target, $path);
+                \imagedestroy($target);
             }
 
             $saved[] = $path;
         }
 
-        imagedestroy($source);
+        \imagedestroy($source);
         return $saved;
     }
 

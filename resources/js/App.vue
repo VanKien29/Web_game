@@ -147,7 +147,7 @@
                         alt="Logo"
                         class="game-footer__logo"
                     />
-                    <p class="game-footer__brand">NGỌC RỒNG Horizon</p>
+                    <p class="game-footer__brand">Ngọc Rồng Horizon</p>
                     <p class="game-footer__tagline">
                         Game Ngọc Rồng Private Server
                     </p>
