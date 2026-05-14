@@ -7,8 +7,16 @@
             <span v-else>Đang tải...</span>
         </div>
 
-        <div v-if="loading" class="page-loading">
-            <div class="page-loading__spinner"></div>
+        <!-- Loading -->
+        <div v-if="loading" class="pp-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Đang tải...</span>
+        </div>
+
+        <!-- Not found -->
+        <div v-else-if="!post" class="pp-state">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Bài viết không tồn tại.</span>
         </div>
         <p v-else-if="!post" class="client-empty">Bài viết không tồn tại.</p>
 
@@ -152,10 +160,9 @@
                                 <span class="post-like-dot">
                                     <i class="fa-solid fa-thumbs-up"></i>
                                 </span>
-                                {{ engagement.likes }} lượt thích
-                            </span>
-                            <button type="button" @click="focusCommentBox">
-                                <i class="fa-regular fa-comment-dots"></i>
+                                <span class="pp-stats-count">{{ engagement.likes }}</span>
+                            </div>
+                            <button class="pp-stats-btn" @click="focusCommentBox">
                                 {{ engagement.comments }} bình luận
                             </button>
                         </div>
@@ -167,7 +174,7 @@
                                 :class="{ active: engagement.liked }"
                                 @click="togglePostLike"
                             >
-                                <i class="fa-solid fa-thumbs-up"></i>
+                                <i :class="engagement.liked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up'"></i>
                                 Thích
                             </button>
                             <button
@@ -224,11 +231,13 @@
                                         :disabled="commentSubmitting"
                                     >
                                         <i class="fa-solid fa-paper-plane"></i>
-                                        <span>Gửi</span>
                                     </button>
                                 </div>
                             </div>
-                        </form>
+                            <p class="pp-composer-hint">
+                                <i class="fa-regular fa-keyboard"></i>
+                                Enter để gửi · Shift+Enter xuống dòng
+                            </p>
 
                         <div class="post-comments-shell">
                             <div class="post-comments-head">
@@ -414,6 +423,9 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <button class="pp-reply-cancel" @click="cancelReply">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
                                     </div>
 
                                     <form
@@ -499,9 +511,7 @@ export default {
         };
     },
     computed: {
-        isLoggedIn() {
-            return !!localStorage.getItem("token");
-        },
+        isLoggedIn() { return !!localStorage.getItem("token"); },
         currentUsername() {
             try {
                 return (
@@ -582,21 +592,25 @@ export default {
                 ? { headers: { Authorization: `Bearer ${token}` } }
                 : {};
         },
+        showMsg(msg) {
+            this.interactionMessage = msg;
+            clearTimeout(this._msgTimer);
+            this._msgTimer = setTimeout(() => (this.interactionMessage = ""), 3500);
+        },
         requireLogin() {
             if (this.isLoggedIn) return true;
-            this.interactionMessage = "Bạn cần đăng nhập để tương tác.";
+            this.showMsg("Bạn cần đăng nhập để tương tác.");
             return false;
         },
         async loadComments() {
-            const slug = this.$route.params.slug;
-            const { data } = await axios.get(
-                `/api/posts/${slug}/comments`,
-                this.authHeaders(),
-            );
-            if (data.ok) {
-                this.comments = data.data || [];
-                this.engagement = data.engagement || this.engagement;
-            }
+            try {
+                const slug = this.$route.params.slug;
+                const { data } = await axios.get(`/api/posts/${slug}/comments`, this.authHeaders());
+                if (data.ok) {
+                    this.comments = data.data || [];
+                    if (data.engagement) this.engagement = data.engagement;
+                }
+            } catch (e) { console.error("loadComments", e); }
         },
         async loadCurrentProfileAvatar() {
             if (!this.isLoggedIn) return;
@@ -613,27 +627,13 @@ export default {
         async togglePostLike() {
             if (!this.requireLogin()) return;
             const slug = this.$route.params.slug;
-            const { data } = await axios.post(
-                `/api/posts/${slug}/like`,
-                {},
-                this.authHeaders(),
-            );
-            if (data.ok) {
-                this.engagement.liked = data.liked;
-                this.engagement.likes = data.likes;
-            }
+            const { data } = await axios.post(`/api/posts/${slug}/like`, {}, this.authHeaders());
+            if (data.ok) { this.engagement.liked = data.liked; this.engagement.likes = data.likes; }
         },
         async toggleCommentLike(comment) {
             if (!this.requireLogin()) return;
-            const { data } = await axios.post(
-                `/api/comments/${comment.id}/like`,
-                {},
-                this.authHeaders(),
-            );
-            if (data.ok) {
-                comment.liked = data.liked;
-                comment.likes = data.likes;
-            }
+            const { data } = await axios.post(`/api/comments/${comment.id}/like`, {}, this.authHeaders());
+            if (data.ok) { comment.liked = data.liked; comment.likes = data.likes; }
         },
         async submitComment(parentId = null) {
             if (!this.requireLogin()) return;
@@ -641,14 +641,13 @@ export default {
                 ? this.replyText.trim()
                 : this.commentText.trim();
             if (!content) return;
-
             this.commentSubmitting = true;
             try {
                 const slug = this.$route.params.slug;
                 const { data } = await axios.post(
                     `/api/posts/${slug}/comments`,
                     { content, parent_comment_id: parentId },
-                    this.authHeaders(),
+                    this.authHeaders()
                 );
                 if (data.ok) {
                     if (parentId) {
@@ -683,20 +682,14 @@ export default {
             this.replyTargetUsername = "";
         },
         focusCommentBox() {
-            this.$refs.commentInput?.focus();
+            this.$nextTick(() => this.$refs.commentInput?.focus());
         },
         async sharePost() {
             const url = window.location.href;
             try {
-                if (navigator.share) {
-                    await navigator.share({ title: this.post.title, url });
-                } else {
-                    await navigator.clipboard.writeText(url);
-                    this.interactionMessage = "Đã sao chép liên kết bài viết.";
-                }
-            } catch {
-                this.interactionMessage = "Không thể chia sẻ lúc này.";
-            }
+                if (navigator.share) await navigator.share({ title: this.post.title, url });
+                else { await navigator.clipboard.writeText(url); this.showMsg("Đã sao chép liên kết!"); }
+            } catch { this.showMsg("Không thể chia sẻ lúc này."); }
         },
     },
     async mounted() {
@@ -710,11 +703,8 @@ export default {
                 this.post = data.data;
                 await this.loadComments();
             }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            this.loading = false;
-        }
+        } catch (err) { console.error(err); }
+        finally { this.loading = false; }
     },
 };
 </script>
