@@ -17,6 +17,27 @@
             </div>
         </div>
 
+        <section class="client-panel atm-contact-panel">
+            <div class="atm-contact-card">
+                <div class="atm-contact-card__eyebrow">Nạp ATM tạm chuyển thủ công</div>
+                <h2>Vui lòng liên hệ admin trong nhóm Zalo</h2>
+                <p>
+                    Hiện tại chức năng nạp ATM tự động đang tạm ngưng. Bạn vui
+                    lòng bấm vào box Zalo bên dưới để liên hệ chủ nhóm/admin hỗ
+                    trợ nạp tiền.
+                </p>
+                <a
+                    class="atm-contact-card__button"
+                    href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Liên hệ qua nhóm Zalo
+                </a>
+            </div>
+        </section>
+
+        <!-- Code nạp ATM tự động cũ được giữ lại để có thể khôi phục sau này.
         <div v-if="loading" class="page-loading">
             <div class="page-loading__spinner"></div>
         </div>
@@ -159,10 +180,16 @@
                 </div>
             </section>
         </div>
+        -->
     </div>
 </template>
 
 <script>
+export default {
+    name: "TopupAtmPage",
+};
+
+/*
 import axios from "axios";
 
 export default {
@@ -312,7 +339,71 @@ export default {
         },
     },
     mounted() {
-        this.loadData();
+        // Tạm ngưng nạp ATM tự động, giữ code cũ để có thể bật lại sau.
+        // this.loadData();
     },
 };
+*/
 </script>
+
+<style scoped>
+.atm-contact-panel {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.atm-contact-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 36px 24px;
+    text-align: center;
+}
+
+.atm-contact-card__eyebrow {
+    color: #8a5a18;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.atm-contact-card h2 {
+    margin: 0;
+    color: #24140b;
+    font-size: clamp(24px, 4vw, 34px);
+    line-height: 1.2;
+}
+
+.atm-contact-card p {
+    max-width: 560px;
+    margin: 0;
+    color: #533a2b;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.atm-contact-card__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 22px;
+    border: 2px solid #159447;
+    border-radius: 6px;
+    background: #1db954;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+.atm-contact-card__button:hover {
+    background: #159447;
+    color: #fff;
+    transform: translateY(-1px);
+}
+</style>

@@ -146,7 +146,7 @@
                         Kích hoạt
                     </button>
                     <a
-                        href="https://zalo.me/g/tkdeeb069"
+                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                         class="action-btn"
                         >Nhóm Zalo</a
                     >
@@ -165,7 +165,7 @@
                         Đổi mật khẩu
                     </button>
                     <a
-                        href="https://zalo.me/g/tkdeeb069"
+                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                         class="action-btn"
                         >Nhóm Zalo</a
                     >
