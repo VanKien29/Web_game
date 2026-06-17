@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\CatalogLookupController;
 use App\Http\Controllers\Api\Admin\CostumeController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\FlyingBoardController;
+use App\Http\Controllers\Api\Admin\GiftBoxController;
 use App\Http\Controllers\Api\Admin\GiftcodeController;
 use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
@@ -96,6 +97,12 @@ Route::prefix('admin')->group(function () {
         Route::put('/api/items/{id}', [ItemController::class, 'update'])->whereNumber('id');
         Route::get('/api/items/search', [CatalogLookupController::class, 'searchItems']);
         Route::get('/api/options', [CatalogLookupController::class, 'options']);
+
+        Route::get('/api/gift-boxes', [GiftBoxController::class, 'index']);
+        Route::post('/api/gift-boxes', [GiftBoxController::class, 'store']);
+        Route::get('/api/gift-boxes/{id}', [GiftBoxController::class, 'show'])->whereNumber('id');
+        Route::post('/api/gift-boxes/{id}', [GiftBoxController::class, 'update'])->whereNumber('id');
+        Route::delete('/api/gift-boxes/{id}', [GiftBoxController::class, 'destroy'])->whereNumber('id');
 
         Route::get('/api/badges', [BadgeController::class, 'index']);
         Route::get('/api/badges/{id}', [BadgeController::class, 'show'])->whereNumber('id');

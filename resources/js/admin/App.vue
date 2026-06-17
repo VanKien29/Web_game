@@ -178,6 +178,17 @@
                     </div>
                     <div class="nav-item">
                         <router-link
+                            to="/admin/gift-boxes"
+                            class="nav-link"
+                            :class="{ active: $route.name === 'admin.gift_boxes' }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">redeem</span>
+                            <span class="text">Hộp quà</span>
+                        </router-link>
+                    </div>
+                    <div class="nav-item">
+                        <router-link
                             to="/admin/badges"
                             class="nav-link"
                             :class="{ active: $route.name === 'admin.badges' }"
@@ -447,6 +458,7 @@ export default {
                 "postForm",
                 "postComments",
                 "items",
+                "giftBoxes",
                 "badges",
                 "costumes",
                 "pets",
