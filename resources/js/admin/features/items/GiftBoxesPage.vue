@@ -332,8 +332,11 @@
                                                 </button>
                                             </div>
                                             <div v-if="reward.option_groups.length" class="option-groups-summary">
-                                                <span v-for="group in reward.option_groups" :key="group._local_id" class="group-pill" :class="{ warn: groupPercentTotal(group) !== 100 }">
-                                                    {{ groupLabel(group) }} · {{ group.entries.length }} lựa chọn · {{ groupPercentTotal(group) }}%
+                                                <span v-for="(group, groupIndex) in reward.option_groups" :key="group._local_id" class="group-pill" :class="{ warn: groupPercentTotal(group) !== 100 }">
+                                                    <span>{{ groupLabel(group) }} · {{ group.entries.length }} lựa chọn · {{ groupPercentTotal(group) }}%</span>
+                                                    <button class="group-pill-remove" type="button" title="Xóa nhóm option" @click.stop="removeOptionGroup(reward, groupIndex)">
+                                                        <span class="mi">close</span>
+                                                    </button>
                                                 </span>
                                             </div>
                                             <div v-if="reward._groups_open" class="option-groups-editor">
@@ -787,6 +790,9 @@ export default {
                 ],
             }));
             reward._groups_open = true;
+        },
+        removeOptionGroup(reward, groupIndex) {
+            reward.option_groups.splice(groupIndex, 1);
         },
         addGroupEntry(group) {
             group.entries.push(this.decorateOptionEntry({
@@ -1591,12 +1597,38 @@ export default {
 .group-pill {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     border: 1px solid rgba(45, 212, 191, 0.22);
     border-radius: 999px;
     background: rgba(45, 212, 191, 0.08);
     color: var(--ds-text);
     padding: 4px 8px;
     font-size: 11px;
+}
+.group-pill-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ds-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+.group-pill-remove .mi {
+    font-size: 13px;
+    line-height: 1;
+}
+.group-pill-remove:hover {
+    background: rgba(var(--ds-danger-rgb), 0.12);
+    color: var(--ds-danger);
 }
 .group-pill.warn {
     border-color: rgba(var(--ds-warning-rgb), 0.34);
