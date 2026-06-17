@@ -48,6 +48,13 @@
                         Giftcode
                     </router-link>
                     <router-link
+                        to="/forum"
+                        class="game-nav__link"
+                        @click="menuOpen = false"
+                    >
+                        Diễn đàn
+                    </router-link>
+                    <router-link
                         to="/nap-atm"
                         class="game-nav__link"
                         @click="menuOpen = false"
@@ -110,7 +117,7 @@
         </header>
 
         <!-- PAGE CONTENT -->
-        <main :class="{ 'inner-page': !isHome }">
+        <main :class="{ 'inner-page': !isHome, 'inner-page--forum': isForum }">
             <router-view v-slot="{ Component }">
                 <transition name="page-switch" mode="out-in">
                     <component :is="Component" />
@@ -143,11 +150,11 @@
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <img
-                        src="/assets/frontend/home/v1/images/rtsc.png"
+                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
                         alt="Logo"
                         class="game-footer__logo"
                     />
-                    <p class="game-footer__brand">NGỌC RỒNG Horizon</p>
+                    <p class="game-footer__brand">Ngọc Rồng Horizon</p>
                     <p class="game-footer__tagline">
                         Game Ngọc Rồng Private Server
                     </p>
@@ -165,7 +172,7 @@
                     </div>
                     <div class="game-footer__socials">
                         <a
-                            href="https://zalo.me/g/tkdeeb069"
+                            href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                             class="social-btn social-btn--zalo"
                             >Zalo</a
                         >
@@ -220,7 +227,7 @@
                 </div>
                 <div class="clickGet m__inline">
                     <a
-                        href="https://zalo.me/g/tkdeeb069"
+                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                         class="a100 f-tahomabold tCenter tUpper dFlex aCenter jCenter"
                         >Nhóm Zalo</a
                     >
@@ -296,10 +303,13 @@ export default {
         isHome() {
             return this.$route.path === "/";
         },
+        isForum() {
+            return this.$route.path.startsWith("/forum");
+        },
         headerLogoSrc() {
             return this.isMobileHeader
                 ? "/assets/frontend/home/v1/images/bannergame.png"
-                : "/assets/frontend/home/v1/images/logo_horizon.png";
+                : "/assets/frontend/home/v1/images/logo_horizon.png?v=2";
         },
     },
     watch: {
@@ -350,6 +360,7 @@ export default {
             prefetchPages([
                 "bxh",
                 "giftcode",
+                "forum",
                 "login",
                 "register",
                 "profile",
@@ -385,3 +396,15 @@ export default {
     },
 };
 </script>
+
+<style>
+.inner-page.inner-page--forum {
+    padding-top: 62px !important;
+}
+
+@media (max-width: 820px) {
+    .inner-page.inner-page--forum {
+        padding-top: 68px !important;
+    }
+}
+</style>

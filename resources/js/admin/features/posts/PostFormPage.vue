@@ -69,13 +69,11 @@
                             ></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Nội dung HTML</label>
-                            <textarea
+                            <label class="form-label">Nội dung</label>
+                            <RichTextEditor
                                 v-model="form.content"
-                                class="form-input content-editor"
-                                rows="18"
-                                placeholder="Nhập nội dung bài viết. Có thể dùng HTML cơ bản."
-                            ></textarea>
+                                placeholder="Soạn nội dung bài viết..."
+                            />
                         </div>
                     </div>
                 </main>
@@ -163,6 +161,7 @@
 </template>
 
 <script>
+import RichTextEditor from "../../components/RichTextEditor.vue";
 import { readJsonResponse } from "../../shared/api";
 
 const emptyForm = () => ({
@@ -179,6 +178,7 @@ const emptyForm = () => ({
 });
 
 export default {
+    components: { RichTextEditor },
     data() {
         return {
             form: emptyForm(),

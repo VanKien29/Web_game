@@ -75,11 +75,11 @@
                         >
                             <img
                                 class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl.png"
+                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl.png?v=2"
                             />
                             <img
                                 class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl-hv.png"
+                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl-hv.png?v=2"
                             />
                         </a>
                     </div>
@@ -253,7 +253,7 @@
                 <div class="container">
                     <div class="main-box-link">
                         <a
-                            href="https://zalo.me/g/tkdeeb069"
+                            href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                             class="item-box-link"
                             data-aos="fade-up"
                             data-aos-delay="400"
@@ -321,16 +321,16 @@
                         ref="featureSlider"
                     >
                         <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser1.jpg?v=2"
+                            src="/assets/frontend/teaser/images/ftgame/teaser1.jpg?v=4"
                         />
                         <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser2.jpg?v=2"
+                            src="/assets/frontend/teaser/images/ftgame/teaser2.jpg?v=4"
                         />
                         <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser3.jpg?v=2"
+                            src="/assets/frontend/teaser/images/ftgame/teaser3.jpg?v=4"
                         />
                         <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser4.jpg?v=2"
+                            src="/assets/frontend/teaser/images/ftgame/teaser4.jpg?v=4"
                         />
                     </div>
                 </div>
@@ -412,3 +412,37 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.box-list-new .tab-content .tab-detail .item-new-box,
+.box-list-new .tab-content .tab-detail .item-new-box:link,
+.box-list-new .tab-content .tab-detail .item-new-box:visited,
+.box-list-new .tab-content .tab-detail .item-new-box .cat-des,
+.box-list-new .tab-content .tab-detail .item-new-box .date-open {
+    color: #1f140d !important;
+    text-shadow: none !important;
+}
+
+.box-list-new .tab-content .tab-detail .item-new-box:hover .cat-des {
+    color: #7b3b09 !important;
+}
+
+.slide__tinhnang {
+    top: 9%;
+    bottom: 9%;
+    overflow: hidden;
+}
+
+.slide__tinhnang :deep(.slick-list),
+.slide__tinhnang :deep(.slick-track),
+.slide__tinhnang :deep(.slick-slide),
+.slide__tinhnang :deep(.slick-slide > div) {
+    height: 100%;
+}
+
+.slide__tinhnang img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+</style>

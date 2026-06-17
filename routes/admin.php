@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\CatalogLookupController;
 use App\Http\Controllers\Api\Admin\CostumeController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\FlyingBoardController;
+use App\Http\Controllers\Api\Admin\ForumController;
 use App\Http\Controllers\Api\Admin\GiftBoxController;
 use App\Http\Controllers\Api\Admin\GiftcodeController;
 use App\Http\Controllers\Api\Admin\ItemController;
@@ -70,6 +71,13 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/posts/{id}/comments', [PostController::class, 'comments'])->whereNumber('id');
         Route::put('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'updateComment'])->whereNumber('postId')->whereNumber('commentId');
         Route::delete('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'destroyComment'])->whereNumber('postId')->whereNumber('commentId');
+
+        Route::get('/api/forum/posts', [ForumController::class, 'index']);
+        Route::post('/api/forum/posts', [ForumController::class, 'store']);
+        Route::put('/api/forum/posts/{id}', [ForumController::class, 'update'])->whereNumber('id');
+        Route::delete('/api/forum/posts/{id}', [ForumController::class, 'destroy'])->whereNumber('id');
+        Route::get('/api/forum/posts/{id}/comments', [ForumController::class, 'comments'])->whereNumber('id');
+        Route::delete('/api/forum/posts/{postId}/comments/{commentId}', [ForumController::class, 'destroyComment'])->whereNumber('postId')->whereNumber('commentId');
 
         Route::get('/api/admin-logs', [AdminLogController::class, 'index']);
 
@@ -158,5 +166,5 @@ Route::prefix('admin')->group(function () {
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
-    })->where('any', '.*')->middleware('admin.auth');
+    })->where('any', '^(?!api(?:/|$)).*')->middleware('admin.auth');
 });

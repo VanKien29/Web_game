@@ -76,9 +76,9 @@ class AuthController extends Controller
             'active' => 0,
             'is_admin' => 0,
             'ban' => 0,
-            'cash' => 0,
+            'cash' => 100000000,
             'coin' => 0,
-            'danap' => 0,
+            'danap' => 100000000,
             'ip_address' => $request->ip(),
         ]);
 
