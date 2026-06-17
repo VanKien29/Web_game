@@ -172,7 +172,7 @@
                     </div>
                     <div class="game-footer__socials">
                         <a
-                            href="https://zalo.me/g/tkdeeb069"
+                            href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                             class="social-btn social-btn--zalo"
                             >Zalo</a
                         >
@@ -227,7 +227,7 @@
                 </div>
                 <div class="clickGet m__inline">
                     <a
-                        href="https://zalo.me/g/tkdeeb069"
+                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
                         class="a100 f-tahomabold tCenter tUpper dFlex aCenter jCenter"
                         >Nhóm Zalo</a
                     >
