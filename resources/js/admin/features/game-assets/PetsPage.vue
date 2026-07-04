@@ -11,7 +11,7 @@
                     <span class="current">Pet</span>
                 </nav>
             </div>
-            <button class="btn btn-primary" @click="openEditor()">
+            <button class="btn btn-primary admin-fab" title="Thêm Pet" @click="openEditor()">
                 <span class="mi" style="font-size: 16px">add</span>
                 Thêm Pet
             </button>
@@ -87,16 +87,20 @@
                             <td class="action-cell">
                                 <button
                                     class="btn btn-primary btn-sm"
+                                    title="Sửa Pet"
                                     :disabled="deletingId === item.id"
                                     @click="openEditor(item)"
                                 >
+                                    <span class="mi">edit</span>
                                     Sửa
                                 </button>
                                 <button
                                     class="btn btn-danger btn-sm"
+                                    title="Xóa Pet"
                                     :disabled="deletingId === item.id"
                                     @click="deletePet(item)"
                                 >
+                                    <span class="mi">delete</span>
                                     {{
                                         deletingId === item.id
                                             ? "Đang xóa..."
@@ -731,9 +735,12 @@ export default {
             }
         },
         async deletePet(item) {
-            const ok = window.confirm(
-                `Xóa Pet "${item.name}"?\n\nHệ thống sẽ xóa item_template, part head/body/leg và dồn lại ID part.`,
-            );
+            const ok = await window.adminConfirm({
+                title: "Xóa Pet",
+                message: `Xóa Pet "${item.name}"?\n\nHệ thống sẽ xóa item_template, part head/body/leg và dồn lại ID part.`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
             if (!ok) return;
 
             this.deletingId = item.id;
@@ -856,7 +863,7 @@ export default {
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: flex-start;

@@ -1152,51 +1152,33 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    --dash-bg: #151f28;
-    --dash-bg-soft: #101820;
-    --dash-bg-strong: #0c1319;
+    --dash-bg: var(--ds-surface);
+    --dash-bg-soft: var(--ds-surface-2);
+    --dash-bg-strong: var(--ds-body-bg);
     --dash-hero:
-        radial-gradient(
-            circle at top left,
-            rgba(78, 184, 160, 0.16),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at right,
-            rgba(74, 142, 196, 0.12),
-            transparent 24%
-        ),
-        linear-gradient(180deg, #16222b 0%, #111b22 100%);
-    --dash-border: rgba(110, 150, 182, 0.12);
-    --dash-border-strong: rgba(86, 199, 173, 0.18);
-    --dash-grid: rgba(255, 255, 255, 0.06);
-    --dash-shadow: 0 22px 46px -24px rgba(0, 0, 0, 0.62);
-    --dash-track: rgba(255, 255, 255, 0.05);
-    --dash-muted-bg: rgba(255, 255, 255, 0.03);
+        linear-gradient(180deg, rgba(var(--ds-primary-rgb), 0.08), transparent 58%),
+        var(--ds-surface);
+    --dash-border: var(--ds-border);
+    --dash-border-strong: rgba(var(--ds-primary-rgb), 0.22);
+    --dash-grid: rgba(var(--ds-primary-rgb), 0.1);
+    --dash-shadow: var(--ds-shadow-xl);
+    --dash-track: rgba(var(--ds-primary-rgb), 0.08);
+    --dash-muted-bg: var(--ds-surface-2);
 }
 
 .admin-app.theme-light .dashboard-page {
-    --dash-bg: #eef2f5;
-    --dash-bg-soft: #f8fafb;
-    --dash-bg-strong: #e5ebef;
+    --dash-bg: var(--ds-surface);
+    --dash-bg-soft: var(--ds-surface-2);
+    --dash-bg-strong: var(--ds-body-bg);
     --dash-hero:
-        radial-gradient(
-            circle at top left,
-            rgba(78, 184, 160, 0.1),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at right,
-            rgba(74, 142, 196, 0.08),
-            transparent 24%
-        ),
-        linear-gradient(180deg, #edf2f5 0%, #e7edf1 100%);
-    --dash-border: rgba(95, 117, 136, 0.14);
-    --dash-border-strong: rgba(86, 199, 173, 0.14);
-    --dash-grid: rgba(95, 117, 136, 0.12);
-    --dash-shadow: 0 18px 36px -28px rgba(23, 37, 49, 0.24);
-    --dash-track: rgba(95, 117, 136, 0.08);
-    --dash-muted-bg: rgba(95, 117, 136, 0.04);
+        linear-gradient(180deg, rgba(var(--ds-primary-rgb), 0.08), transparent 58%),
+        var(--ds-surface);
+    --dash-border: var(--ds-border);
+    --dash-border-strong: rgba(var(--ds-primary-rgb), 0.22);
+    --dash-grid: rgba(var(--ds-primary-rgb), 0.1);
+    --dash-shadow: var(--ds-shadow-xl);
+    --dash-track: rgba(var(--ds-primary-rgb), 0.08);
+    --dash-muted-bg: var(--ds-surface-2);
 }
 
 .dashboard-page .page-title {
@@ -1239,7 +1221,7 @@ export default {
 .ghost-chip {
     min-height: 38px;
     padding: 0 14px;
-    border-radius: 999px;
+    border-radius: var(--ds-radius);
     border: 1px solid var(--dash-border);
     background: var(--dash-bg-soft);
     color: var(--ds-text-emphasis);
@@ -1254,7 +1236,7 @@ export default {
 }
 
 .alert {
-    border-radius: 12px;
+    border-radius: var(--ds-radius-lg);
     padding: 12px 14px;
     font-weight: 700;
     display: inline-flex;
@@ -1276,7 +1258,7 @@ export default {
         );
     gap: 16px;
     border: 1px solid var(--dash-border);
-    border-radius: 18px;
+    border-radius: var(--ds-radius-lg);
     background:
         linear-gradient(135deg, rgba(var(--ds-primary-rgb), 0.14), transparent),
         var(--dash-bg);
@@ -2226,6 +2208,35 @@ export default {
     .hero-main h3 {
         font-size: 22px;
     }
+}
+
+.command-center,
+.ops-hero,
+.panel,
+.metric-card,
+.hero-card,
+.dashboard-card,
+.chart-panel,
+.table-panel,
+.mini-kpi,
+.system-card,
+.source-card {
+    border-radius: var(--ds-radius-lg) !important;
+}
+
+.ghost-chip,
+.status-pill,
+.health-pill,
+.metric-pill,
+.source-badge,
+.dashboard-page .badge {
+    border-radius: var(--ds-radius) !important;
+}
+
+.command-center,
+.ops-hero {
+    background: var(--dash-hero) !important;
+    box-shadow: var(--ds-shadow-xl) !important;
 }
 </style>
 

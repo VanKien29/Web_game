@@ -9,7 +9,7 @@
                     <span class="current">Bài viết</span>
                 </nav>
             </div>
-            <router-link :to="{ name: 'admin.posts.create' }" class="btn btn-primary">
+            <router-link :to="{ name: 'admin.posts.create' }" class="btn btn-primary admin-fab" title="Tạo bài viết">
                 <span class="mi" style="font-size: 16px">add</span>
                 Tạo bài viết
             </router-link>
@@ -98,12 +98,13 @@
                                 <div>{{ formatDate(post.published_at || post.created_at) }}</div>
                                 <div class="post-sub">Tạo: {{ formatDate(post.created_at) }}</div>
                             </td>
-                            <td style="text-align: right">
+                            <td class="action-cell">
                                 <div class="row-actions">
                                     <a
                                         :href="`/post/${post.slug}`"
                                         target="_blank"
                                         class="btn btn-outline btn-sm"
+                                        title="Xem ngoài web"
                                     >
                                         <span class="mi" style="font-size: 14px">open_in_new</span>
                                         Xem
@@ -111,6 +112,7 @@
                                     <router-link
                                         :to="{ name: 'admin.posts.comments', params: { id: post.id } }"
                                         class="btn btn-outline btn-sm"
+                                        title="Xem bình luận"
                                     >
                                         <span class="mi" style="font-size: 14px">forum</span>
                                         Bình luận
@@ -118,6 +120,7 @@
                                     <router-link
                                         :to="{ name: 'admin.posts.edit', params: { id: post.id } }"
                                         class="btn btn-primary btn-sm"
+                                        title="Sửa bài viết"
                                     >
                                         <span class="mi" style="font-size: 14px">edit</span>
                                         Sửa
@@ -125,6 +128,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-danger btn-sm"
+                                        title="Xóa bài viết"
                                         @click="deletePost(post)"
                                     >
                                         <span class="mi" style="font-size: 14px">delete</span>
@@ -230,7 +234,13 @@ export default {
             }
         },
         async deletePost(post) {
-            if (!confirm(`Xóa bài viết "${post.title}" và toàn bộ bình luận của nó?`)) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa bài viết",
+                message: `Xóa bài viết "${post.title}" và toàn bộ bình luận của nó?`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             this.error = "";
             this.success = "";
             try {

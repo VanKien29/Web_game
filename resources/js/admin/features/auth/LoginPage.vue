@@ -112,7 +112,7 @@
                                 cx="350"
                                 cy="50"
                                 r="40"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.05"
                             />
                             <rect
@@ -122,7 +122,7 @@
                                 height="30"
                                 rx="6"
                                 transform="rotate(15 50 300)"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.08"
                             />
 
@@ -133,8 +133,8 @@
                                 width="100"
                                 height="60"
                                 rx="8"
-                                fill="#151515"
-                                stroke="#222"
+                                fill="var(--ds-surface)"
+                                stroke="var(--ds-border)"
                                 stroke-width="1"
                             />
                             <rect
@@ -143,7 +143,7 @@
                                 width="60"
                                 height="6"
                                 rx="3"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.2"
                             />
                             <rect
@@ -152,7 +152,7 @@
                                 width="40"
                                 height="6"
                                 rx="3"
-                                fill="#333"
+                                fill="var(--ds-text-muted)"
                             />
 
                             <rect
@@ -161,15 +161,15 @@
                                 width="80"
                                 height="100"
                                 rx="8"
-                                fill="#151515"
-                                stroke="#222"
+                                fill="var(--ds-surface)"
+                                stroke="var(--ds-border)"
                                 stroke-width="1"
                             />
                             <circle
                                 cx="90"
                                 cy="180"
                                 r="15"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.1"
                             />
                             <rect
@@ -178,7 +178,7 @@
                                 width="40"
                                 height="4"
                                 rx="2"
-                                fill="#333"
+                                fill="var(--ds-text-muted)"
                             />
                             <rect
                                 x="70"
@@ -186,7 +186,7 @@
                                 width="30"
                                 height="4"
                                 rx="2"
-                                fill="#333"
+                                fill="var(--ds-text-muted)"
                             />
 
                             <!-- Character & Laptop (Enhanced) -->
@@ -201,7 +201,7 @@
                                 y="230"
                                 width="160"
                                 height="80"
-                                fill="#0c0c0c"
+                                fill="var(--ds-body-bg)"
                                 stroke="white"
                                 stroke-width="2"
                                 rx="6"
@@ -220,7 +220,7 @@
                             <!-- Lightning 1 -->
                             <path
                                 d="M360 120 L345 150 H370 L355 180"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                             >
                                 <animateTransform
                                     attributeName="transform"
@@ -233,7 +233,7 @@
                             <!-- Lightning 2 -->
                             <path
                                 d="M130 80 L120 100 H135 L125 120"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.6"
                             >
                                 <animateTransform
@@ -248,7 +248,7 @@
                             <!-- Data Waves -->
                             <path
                                 d="M100 50 Q120 30 140 50 T180 50"
-                                stroke="#3ddc84"
+                                stroke="var(--ds-primary)"
                                 stroke-width="2"
                                 fill="none"
                                 opacity="0.4"
@@ -269,21 +269,21 @@
                                 width="10"
                                 height="10"
                                 rx="2"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.5"
                             />
                             <circle
                                 cx="395"
                                 cy="275"
                                 r="4"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.3"
                             />
                             <circle
                                 cx="375"
                                 cy="285"
                                 r="3"
-                                fill="#3ddc84"
+                                fill="var(--ds-primary)"
                                 opacity="0.2"
                             />
                         </svg>
@@ -340,12 +340,12 @@ export default {
 <style scoped>
 .login-container {
     min-height: 100vh;
-    background-color: #080808;
-    color: #fff;
+    background-color: var(--ds-body-bg);
+    color: var(--ds-text);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-sans);
     padding: 20px;
 }
 
@@ -368,19 +368,20 @@ export default {
 
 .home-btn {
     text-decoration: none;
-    color: #3ddc84;
+    color: var(--ds-primary);
     font-size: 14px;
     font-weight: 600;
     padding: 8px 16px;
-    border: 1px solid rgba(61, 220, 132, 0.3);
-    border-radius: 8px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
     transition: all 0.3s;
-    background: rgba(61, 220, 132, 0.05);
+    background: var(--ds-surface);
 }
 
 .home-btn:hover {
-    background: #3ddc84;
-    color: #000;
+    background: var(--ds-primary);
+    border-color: var(--ds-primary);
+    color: var(--primary-foreground);
 }
 
 .home-btn i {
@@ -396,19 +397,19 @@ export default {
 .brand-logo {
     width: 42px;
     height: 42px;
-    background-color: #3ddc84;
-    border-radius: 50%;
+    background-color: var(--ds-primary);
+    border-radius: var(--ds-radius);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 6px;
-    box-shadow: 0 0 15px rgba(61, 220, 132, 0.3);
+    box-shadow: var(--ds-shadow-sm);
 }
 
 .brand-text {
     font-size: 22px;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 0;
 }
 
 .trustpilot-box {
@@ -421,7 +422,7 @@ export default {
 .testimonial {
     font-size: 13px;
     font-style: italic;
-    color: #888;
+    color: var(--ds-text-muted);
     text-align: right;
     line-height: 1.4;
 }
@@ -434,8 +435,8 @@ export default {
 .user-avatars img {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    border: 2px solid #000;
+    border-radius: var(--ds-radius);
+    border: 2px solid var(--ds-surface);
     margin-left: -10px;
 }
 
@@ -446,7 +447,7 @@ export default {
 }
 
 .stars {
-    color: #3ddc84;
+    color: var(--ds-primary);
     font-size: 14px;
 }
 
@@ -454,7 +455,7 @@ export default {
     font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--ds-text-emphasis);
 }
 
 /* Main Content */
@@ -468,11 +469,11 @@ export default {
 
 .form-wrapper {
     flex: 1;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 16px;
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
     padding: 50px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--ds-shadow-xl);
     max-width: 500px;
 }
 
@@ -487,7 +488,7 @@ export default {
 }
 
 .subtitle {
-    color: #666;
+    color: var(--ds-text-muted);
     font-size: 16px;
     margin-bottom: 40px;
 }
@@ -499,26 +500,26 @@ export default {
 .input-group label {
     display: block;
     font-size: 14px;
-    color: #aaa;
+    color: var(--ds-text);
     margin-bottom: 10px;
 }
 
 .input-group input {
     width: 100%;
     padding: 15px 20px;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 10px;
-    color: #fff;
+    background: var(--ds-input-bg);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    color: var(--ds-text-emphasis);
     font-size: 15px;
     transition: all 0.3s;
 }
 
 .input-group input:focus {
-    border-color: #3ddc84;
-    background: #202020;
+    border-color: var(--ring);
+    background: var(--ds-input-bg);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--ds-primary-rgb), 0.16);
 }
 
 .password-wrapper {
@@ -532,7 +533,7 @@ export default {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #444;
+    color: var(--ds-text-muted);
     cursor: pointer;
     width: 20px;
 }
@@ -550,12 +551,12 @@ export default {
     gap: 10px;
     cursor: pointer;
     font-size: 14px;
-    color: #888;
+    color: var(--ds-text-muted);
 }
 
 .checkbox-label input:checked + .custom-checkbox {
-    background-color: #3ddc84;
-    border-color: #3ddc84;
+    background-color: var(--ds-primary);
+    border-color: var(--ds-primary);
 }
 
 .checkbox-label input {
@@ -565,40 +566,40 @@ export default {
 .custom-checkbox {
     width: 18px;
     height: 18px;
-    border: 1px solid #444;
-    border-radius: 4px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
     display: inline-block;
     transition: all 0.2s;
 }
 
 .forgot-link {
-    color: #888;
+    color: var(--ds-text-muted);
     text-decoration: none;
     font-size: 14px;
 }
 
 .forgot-link:hover {
-    color: #3ddc84;
+    color: var(--ds-primary);
 }
 
 .submit-btn {
     width: 100%;
     padding: 18px;
-    background-color: #3ddc84;
-    color: #000;
+    background-color: var(--ds-primary);
+    color: var(--primary-foreground);
     border: none;
-    border-radius: 10px;
+    border-radius: var(--ds-radius);
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(61, 220, 132, 0.2);
+    box-shadow: var(--ds-shadow-sm);
 }
 
 .submit-btn:hover {
-    background-color: #32c473;
+    background-color: var(--ds-primary-darker);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(61, 220, 132, 0.3);
+    box-shadow: var(--ds-shadow-xl);
 }
 
 .submit-btn:active {
@@ -606,13 +607,13 @@ export default {
 }
 
 .error-msg {
-    color: #ff4d4d;
-    background: rgba(255, 77, 77, 0.1);
+    color: var(--ds-danger);
+    background: rgba(var(--ds-danger-rgb), 0.1);
     padding: 12px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius);
     margin-bottom: 20px;
     font-size: 14px;
-    border-left: 4px solid #ff4d4d;
+    border-left: 4px solid var(--ds-danger);
 }
 
 /* Illustration */
@@ -631,7 +632,7 @@ export default {
 .main-svg {
     width: 100%;
     height: auto;
-    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 20px 30px rgba(62, 39, 35, 0.16));
 }
 
 /* Footer */
@@ -639,13 +640,13 @@ export default {
     display: flex;
     justify-content: space-between;
     padding: 30px 0;
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--ds-border);
     font-size: 14px;
-    color: #666;
+    color: var(--ds-text-muted);
 }
 
 .create-link {
-    color: #3ddc84;
+    color: var(--ds-primary);
     text-decoration: none;
     font-weight: 600;
 }
@@ -655,7 +656,7 @@ export default {
 }
 
 .phone {
-    color: #ccc;
+    color: var(--ds-text-emphasis);
     font-weight: 600;
     margin-left: 5px;
 }

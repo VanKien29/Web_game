@@ -624,13 +624,13 @@ export default {
         },
         async revokeInventory() {
             if (!this.selectedId) return;
-            if (
-                !window.confirm(
-                    "Thu hồi item này khỏi nhân vật? Thao tác này sẽ ghi trực tiếp vào DB.",
-                )
-            ) {
-                return;
-            }
+            const ok = await window.adminConfirm({
+                title: "Thu hồi vật phẩm",
+                message: "Thu hồi item này khỏi nhân vật? Thao tác này sẽ ghi trực tiếp vào DB.",
+                tone: "danger",
+                confirmText: "Thu hồi",
+            });
+            if (!ok) return;
             this.inventorySaving = true;
             this.error = "";
             try {
@@ -866,7 +866,7 @@ td:nth-child(5) {
     width: 96px;
 }
 th {
-    color: #99bee8;
+    color: var(--ds-text-muted);
     font-size: 12px;
     text-transform: uppercase;
 }
@@ -910,7 +910,7 @@ tbody tr.active {
     border: 1px solid var(--ds-border);
     border-radius: 8px;
     padding: 14px;
-    background: rgba(8, 13, 18, 0.26);
+    background: var(--ds-surface-2);
 }
 .global-search-form {
     display: grid;
@@ -933,13 +933,14 @@ tbody tr.active {
     border: 1px solid var(--ds-border);
     border-radius: 8px;
     padding: 8px;
-    background: rgba(11, 17, 23, 0.72);
+    background: var(--ds-surface);
     color: var(--ds-text);
     text-align: left;
     cursor: pointer;
 }
 .global-result:hover {
     border-color: var(--ds-primary);
+    background: rgba(var(--ds-primary-rgb), 0.06);
 }
 .global-result strong {
     color: var(--ds-text-emphasis);
@@ -969,7 +970,11 @@ tbody tr.active {
     border: 1px solid var(--ds-border);
     border-radius: 8px;
     padding: 14px;
-    background: rgba(8, 13, 18, 0.32);
+    background: var(--ds-surface-2);
+}
+.danger-box {
+    border-color: rgba(var(--ds-danger-rgb), 0.26);
+    background: rgba(var(--ds-danger-rgb), 0.06);
 }
 .tool-title {
     display: flex;
@@ -1003,6 +1008,7 @@ tbody tr.active {
     border: 1px solid var(--ds-border);
     border-radius: 8px;
     overflow: hidden;
+    background: var(--ds-surface);
 }
 .location-tabs button {
     border: 0;
@@ -1014,7 +1020,7 @@ tbody tr.active {
 }
 .location-tabs button.active {
     background: rgba(var(--ds-primary-rgb), 0.18);
-    color: var(--ds-primary-lighter);
+    color: var(--ds-primary);
 }
 .inventory-grid {
     display: grid;
@@ -1034,11 +1040,12 @@ tbody tr.active {
     border: 1px solid var(--ds-border);
     border-radius: 8px;
     padding: 12px;
-    background: rgba(11, 17, 23, 0.5);
+    background: var(--ds-surface);
     cursor: pointer;
 }
 .inventory-slot:hover {
     border-color: var(--ds-primary);
+    background: rgba(var(--ds-primary-rgb), 0.06);
 }
 .inventory-slot.empty {
     opacity: 0.58;

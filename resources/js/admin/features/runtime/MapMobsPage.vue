@@ -1508,11 +1508,16 @@ export default {
             this.success = `Đã hoàn tác: ${entry.label}`;
             this.error = "";
         },
-        resetMapEdit() {
+        async resetMapEdit() {
             if (!this.selectedMap) return;
             if (
                 this.hasMapChanges &&
-                !confirm("Reset toàn bộ thay đổi chưa lưu của map này?")
+                !(await window.adminConfirm({
+                    title: "Reset thay đổi",
+                    message: "Reset toàn bộ thay đổi chưa lưu của map này?",
+                    tone: "danger",
+                    confirmText: "Reset",
+                }))
             ) {
                 return;
             }
@@ -1580,10 +1585,15 @@ export default {
                 this.loading = false;
             }
         },
-        selectMap(map) {
+        async selectMap(map) {
             if (
                 this.hasMapChanges &&
-                !confirm("Map hiện tại có thay đổi chưa lưu. Chuyển map và bỏ thay đổi?")
+                !(await window.adminConfirm({
+                    title: "Bỏ thay đổi chưa lưu",
+                    message: "Map hiện tại có thay đổi chưa lưu. Chuyển map và bỏ thay đổi?",
+                    tone: "danger",
+                    confirmText: "Chuyển map",
+                }))
             ) {
                 return;
             }
@@ -2457,7 +2467,7 @@ select.form-input option {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
 }
 .picker-panel {

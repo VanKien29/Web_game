@@ -9,7 +9,7 @@
                     <span class="current">Hộp quà</span>
                 </nav>
             </div>
-            <button class="btn btn-primary" type="button" @click="openCreate">
+            <button class="btn btn-primary admin-fab" type="button" title="Tạo hộp quà" @click="openCreate">
                 <span class="mi" style="font-size: 16px">add</span>
                 Tạo hộp quà
             </button>
@@ -66,11 +66,11 @@
                                 </span>
                             </td>
                             <td class="action-cell">
-                                <button class="btn btn-primary btn-sm" type="button" @click="openEdit(box.id)">
+                                <button class="btn btn-primary btn-sm" type="button" title="Sửa hộp quà" @click="openEdit(box.id)">
                                     <span class="mi" style="font-size: 14px">edit</span>
                                     Sửa
                                 </button>
-                                <button class="btn btn-outline btn-sm" type="button" @click="deleteBox(box)">
+                                <button class="btn btn-danger btn-sm" type="button" title="Xóa hộp quà" @click="deleteBox(box)">
                                     <span class="mi" style="font-size: 14px">delete</span>
                                 </button>
                             </td>
@@ -1023,7 +1023,13 @@ export default {
             }
         },
         async deleteBox(box) {
-            if (!confirm(`Xóa cấu hình hộp quà "${box.name}"? Item template #${box.item_id} vẫn được giữ lại.`)) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa hộp quà",
+                message: `Xóa cấu hình hộp quà "${box.name}"? Item template #${box.item_id} vẫn được giữ lại.`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             try {
                 const res = await fetch(`/admin/api/gift-boxes/${box.id}`, {
                     method: "DELETE",
@@ -1218,7 +1224,7 @@ export default {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
 }
 .editor-panel {
@@ -1583,9 +1589,9 @@ export default {
     z-index: 120;
     width: fit-content;
     max-width: 100%;
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    border: 1px solid var(--ds-border);
     border-radius: 8px;
-    background: rgba(2, 6, 12, 0.42);
+    background: var(--ds-surface-2);
     padding: 7px;
 }
 .option-groups-summary {
@@ -1639,7 +1645,7 @@ export default {
     margin-top: 10px;
     border: 1px solid var(--ds-border);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--ds-surface-2);
     padding: 10px;
 }
 .group-toolbar {
@@ -1730,9 +1736,9 @@ export default {
     flex-wrap: wrap;
     position: relative;
     z-index: 80;
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    border: 1px solid var(--ds-border);
     border-radius: 8px;
-    background: rgba(2, 6, 12, 0.34);
+    background: var(--ds-surface);
     padding: 6px;
 }
 .entry-option-search {

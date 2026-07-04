@@ -267,6 +267,16 @@ class GameAssetService
             }
         }
 
+        if (Schema::connection('game')->hasTable('npc_template')) {
+            $npcAvatarIds = $game->table('npc_template')
+                ->whereIn('avatar', $iconIds)
+                ->pluck('avatar')
+                ->all();
+            foreach ($npcAvatarIds as $iconId) {
+                $referenced[(int) $iconId] = true;
+            }
+        }
+
         if (Schema::connection('game')->hasTable('part')) {
             foreach ($game->table('part')->get(['DATA']) as $part) {
                 foreach ($this->decodePartData($part->DATA ?? '') as $layer) {
@@ -626,6 +636,12 @@ class GameAssetService
 
         if (Schema::connection('game')->hasTable('head_avatar')) {
             foreach ($game->table('head_avatar')->where('avatar_id', '>', 0)->pluck('avatar_id') as $iconId) {
+                $remember($iconId);
+            }
+        }
+
+        if (Schema::connection('game')->hasTable('npc_template')) {
+            foreach ($game->table('npc_template')->where('avatar', '>', 0)->pluck('avatar') as $iconId) {
                 $remember($iconId);
             }
         }

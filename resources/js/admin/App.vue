@@ -135,6 +135,17 @@
                     </div>
                     <div class="nav-item">
                         <router-link
+                            to="/admin/npcs"
+                            class="nav-link"
+                            :class="{ active: $route.name === 'admin.npcs' }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">support_agent</span>
+                            <span class="text">NPC</span>
+                        </router-link>
+                    </div>
+                    <div class="nav-item">
+                        <router-link
                             to="/admin/runtime-buffs"
                             class="nav-link"
                             :class="{
@@ -374,6 +385,80 @@
                 <div class="admin-loading-spinner"></div>
             </div>
         </transition>
+
+        <div class="admin-toast-stack" aria-live="polite" aria-atomic="true">
+            <transition-group name="admin-toast">
+                <div
+                    v-for="toast in toasts"
+                    :key="toast.id"
+                    class="admin-toast"
+                    :class="'admin-toast--' + toast.type"
+                >
+                    <span class="mi admin-toast__icon">{{
+                        toastIcon(toast.type)
+                    }}</span>
+                    <div class="admin-toast__body">
+                        <strong>{{ toastTitle(toast.type) }}</strong>
+                        <span>{{ toast.message }}</span>
+                    </div>
+                    <button
+                        type="button"
+                        class="admin-toast__close"
+                        title="Đóng"
+                        @click="dismissToast(toast.id)"
+                    >
+                        <span class="mi">close</span>
+                    </button>
+                </div>
+            </transition-group>
+        </div>
+
+        <transition name="admin-confirm-fade">
+            <div
+                v-if="confirmDialog.open"
+                class="admin-confirm-overlay"
+                @click.self="resolveAdminConfirm(false)"
+            >
+                <section
+                    class="admin-confirm-panel"
+                    :class="'admin-confirm-panel--' + confirmDialog.tone"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="admin-confirm-title"
+                >
+                    <div class="admin-confirm-icon">
+                        <span class="mi">{{ confirmIcon(confirmDialog.tone) }}</span>
+                    </div>
+                    <div class="admin-confirm-content">
+                        <h3 id="admin-confirm-title">
+                            {{ confirmDialog.title }}
+                        </h3>
+                        <p>{{ confirmDialog.message }}</p>
+                    </div>
+                    <div class="admin-confirm-actions">
+                        <button
+                            type="button"
+                            class="btn btn-outline"
+                            @click="resolveAdminConfirm(false)"
+                        >
+                            {{ confirmDialog.cancelText }}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn"
+                            :class="
+                                confirmDialog.tone === 'danger'
+                                    ? 'btn-danger'
+                                    : 'btn-primary'
+                            "
+                            @click="resolveAdminConfirm(true)"
+                        >
+                            {{ confirmDialog.confirmText }}
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -382,10 +467,18 @@ import { prefetchAdminPages } from "./router";
 
 export default {
     data() {
+        const themeVersion = "forest-earth-v1";
+        const savedThemeVersion = localStorage.getItem("adminThemeVersion");
+        let savedTheme = localStorage.getItem("adminTheme");
+        if (savedThemeVersion !== themeVersion) {
+            savedTheme = "light";
+            localStorage.setItem("adminTheme", savedTheme);
+            localStorage.setItem("adminThemeVersion", themeVersion);
+        }
         return {
             sidebarCollapsed:
                 localStorage.getItem("sidebarCollapsed") === "true",
-            theme: localStorage.getItem("adminTheme") || "dark",
+            theme: savedTheme === "dark" ? "dark" : "light",
             adminUser: null,
             showUserMenu: false,
             scrollLockObserver: null,
@@ -394,6 +487,21 @@ export default {
             bootLoading: true,
             routeLoading: false,
             routeLoadingTimer: null,
+            toasts: [],
+            toastSeed: 0,
+            toastTimers: {},
+            alertObserver: null,
+            previousAdminNotify: null,
+            previousAdminConfirm: null,
+            confirmDialog: {
+                open: false,
+                title: "Xác nhận thao tác",
+                message: "",
+                tone: "danger",
+                confirmText: "Xác nhận",
+                cancelText: "Hủy",
+                resolve: null,
+            },
         };
     },
     computed: {
@@ -438,6 +546,8 @@ export default {
             attributeFilter: ["class", "style"],
         });
         this.updateScrollLock();
+        this.installAdminFeedbackBridge();
+        this.observeAdminAlerts();
 
         this._onAdminRouteLoading = (event) => {
             const loading = !!event.detail?.loading;
@@ -504,6 +614,16 @@ export default {
             this._onAdminRouteLoading,
         );
         window.clearTimeout(this.routeLoadingTimer);
+        if (this.alertObserver) {
+            this.alertObserver.disconnect();
+            this.alertObserver = null;
+        }
+        Object.values(this.toastTimers).forEach((timer) =>
+            window.clearTimeout(timer),
+        );
+        window.removeEventListener("admin-notify", this.onAdminNotify);
+        window.adminNotify = this.previousAdminNotify;
+        window.adminConfirm = this.previousAdminConfirm;
         this.unlockBodyScroll();
     },
     methods: {
@@ -532,11 +652,11 @@ export default {
         },
         applyBodyBg() {
             document.body.style.background =
-                this.theme === "dark" ? "#0f1418" : "#e7ecef";
+                this.theme === "dark" ? "#1c2a1f" : "#f8f5f0";
         },
         updateScrollLock() {
             const hasFloatingMenu = !!document.querySelector(
-                ".admin-app .modal-overlay, .admin-app .picker-overlay",
+                ".admin-app .modal-overlay, .admin-app .picker-overlay, .admin-app .admin-confirm-overlay",
             );
             if (hasFloatingMenu) {
                 this.lockBodyScroll();
@@ -602,6 +722,130 @@ export default {
                 ? boundary
                 : null;
         },
+        installAdminFeedbackBridge() {
+            this.previousAdminNotify = window.adminNotify;
+            this.previousAdminConfirm = window.adminConfirm;
+            window.adminNotify = (message, type = "success", options = {}) =>
+                this.pushToast(message, type, options);
+            window.adminConfirm = (input) => this.openAdminConfirm(input);
+            window.addEventListener("admin-notify", this.onAdminNotify);
+        },
+        observeAdminAlerts() {
+            this.alertObserver = new MutationObserver(() =>
+                this.captureAdminAlerts(),
+            );
+            this.alertObserver.observe(this.$el, {
+                childList: true,
+                subtree: true,
+                characterData: true,
+            });
+            this.$nextTick(() => this.captureAdminAlerts());
+        },
+        onAdminNotify(event) {
+            const detail = event.detail || {};
+            this.pushToast(
+                detail.message || detail.text || "",
+                detail.type || "success",
+                detail,
+            );
+        },
+        captureAdminAlerts() {
+            this.$el
+                .querySelectorAll(".alert-success, .alert-error")
+                .forEach((node) => {
+                    const message = String(node.textContent || "").trim();
+                    if (!message) return;
+                    const type = node.classList.contains("alert-error")
+                        ? "error"
+                        : "success";
+                    const key = `${type}:${message}`;
+                    if (node.getAttribute("data-admin-toast-key") === key) return;
+                    node.setAttribute("data-admin-toast-key", key);
+                    this.pushToast(message, type);
+                });
+        },
+        pushToast(message, type = "success", options = {}) {
+            const text = String(message || "").trim();
+            if (!text) return null;
+            const normalizedType = ["success", "error", "warning", "info"].includes(
+                type,
+            )
+                ? type
+                : "info";
+            const id = ++this.toastSeed;
+            this.toasts.push({
+                id,
+                type: normalizedType,
+                message: text,
+            });
+            const timeout = Number(options.timeout ?? 3000);
+            if (timeout > 0) {
+                this.toastTimers[id] = window.setTimeout(
+                    () => this.dismissToast(id),
+                    timeout,
+                );
+            }
+            return id;
+        },
+        dismissToast(id) {
+            if (this.toastTimers[id]) {
+                window.clearTimeout(this.toastTimers[id]);
+                delete this.toastTimers[id];
+            }
+            this.toasts = this.toasts.filter((toast) => toast.id !== id);
+        },
+        toastIcon(type) {
+            return {
+                success: "check_circle",
+                error: "error",
+                warning: "warning",
+                info: "info",
+            }[type || "info"];
+        },
+        toastTitle(type) {
+            return {
+                success: "Thành công",
+                error: "Có lỗi",
+                warning: "Cần chú ý",
+                info: "Thông báo",
+            }[type || "info"];
+        },
+        openAdminConfirm(input) {
+            const options =
+                typeof input === "string" ? { message: input } : input || {};
+            if (this.confirmDialog.resolve) {
+                this.confirmDialog.resolve(false);
+            }
+            const message = String(options.message || "").trim();
+            const destructiveWords = /(xóa|xoá|thu hồi|reset|bỏ thay đổi)/i;
+            const tone =
+                options.tone || (destructiveWords.test(message) ? "danger" : "primary");
+            return new Promise((resolve) => {
+                this.confirmDialog = {
+                    open: true,
+                    title: options.title || "Xác nhận thao tác",
+                    message,
+                    tone,
+                    confirmText:
+                        options.confirmText ||
+                        (tone === "danger" ? "Xác nhận" : "Đồng ý"),
+                    cancelText: options.cancelText || "Hủy",
+                    resolve,
+                };
+            });
+        },
+        resolveAdminConfirm(value) {
+            const resolve = this.confirmDialog.resolve;
+            this.confirmDialog = {
+                ...this.confirmDialog,
+                open: false,
+                resolve: null,
+            };
+            if (resolve) resolve(!!value);
+        },
+        confirmIcon(tone) {
+            return tone === "danger" ? "priority_high" : "help";
+        },
         async fetchUser() {
             try {
                 const res = await fetch("/admin/api/me", {
@@ -636,48 +880,216 @@ export default {
 
 <style>
 /* ═══════════════════════════════════════
-   DASHER-INSPIRED ADMIN THEME (Dark)
+   ADMIN THEME TOKENS
    ═══════════════════════════════════════ */
 
 /* ── CSS Variables ── */
 :root {
-    --ds-primary: #4b9e8b;
-    --ds-primary-rgb: 75, 158, 139;
-    --ds-primary-lighter: #8fd3c4;
-    --ds-primary-darker: #327061;
-    --ds-primary-soft: #70b8a8;
-    --ds-danger: #d05c5c;
-    --ds-danger-rgb: 208, 92, 92;
-    --ds-warning: #d5a042;
-    --ds-warning-rgb: 213, 160, 66;
-    --ds-info: #4aa8b4;
-    --ds-info-rgb: 74, 168, 180;
-    --ds-success: #58ac74;
-    --ds-success-rgb: 88, 172, 116;
+    --card: #f8f5f0;
+    --ring: #2e7d32;
+    --input: #e0d6c9;
+    --muted: #f0e9e0;
+    --accent: #c8e6c9;
+    --border: #e0d6c9;
+    --radius: 0.5rem;
+    --chart-1: #4caf50;
+    --chart-2: #388e3c;
+    --chart-3: #2e7d32;
+    --chart-4: #1b5e20;
+    --chart-5: #0a1f0c;
+    --popover: #f8f5f0;
+    --primary: #2e7d32;
+    --sidebar: #f0e9e0;
+    --font-mono: "Source Code Pro", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --font-sans: Montserrat, "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+    --secondary: #e8f5e9;
+    --background: #f8f5f0;
+    --font-serif: Merriweather, Georgia, serif;
+    --foreground: #3e2723;
+    --destructive: #c62828;
+    --sidebar-ring: #2e7d32;
+    --sidebar-accent: #c8e6c9;
+    --sidebar-border: #e0d6c9;
+    --card-foreground: #3e2723;
+    --sidebar-primary: #2e7d32;
+    --muted-foreground: #6d4c41;
+    --accent-foreground: #1b5e20;
+    --popover-foreground: #3e2723;
+    --primary-foreground: #ffffff;
+    --sidebar-foreground: #3e2723;
+    --secondary-foreground: #1b5e20;
+    --destructive-foreground: #ffffff;
+    --sidebar-accent-foreground: #1b5e20;
+    --sidebar-primary-foreground: #ffffff;
 
-    --ds-gray-100: #172029;
-    --ds-gray-200: #202c37;
-    --ds-gray-300: #2e3c49;
-    --ds-gray-400: #5e7488;
-    --ds-gray-500: #8093a3;
-    --ds-gray-600: #a8b5c0;
-    --ds-gray-700: #c4cdd5;
-    --ds-gray-800: #dce3e8;
-    --ds-gray-900: #edf2f6;
+    --color-card: var(--card);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-muted: var(--muted);
+    --color-accent: var(--accent);
+    --color-border: var(--border);
+    --color-radius: var(--radius);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-popover: var(--popover);
+    --color-primary: var(--primary);
+    --color-sidebar: var(--sidebar);
+    --color-font-mono: var(--font-mono);
+    --color-font-sans: var(--font-sans);
+    --color-secondary: var(--secondary);
+    --color-background: var(--background);
+    --color-font-serif: var(--font-serif);
+    --color-foreground: var(--foreground);
+    --color-destructive: var(--destructive);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-card-foreground: var(--card-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
 
-    --ds-body-bg: #0f1418;
-    --ds-surface: #151d25;
-    --ds-surface-2: #1b2530;
-    --ds-border: rgba(94, 116, 136, 0.38);
-    --ds-text: #b6c2cd;
-    --ds-text-emphasis: #eef3f7;
-    --ds-text-muted: #8a9fb2;
+    --ds-primary: var(--primary);
+    --ds-primary-rgb: 46, 125, 50;
+    --ds-primary-lighter: #4caf50;
+    --ds-primary-darker: #1b5e20;
+    --ds-primary-soft: var(--accent);
+    --ds-danger: var(--destructive);
+    --ds-danger-rgb: 198, 40, 40;
+    --ds-warning: #9f6b16;
+    --ds-warning-rgb: 159, 107, 22;
+    --ds-info: #388e3c;
+    --ds-info-rgb: 56, 142, 60;
+    --ds-success: #2e7d32;
+    --ds-success-rgb: 46, 125, 50;
+
+    --ds-gray-100: var(--muted);
+    --ds-gray-200: #e9dfd4;
+    --ds-gray-300: var(--input);
+    --ds-gray-400: #b8a99b;
+    --ds-gray-500: #8d7668;
+    --ds-gray-600: var(--muted-foreground);
+    --ds-gray-700: #5d4037;
+    --ds-gray-800: var(--foreground);
+    --ds-gray-900: #241612;
+
+    --ds-body-bg: var(--background);
+    --ds-surface: var(--card);
+    --ds-surface-2: var(--muted);
+    --ds-muted: var(--muted);
+    --ds-accent: var(--accent);
+    --ds-popover: var(--popover);
+    --ds-input-bg: rgba(255, 252, 247, 0.72);
+    --ds-border: var(--border);
+    --ds-text: var(--foreground);
+    --ds-text-emphasis: #271511;
+    --ds-text-muted: var(--muted-foreground);
+    --ds-sidebar-bg: var(--sidebar);
+    --ds-sidebar-border: var(--sidebar-border);
+    --ds-topbar-bg: rgba(248, 245, 240, 0.9);
+    --ds-overlay-bg: rgba(62, 39, 35, 0.28);
 
     --ds-shadow-xl:
-        0 0 2px 0 rgba(0, 0, 0, 0.2), 0 12px 24px -4px rgba(0, 0, 0, 0.12);
-    --ds-shadow-sm: 0 4px 8px 0 rgba(0, 0, 0, 0.16);
-    --ds-radius: 0.75rem;
-    --ds-radius-lg: 1rem;
+        0 1px 2px rgba(62, 39, 35, 0.08), 0 12px 28px -24px rgba(62, 39, 35, 0.28);
+    --ds-shadow-sm: 0 8px 18px -14px rgba(62, 39, 35, 0.28);
+    --ds-radius: 4px;
+    --ds-radius-lg: 8px;
+}
+
+.admin-app.theme-light {
+    color-scheme: light;
+}
+
+.dark,
+.admin-app.theme-dark {
+    --card: #2d3a2e;
+    --ring: #4caf50;
+    --input: #3e4a3d;
+    --muted: #252f26;
+    --accent: #388e3c;
+    --border: #3e4a3d;
+    --radius: 0.5rem;
+    --chart-1: #81c784;
+    --chart-2: #66bb6a;
+    --chart-3: #4caf50;
+    --chart-4: #43a047;
+    --chart-5: #388e3c;
+    --popover: #2d3a2e;
+    --primary: #4caf50;
+    --sidebar: #1c2a1f;
+    --secondary: #3e4a3d;
+    --background: #1c2a1f;
+    --foreground: #f0ebe5;
+    --destructive: #c62828;
+    --sidebar-ring: #4caf50;
+    --sidebar-accent: #388e3c;
+    --sidebar-border: #3e4a3d;
+    --card-foreground: #f0ebe5;
+    --sidebar-primary: #4caf50;
+    --muted-foreground: #d7cfc4;
+    --accent-foreground: #f0ebe5;
+    --popover-foreground: #f0ebe5;
+    --primary-foreground: #0a1f0c;
+    --sidebar-foreground: #f0ebe5;
+    --secondary-foreground: #d7e0d6;
+    --destructive-foreground: #f0ebe5;
+    --sidebar-accent-foreground: #f0ebe5;
+    --sidebar-primary-foreground: #0a1f0c;
+
+    --ds-primary: var(--primary);
+    --ds-primary-rgb: 76, 175, 80;
+    --ds-primary-lighter: #81c784;
+    --ds-primary-darker: #388e3c;
+    --ds-primary-soft: var(--accent);
+    --ds-danger: var(--destructive);
+    --ds-danger-rgb: 198, 40, 40;
+    --ds-warning: #d7b46a;
+    --ds-warning-rgb: 215, 180, 106;
+    --ds-info: #66bb6a;
+    --ds-info-rgb: 102, 187, 106;
+    --ds-success: #81c784;
+    --ds-success-rgb: 129, 199, 132;
+
+    --ds-gray-100: var(--muted);
+    --ds-gray-200: #2d382e;
+    --ds-gray-300: var(--input);
+    --ds-gray-400: #596756;
+    --ds-gray-500: #8c9988;
+    --ds-gray-600: var(--muted-foreground);
+    --ds-gray-700: #e0d8ce;
+    --ds-gray-800: var(--foreground);
+    --ds-gray-900: #ffffff;
+
+    --ds-body-bg: var(--background);
+    --ds-surface: var(--card);
+    --ds-surface-2: var(--muted);
+    --ds-muted: var(--muted);
+    --ds-accent: var(--accent);
+    --ds-popover: var(--popover);
+    --ds-input-bg: rgba(37, 47, 38, 0.72);
+    --ds-border: var(--border);
+    --ds-text: var(--foreground);
+    --ds-text-emphasis: #fff8ef;
+    --ds-text-muted: var(--muted-foreground);
+    --ds-sidebar-bg: var(--sidebar);
+    --ds-sidebar-border: var(--sidebar-border);
+    --ds-topbar-bg: rgba(28, 42, 31, 0.9);
+    --ds-overlay-bg: rgba(10, 31, 12, 0.58);
+
+    --ds-shadow-xl:
+        0 1px 2px rgba(0, 0, 0, 0.22), 0 16px 34px -26px rgba(0, 0, 0, 0.5);
+    --ds-shadow-sm: 0 8px 18px -14px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
 }
 
 /* ── Reset & Base ── */
@@ -689,11 +1101,7 @@ export default {
     padding: 0;
 }
 .admin-app {
-    font-family:
-        "Inter",
-        system-ui,
-        -apple-system,
-        sans-serif;
+    font-family: var(--font-sans);
     background: var(--ds-body-bg);
     color: var(--ds-text);
     min-height: 100vh;
@@ -750,7 +1158,7 @@ body.admin-scroll-lock {
     z-index: 7000 !important;
     max-height: min(320px, 52vh) !important;
     overflow-y: auto !important;
-    background: var(--ds-surface-2) !important;
+    background: var(--ds-popover, var(--ds-surface)) !important;
     border: 1px solid var(--ds-border) !important;
     box-shadow: var(--ds-shadow-xl) !important;
 }
@@ -766,7 +1174,6 @@ body.admin-scroll-lock {
 .admin-app .card,
 .admin-app .item-card,
 .admin-app .items-table-wrap,
-.admin-app .table-wrap,
 .admin-app .buff-items-table-wrap {
     overflow: visible !important;
 }
@@ -799,8 +1206,8 @@ body.admin-scroll-lock {
     top: 0;
     left: 0;
     height: 100%;
-    background: var(--ds-body-bg);
-    border-right: 1px dashed var(--ds-border);
+    background: var(--ds-sidebar-bg);
+    border-right: 1px solid var(--ds-sidebar-border);
     z-index: 1050;
     transition: width 0.3s ease;
     overflow: hidden;
@@ -811,7 +1218,7 @@ body.admin-scroll-lock {
 .brand-logo {
     position: sticky;
     top: 0;
-    background: var(--ds-body-bg);
+    background: var(--ds-sidebar-bg);
     padding: 0.75rem 1rem;
     z-index: 2;
 }
@@ -824,25 +1231,22 @@ body.admin-scroll-lock {
 .brand-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(
-        135deg,
-        var(--ds-primary),
-        var(--ds-primary-soft)
-    );
-    border-radius: 10px;
+    background: var(--ds-primary);
+    border: 1px solid var(--ds-primary);
+    border-radius: var(--ds-radius);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
     font-weight: 700;
-    color: #fff;
+    color: var(--primary-foreground);
     flex-shrink: 0;
 }
 .site-logo-text {
     font-size: 16px;
     font-weight: 700;
     color: var(--ds-text-emphasis);
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
     white-space: nowrap;
 }
 
@@ -855,13 +1259,13 @@ body.admin-scroll-lock {
     color: var(--ds-text-muted);
     font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0;
     padding: 16px 20px 4px;
     text-transform: uppercase;
 }
 .nav-line {
     border: none;
-    border-top: 1px dashed var(--ds-border);
+    border-top: 1px solid var(--ds-sidebar-border);
     margin: 4px 12px;
 }
 .nav-item {
@@ -877,19 +1281,40 @@ body.admin-scroll-lock {
     font-weight: 500;
     font-size: 14px;
     margin: 2px 8px;
-    border-radius: 8px;
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius);
     background: transparent;
     transition: all 0.2s;
     text-decoration: none !important;
     line-height: 1.2;
 }
-.nav-link:hover {
-    color: var(--ds-text);
-    background: var(--ds-gray-100);
+.admin-app #miniSidebar a.nav-link {
+    color: var(--sidebar-foreground) !important;
 }
-.nav-link.active {
-    color: var(--ds-primary);
-    background: rgba(var(--ds-primary-rgb), 0.12);
+.admin-app #miniSidebar a.nav-link .nav-icon {
+    color: var(--sidebar-primary);
+}
+.admin-app #miniSidebar a.nav-link:hover {
+    color: var(--sidebar-accent-foreground) !important;
+    background: var(--sidebar-accent);
+    border-color: var(--sidebar-border);
+}
+.admin-app #miniSidebar a.nav-link:hover .nav-icon {
+    color: var(--sidebar-accent-foreground);
+}
+.admin-app #miniSidebar a.nav-link:hover .text {
+    color: var(--sidebar-accent-foreground);
+}
+.admin-app #miniSidebar a.nav-link.active {
+    color: var(--sidebar-primary-foreground) !important;
+    background: var(--sidebar-primary);
+    border-color: var(--sidebar-primary);
+}
+.admin-app #miniSidebar a.nav-link.active .nav-icon {
+    color: var(--sidebar-primary-foreground);
+}
+.admin-app #miniSidebar a.nav-link.active .text {
+    color: var(--sidebar-primary-foreground);
 }
 .nav-icon {
     font-size: 20px;
@@ -942,9 +1367,9 @@ body.admin-scroll-lock {
     position: sticky;
     top: 0;
     z-index: 1030;
-    backdrop-filter: blur(6px);
-    background-color: rgba(15, 20, 24, 0.88);
-    border-bottom: 1px dashed var(--ds-border);
+    backdrop-filter: blur(10px);
+    background-color: var(--ds-topbar-bg);
+    border-bottom: 1px solid var(--ds-border);
 }
 .topbar-inner {
     display: flex;
@@ -968,8 +1393,8 @@ body.admin-scroll-lock {
 .topbar-btn {
     width: 36px;
     height: 36px;
-    border-radius: 8px;
-    background: transparent;
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
     border: 1px solid var(--ds-border);
     color: var(--ds-text-muted);
     display: flex;
@@ -979,8 +1404,9 @@ body.admin-scroll-lock {
     transition: all 0.2s;
 }
 .topbar-btn:hover {
-    background: var(--ds-gray-100);
-    color: var(--ds-text);
+    background: var(--ds-accent, var(--accent));
+    color: var(--accent-foreground);
+    border-color: var(--ds-primary);
 }
 .sidebar-collapsed .collapse-expanded {
     display: none;
@@ -1002,27 +1428,25 @@ body.admin-scroll-lock {
     gap: 10px;
     cursor: pointer;
     padding: 4px 8px;
-    border-radius: 8px;
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius);
     transition: background 0.2s;
 }
 .topbar-user:hover {
-    background: var(--ds-gray-100);
+    background: var(--accent);
+    border-color: var(--ds-border);
 }
 .avatar {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(
-        135deg,
-        var(--ds-primary),
-        var(--ds-primary-soft)
-    );
+    border-radius: var(--ds-radius);
+    background: var(--ds-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     font-weight: 700;
-    color: #fff;
+    color: var(--primary-foreground);
     flex-shrink: 0;
 }
 .user-info {
@@ -1044,7 +1468,7 @@ body.admin-scroll-lock {
     margin-top: 8px;
     background: var(--ds-surface);
     border: 1px solid var(--ds-border);
-    border-radius: var(--ds-radius);
+    border-radius: var(--ds-radius-lg);
     box-shadow: var(--ds-shadow-xl);
     min-width: 180px;
     z-index: 50;
@@ -1061,12 +1485,12 @@ body.admin-scroll-lock {
     color: var(--ds-text);
     font-size: 14px;
     font-family: inherit;
-    border-radius: 6px;
+    border-radius: var(--ds-radius);
     cursor: pointer;
     transition: all 0.15s;
 }
 .dropdown-item:hover {
-    background: rgba(var(--ds-danger-rgb), 0.12);
+    background: rgba(var(--ds-danger-rgb), 0.1);
     color: var(--ds-danger);
 }
 
@@ -1078,7 +1502,7 @@ body.admin-scroll-lock {
 /* ═══ CARDS ═══ */
 .card {
     background: var(--ds-surface);
-    border: 0;
+    border: 1px solid var(--ds-border);
     border-radius: var(--ds-radius-lg);
     box-shadow: var(--ds-shadow-xl);
     padding: 24px;
@@ -1111,12 +1535,12 @@ body.admin-scroll-lock {
     display: flex;
     align-items: center;
     gap: 16px;
-    border: 0;
+    border: 1px solid var(--ds-border);
 }
 .stat-icon {
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    border-radius: var(--ds-radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1157,10 +1581,14 @@ body.admin-scroll-lock {
 /* ═══ TABLE ═══ */
 .table-wrap {
     overflow-x: auto;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-surface);
 }
 .admin-app table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 14px;
 }
 .admin-app th,
@@ -1169,25 +1597,25 @@ body.admin-scroll-lock {
     text-align: left;
 }
 .admin-app thead {
-    background: var(--ds-gray-100);
+    background: var(--ds-muted, var(--ds-gray-100));
 }
 .admin-app th {
     color: var(--ds-text-muted);
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
     border: 0;
 }
 .admin-app td {
-    border-bottom: 1px dashed var(--ds-border);
+    border-bottom: 1px solid var(--ds-border);
     color: var(--ds-text);
 }
 .admin-app tr:last-child td {
     border-bottom-width: 0;
 }
 .admin-app tr:hover td {
-    background: rgba(var(--ds-primary-rgb), 0.04);
+    background: rgba(var(--ds-primary-rgb), 0.06);
 }
 
 /* ═══ BUTTONS ═══ */
@@ -1197,7 +1625,7 @@ body.admin-scroll-lock {
     justify-content: center;
     gap: 6px;
     padding: 9px 18px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius);
     font-size: 14px;
     font-weight: 600;
     border: 1px solid transparent;
@@ -1221,7 +1649,7 @@ body.admin-scroll-lock {
 }
 .btn:hover {
     opacity: 0.94;
-    transform: translateY(-1px);
+    transform: translateY(0);
     box-shadow: var(--ds-shadow-sm);
 }
 .btn:active {
@@ -1238,17 +1666,17 @@ body.admin-scroll-lock {
 .btn-primary {
     background: var(--ds-primary);
     border-color: var(--ds-primary);
-    color: #fff;
+    color: var(--primary-foreground);
 }
 .btn-success {
     background: var(--ds-success);
     border-color: var(--ds-success);
-    color: #fff;
+    color: var(--primary-foreground);
 }
 .btn-danger {
     background: var(--ds-danger);
     border-color: var(--ds-danger);
-    color: #fff;
+    color: var(--destructive-foreground);
 }
 .btn-warning {
     background: var(--ds-warning);
@@ -1256,12 +1684,13 @@ body.admin-scroll-lock {
     color: #212b36;
 }
 .btn-outline {
-    background: transparent;
+    background: var(--ds-surface);
     color: var(--ds-text-emphasis);
     border: 1px solid var(--ds-border);
 }
 .btn-outline:hover {
-    background: var(--ds-gray-100);
+    background: var(--secondary);
+    border-color: var(--ds-primary);
     color: var(--ds-text-emphasis);
 }
 .btn:disabled {
@@ -1278,6 +1707,103 @@ body.admin-scroll-lock {
     width: 100%;
 }
 
+.admin-fab {
+    position: fixed !important;
+    right: 24px;
+    bottom: 24px;
+    z-index: 2200;
+    display: inline-grid !important;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    font-size: 0 !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    line-height: 1 !important;
+    box-shadow:
+        0 14px 26px -18px rgba(var(--ds-primary-rgb), 0.72),
+        0 0 0 3px rgba(var(--ds-primary-rgb), 0.1) !important;
+}
+.admin-fab::before {
+    content: "+";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: currentColor;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1;
+    transform: translateY(-1px);
+}
+.admin-fab:hover {
+    transform: none;
+}
+.admin-fab:active {
+    transform: none;
+}
+.admin-fab .mi {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+.admin-fab span:not(.mi) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.admin-app .action-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+.admin-app .row-actions,
+.admin-app .table-actions,
+.admin-app .comment-actions,
+.admin-app .actions-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    white-space: nowrap;
+}
+.admin-app .action-cell .btn,
+.admin-app .actions-cell .btn,
+.admin-app .row-actions .btn,
+.admin-app .table-actions .btn,
+.admin-app .comment-actions .btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0 !important;
+    border-radius: var(--ds-radius) !important;
+    font-size: 0 !important;
+    gap: 0;
+}
+.admin-app .action-cell .btn + .btn {
+    margin-left: 8px;
+}
+.admin-app .action-cell .btn .mi,
+.admin-app .actions-cell .btn .mi,
+.admin-app .row-actions .btn .mi,
+.admin-app .table-actions .btn .mi,
+.admin-app .comment-actions .btn .mi {
+    font-size: 18px !important;
+}
+.admin-app .action-cell .btn span:not(.mi),
+.admin-app .actions-cell .btn span:not(.mi),
+.admin-app .row-actions .btn span:not(.mi),
+.admin-app .table-actions .btn span:not(.mi),
+.admin-app .comment-actions .btn span:not(.mi) {
+    display: none !important;
+}
+
 /* ═══ FORMS ═══ */
 .form-group {
     margin-bottom: 18px;
@@ -1292,9 +1818,9 @@ body.admin-scroll-lock {
 .form-input {
     width: 100%;
     padding: 10px 14px;
-    background: var(--ds-body-bg);
+    background: var(--ds-input-bg);
     border: 1px solid var(--ds-border);
-    border-radius: 8px;
+    border-radius: var(--ds-radius);
     color: var(--ds-text-emphasis);
     font-size: 14px;
     font-family: inherit;
@@ -1304,6 +1830,7 @@ body.admin-scroll-lock {
 }
 .admin-app select.form-input {
     appearance: none;
+    background-color: var(--ds-input-bg);
     background-image:
         linear-gradient(45deg, transparent 50%, var(--ds-text-muted) 50%),
         linear-gradient(135deg, var(--ds-text-muted) 50%, transparent 50%);
@@ -1316,9 +1843,25 @@ body.admin-scroll-lock {
     background-repeat: no-repeat;
     padding-right: 36px;
 }
+.admin-app select.form-input option,
+.admin-app select option {
+    background: var(--ds-popover);
+    color: var(--ds-text-emphasis);
+    font-family: var(--font-sans);
+}
+.admin-app select.form-input option:checked,
+.admin-app select option:checked {
+    background: var(--ds-primary);
+    color: var(--primary-foreground);
+}
+.admin-app select.form-input option:hover,
+.admin-app select option:hover {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+}
 .form-input:focus {
     outline: none;
-    border-color: var(--ds-primary);
+    border-color: var(--ring);
     box-shadow: 0 0 0 3px rgba(var(--ds-primary-rgb), 0.16);
 }
 .form-input:disabled,
@@ -1335,9 +1878,9 @@ body.admin-scroll-lock {
     width: 18px;
     height: 18px;
     min-width: 18px;
-    border-radius: 5px;
+    border-radius: var(--ds-radius);
     border: 1px solid var(--ds-border);
-    background: var(--ds-body-bg);
+    background: var(--ds-input-bg);
     display: inline-grid;
     place-content: center;
     cursor: pointer;
@@ -1373,7 +1916,8 @@ body.admin-scroll-lock {
     display: inline-flex;
     align-items: center;
     padding: 3px 10px;
-    border-radius: 6px;
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius);
     font-size: 12px;
     font-weight: 600;
 }
@@ -1401,7 +1945,7 @@ body.admin-scroll-lock {
 /* ═══ ALERTS ═══ */
 .alert {
     padding: 14px 18px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg);
     font-size: 14px;
     margin-bottom: 20px;
     display: flex;
@@ -1412,6 +1956,9 @@ body.admin-scroll-lock {
     background: rgba(var(--ds-success-rgb), 0.12);
     color: var(--ds-success);
     border: 1px solid rgba(var(--ds-success-rgb), 0.2);
+}
+.admin-app .alert-success {
+    display: none;
 }
 .alert-error {
     background: rgba(var(--ds-danger-rgb), 0.12);
@@ -1428,7 +1975,7 @@ body.admin-scroll-lock {
 }
 .pagination button {
     padding: 7px 14px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius);
     font-size: 13px;
     border: 1px solid var(--ds-border);
     background: transparent;
@@ -1443,12 +1990,192 @@ body.admin-scroll-lock {
 }
 .pagination button.active {
     background: var(--ds-primary);
-    color: #fff;
+    color: var(--primary-foreground);
     border-color: var(--ds-primary);
 }
 .pagination button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+/* ═══ FEEDBACK ═══ */
+.admin-toast-stack {
+    position: fixed;
+    left: 76px;
+    bottom: 18px;
+    z-index: 5200;
+    display: grid;
+    gap: 10px;
+    width: min(390px, calc(100vw - 108px));
+    pointer-events: none;
+}
+.sidebar-expanded .admin-toast-stack {
+    left: 266px;
+    width: min(390px, calc(100vw - 298px));
+}
+.admin-toast {
+    display: grid;
+    grid-template-columns: 30px 1fr auto;
+    align-items: start;
+    gap: 10px;
+    min-height: 54px;
+    padding: 12px 12px;
+    border: 1px solid var(--ds-border);
+    border-left-width: 4px;
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-popover);
+    color: var(--ds-text);
+    box-shadow: var(--ds-shadow-xl);
+    pointer-events: auto;
+}
+.admin-toast--success {
+    border-left-color: var(--ds-success);
+}
+.admin-toast--error {
+    border-left-color: var(--ds-danger);
+}
+.admin-toast--warning {
+    border-left-color: var(--ds-warning);
+}
+.admin-toast--info {
+    border-left-color: var(--ds-primary);
+}
+.admin-toast__icon {
+    display: grid !important;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--ds-radius);
+    background: rgba(var(--ds-primary-rgb), 0.1);
+    color: var(--ds-primary);
+}
+.admin-toast--success .admin-toast__icon {
+    background: rgba(var(--ds-success-rgb), 0.12);
+    color: var(--ds-success);
+}
+.admin-toast--error .admin-toast__icon {
+    background: rgba(var(--ds-danger-rgb), 0.12);
+    color: var(--ds-danger);
+}
+.admin-toast--warning .admin-toast__icon {
+    background: rgba(var(--ds-warning-rgb), 0.14);
+    color: var(--ds-warning);
+}
+.admin-toast__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.admin-toast__body strong {
+    color: var(--ds-text-emphasis);
+    font-size: 13px;
+    line-height: 1.2;
+}
+.admin-toast__body span {
+    color: var(--ds-text);
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.admin-toast__close {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid transparent;
+    border-radius: var(--ds-radius);
+    background: transparent;
+    color: var(--ds-text-muted);
+    cursor: pointer;
+}
+.admin-toast__close:hover {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+}
+.admin-toast__close .mi {
+    font-size: 18px;
+}
+.admin-toast-enter-active,
+.admin-toast-leave-active {
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+.admin-toast-enter-from,
+.admin-toast-leave-to {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.admin-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: var(--ds-overlay-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.admin-confirm-panel {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 14px;
+    width: min(460px, 100%);
+    padding: 18px;
+    border: 1px solid var(--ds-border);
+    border-left-width: 4px;
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-popover);
+    box-shadow: var(--ds-shadow-xl);
+}
+.admin-confirm-panel--danger {
+    border-left-color: var(--ds-danger);
+}
+.admin-confirm-panel--primary {
+    border-left-color: var(--ds-primary);
+}
+.admin-confirm-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--ds-radius);
+    background: rgba(var(--ds-primary-rgb), 0.1);
+    color: var(--ds-primary);
+}
+.admin-confirm-panel--danger .admin-confirm-icon {
+    background: rgba(var(--ds-danger-rgb), 0.12);
+    color: var(--ds-danger);
+}
+.admin-confirm-content h3 {
+    margin: 0 0 6px;
+    color: var(--ds-text-emphasis);
+    font-size: 18px;
+    line-height: 1.25;
+}
+.admin-confirm-content p {
+    margin: 0;
+    color: var(--ds-text);
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+.admin-confirm-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+.admin-confirm-fade-enter-active,
+.admin-confirm-fade-leave-active {
+    transition: opacity 0.16s ease;
+}
+.admin-confirm-fade-enter-from,
+.admin-confirm-fade-leave-to {
+    opacity: 0;
 }
 
 /* ═══ LOADING ═══ */
@@ -1481,7 +2208,7 @@ body.admin-scroll-lock {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(9, 14, 18, 0.48);
+    background: rgba(28, 42, 31, 0.42);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
 }
@@ -1490,7 +2217,7 @@ body.admin-scroll-lock {
     padding: 18px 22px;
     border: 1px solid var(--ds-border);
     border-radius: var(--ds-radius-lg);
-    background: rgba(21, 29, 37, 0.94);
+    background: var(--ds-surface);
     box-shadow: var(--ds-shadow-xl);
     display: flex;
     align-items: center;
@@ -1503,20 +2230,13 @@ body.admin-scroll-lock {
 .admin-loading-spinner {
     display: inline-block;
     position: relative;
-    width: 3em;
-    height: 3em;
+    width: 2.4em;
+    height: 2.4em;
     cursor: not-allowed;
     border-radius: 50%;
-    border: 2px solid #444;
-    box-shadow:
-        -10px -10px 10px #6359f8,
-        0 -10px 10px 0 #9c32e2,
-        10px -10px 10px #f36896,
-        10px 0 10px #ff0b0b,
-        10px 10px 10px 0 #ff5500,
-        0 10px 10px 0 #ff9500,
-        -10px 10px 10px 0 #ffb700;
-    animation: admin-loader-spin 0.7s linear infinite;
+    border: 3px solid rgba(var(--ds-primary-rgb), 0.18);
+    border-top-color: var(--ds-primary);
+    animation: admin-loader-spin 0.75s linear infinite;
     flex: 0 0 auto;
 }
 .admin-loading-spinner::before {
@@ -1524,9 +2244,10 @@ body.admin-scroll-lock {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 1.5em;
-    height: 1.5em;
-    border: 2px solid #444;
+    width: 1.1em;
+    height: 1.1em;
+    border: 2px solid rgba(var(--ds-primary-rgb), 0.2);
+    border-top-color: var(--ds-primary-lighter);
     border-radius: 50%;
     transform: translate(-50%, -50%);
 }
@@ -1573,16 +2294,9 @@ body.admin-scroll-lock {
     width: 1em;
     height: 1em;
     border-radius: 50%;
-    border: 2px solid rgba(68, 68, 68, 0.85);
-    box-shadow:
-        -4px -4px 6px #6359f8,
-        0 -4px 6px 0 #9c32e2,
-        4px -4px 6px #f36896,
-        4px 0 6px #ff0b0b,
-        4px 4px 6px 0 #ff5500,
-        0 4px 6px 0 #ff9500,
-        -4px 4px 6px 0 #ffb700;
-    animation: admin-loader-spin 0.7s linear infinite;
+    border: 2px solid rgba(var(--ds-primary-rgb), 0.18);
+    border-top-color: var(--ds-primary);
+    animation: admin-loader-spin 0.75s linear infinite;
     flex: 0 0 auto;
     vertical-align: -2px;
 }
@@ -1593,7 +2307,8 @@ body.admin-scroll-lock {
     left: 50%;
     width: 0.48em;
     height: 0.48em;
-    border: 1px solid rgba(68, 68, 68, 0.85);
+    border: 1px solid rgba(var(--ds-primary-rgb), 0.28);
+    border-top-color: var(--ds-primary-lighter);
     border-radius: 50%;
     transform: translate(-50%, -50%);
 }
@@ -1625,55 +2340,86 @@ body.admin-scroll-lock {
     opacity: 0;
 }
 
-/* ═══ LIGHT THEME ═══ */
-.admin-app.theme-light {
-    --ds-primary-soft: #8ecdc0;
-    --ds-gray-100: #e9eef2;
-    --ds-gray-200: #d9e1e8;
-    --ds-gray-300: #c0ccd7;
-    --ds-gray-400: #77899b;
-    --ds-gray-500: #56697b;
-    --ds-gray-600: #405364;
-    --ds-gray-700: #2c3f50;
-    --ds-gray-800: #182b3a;
-    --ds-gray-900: #0f2230;
-
-    --ds-body-bg: #e7ecef;
-    --ds-surface: #f1f4f6;
-    --ds-surface-2: #e7edf1;
-    --ds-border: rgba(86, 105, 123, 0.24);
-    --ds-text: #3f5364;
-    --ds-text-emphasis: #182b3a;
-    --ds-text-muted: #6f8194;
-
-    --ds-shadow-xl:
-        0 0 2px 0 rgba(116, 129, 142, 0.16),
-        0 14px 30px -10px rgba(116, 129, 142, 0.18);
-    --ds-shadow-sm: 0 8px 18px -10px rgba(116, 129, 142, 0.22);
+/* ═══ GLOBAL ADMIN THEME COMPATIBILITY ═══ */
+.admin-app .login-container {
+    background: var(--ds-body-bg) !important;
+    color: var(--ds-text) !important;
+    font-family: var(--font-sans) !important;
 }
-.admin-app.theme-light .navbar-glass {
-    background-color: rgba(231, 236, 239, 0.88);
+.admin-app .modal-overlay,
+.admin-app .editor-overlay,
+.admin-app .picker-overlay {
+    background: var(--ds-overlay-bg) !important;
 }
-.admin-app.theme-light #miniSidebar {
-    background: #edf1f4;
+.admin-app .modal-panel,
+.admin-app .editor-panel,
+.admin-app .picker-panel,
+.admin-app .form-wrapper,
+.admin-app .login-card-surface {
+    background: var(--ds-surface) !important;
+    border: 1px solid var(--ds-border) !important;
+    border-radius: var(--ds-radius-lg) !important;
+    box-shadow: var(--ds-shadow-xl) !important;
+    color: var(--ds-text) !important;
 }
-.admin-app.theme-light .brand-logo {
-    background: #edf1f4;
+.admin-app .drop-box,
+.admin-app .file-box,
+.admin-app .icon-drop-box,
+.admin-app .asset-card,
+.admin-app .command-card,
+.admin-app .summary-strip > div,
+.admin-app .checkbox-card,
+.admin-app .toggle-field,
+.admin-app .search-card,
+.admin-app .filter-card,
+.admin-app .group-card,
+.admin-app .option-group-card,
+.admin-app .reward-card,
+.admin-app .panel-card,
+.admin-app .meta-card {
+    border-color: var(--ds-border) !important;
+    border-radius: var(--ds-radius-lg) !important;
 }
-.admin-app.theme-light .nav-link:hover {
-    background: rgba(86, 105, 123, 0.08);
+.admin-app .form-input,
+.admin-app input:not([type="checkbox"]):not([type="radio"]),
+.admin-app textarea,
+.admin-app select {
+    background-color: var(--ds-input-bg) !important;
+    border-color: var(--ds-border) !important;
+    color: var(--ds-text-emphasis) !important;
 }
-.admin-app.theme-light .topbar-user:hover,
-.admin-app.theme-light .topbar-btn:hover,
-.admin-app.theme-light .btn-outline:hover {
-    background: rgba(86, 105, 123, 0.08);
+.admin-app option {
+    background: var(--ds-surface) !important;
+    color: var(--ds-text-emphasis) !important;
 }
-.admin-app.theme-light tr:hover td {
-    background: rgba(86, 105, 123, 0.08);
+.admin-app .item-search-results,
+.admin-app .option-dropdown,
+.admin-app .user-dropdown,
+.admin-app .dropdown-menu,
+.admin-app .select-menu {
+    background: var(--ds-popover) !important;
+    border-color: var(--ds-border) !important;
+    color: var(--ds-text) !important;
+}
+.admin-app .modal-panel,
+.admin-app .editor-panel,
+.admin-app .picker-panel {
+    max-width: min(100%, 1240px);
 }
 
 /* ═══ MOBILE ═══ */
 @media (max-width: 990px) {
+    .admin-toast-stack,
+    .sidebar-expanded .admin-toast-stack,
+    .sidebar-collapsed .admin-toast-stack {
+        left: 14px;
+        bottom: 14px;
+        width: min(390px, calc(100vw - 28px));
+    }
+    .admin-fab {
+        right: 18px;
+        bottom: 18px;
+    }
     .sidebar-collapsed #content,
     .sidebar-expanded #content {
         margin-left: 0;

@@ -752,6 +752,7 @@ export default {
         },
         pickItemFromPicker(item) {
             this.addItem(item);
+            this.closeItemPicker();
         },
         itemTypeLabel(typeValue) {
             return itemTypeLabel(typeValue, this.itemPickerTypes);
@@ -1017,7 +1018,13 @@ export default {
             }
         },
         async del() {
-            if (!confirm("Xóa mốc quà này?")) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa mốc quà",
+                message: "Xóa mốc quà này?",
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             try {
                 const token = document
                     .querySelector('meta[name="csrf-token"]')
@@ -1399,7 +1406,7 @@ export default {
 .picker-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(5, 10, 18, 0.72);
+    background: var(--ds-overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;

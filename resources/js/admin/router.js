@@ -15,6 +15,7 @@ const pageLoaders = {
     forum: () => import("./features/forum/ForumPage.vue"),
     items: () => import("./features/items/ItemsPage.vue"),
     giftBoxes: () => import("./features/items/GiftBoxesPage.vue"),
+    npcs: () => import("./features/runtime/NpcsPage.vue"),
     badges: () => import("./features/game-assets/BadgesPage.vue"),
     costumes: () => import("./features/game-assets/CostumesPage.vue"),
     pets: () => import("./features/game-assets/PetsPage.vue"),
@@ -147,6 +148,12 @@ const routes = [
         path: "/admin/gift-boxes",
         name: "admin.gift_boxes",
         component: () => loadAdminPage("giftBoxes"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/npcs",
+        name: "admin.npcs",
+        component: () => loadAdminPage("npcs"),
         meta: { auth: true },
     },
     {

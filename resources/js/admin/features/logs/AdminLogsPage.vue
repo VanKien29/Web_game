@@ -92,12 +92,16 @@
                                         {{ row.summary || "Không có mô tả" }}
                                     </div>
                                 </td>
-                                <td style="text-align: right">
+                                <td class="action-cell">
                                     <button
                                         type="button"
                                         class="btn btn-outline btn-xs"
+                                        :title="expanded[row.id] ? 'Thu gọn' : 'Chi tiết'"
                                         @click="toggleExpanded(row.id)"
                                     >
+                                        <span class="mi">
+                                            {{ expanded[row.id] ? "visibility_off" : "visibility" }}
+                                        </span>
                                         {{
                                             expanded[row.id]
                                                 ? "Thu gọn"

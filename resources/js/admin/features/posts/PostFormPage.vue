@@ -295,7 +295,14 @@ export default {
             }
         },
         async deletePost() {
-            if (!this.isEdit || !confirm(`Xóa bài viết "${this.form.title}" và toàn bộ bình luận?`)) return;
+            if (!this.isEdit) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa bài viết",
+                message: `Xóa bài viết "${this.form.title}" và toàn bộ bình luận?`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             this.error = "";
             try {
                 const res = await fetch(`/admin/api/posts/${this.$route.params.id}`, {
