@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Schema;
 
 class GameCatalogService extends AdminServiceSupport
 {
+    public function __construct(private readonly GameAssetService $assets)
+    {
+    }
+
     public function listItems(Request $request): array
     {
         $search = $request->query('search', '');
@@ -173,6 +177,30 @@ class GameCatalogService extends AdminServiceSupport
             'description' => (string) $request->input('description', ''),
             'is_up_to_up' => $request->boolean('is_up_to_up') ? 1 : 0,
         ];
+        $savedFiles = [];
+
+        $iconFile = $this->assets->requestFiles($request, 'icon_x4')[0] ?? null;
+        if ($iconFile) {
+            $iconId = (int) ($data['icon_id'] ?? 0);
+            if ($iconId <= 0) {
+                return [
+                    'ok' => false,
+                    'status' => 422,
+                    'message' => 'Icon ID phải lớn hơn 0 trước khi thay ảnh icon.',
+                ];
+            }
+
+            try {
+                $savedFiles = $this->assets->saveGamePngPyramid($iconFile, 'data/icon', "{$iconId}.png", 96);
+                $savedFiles = array_merge($savedFiles, $this->assets->mirrorGameIconToPublic($iconId));
+            } catch (\Throwable $e) {
+                return [
+                    'ok' => false,
+                    'status' => 422,
+                    'message' => 'Không thể thay ảnh icon: ' . $e->getMessage(),
+                ];
+            }
+        }
 
         foreach (array_keys($data) as $column) {
             if (!Schema::connection('game')->hasColumn('item_template', $column)) {
@@ -189,6 +217,7 @@ class GameCatalogService extends AdminServiceSupport
         }
 
         $table->where('id', $id)->update($data);
+        $this->syncWebItemIndex($id, $data);
         $this->clearItemTypeOptionCache();
 
         $after = $game->table('item_template')->where('id', $id)->first();
@@ -198,13 +227,17 @@ class GameCatalogService extends AdminServiceSupport
             $id,
             "Cập nhật item #{$id} " . ($data['NAME'] ?? ($before->NAME ?? '')),
             $this->sanitizeLogState((array) $before),
-            $this->sanitizeLogState((array) $after)
+            $this->sanitizeLogState([
+                'row' => (array) $after,
+                'saved_files' => $savedFiles,
+            ])
         );
 
         return [
             'ok' => true,
             'message' => 'Đã cập nhật item',
             'data' => $after,
+            'saved_files' => $savedFiles,
         ];
     }
 
@@ -439,6 +472,37 @@ class GameCatalogService extends AdminServiceSupport
         Cache::forget('admin:item_type_options:v2');
         Cache::forget('admin:item_type_options:v3');
         Cache::forget('admin:item_type_options:web:v1');
+    }
+
+    private function syncWebItemIndex(int $id, array $data): void
+    {
+        try {
+            if (!Schema::hasTable('game_item_indexes')) {
+                return;
+            }
+
+            $payload = [
+                'name' => (string) ($data['NAME'] ?? ''),
+                'normalized_name' => mb_strtolower(trim((string) ($data['NAME'] ?? ''))),
+                'type' => isset($data['TYPE']) ? (int) $data['TYPE'] : null,
+                'icon_id' => isset($data['icon_id']) ? (int) $data['icon_id'] : 0,
+                'part' => isset($data['part']) ? (int) $data['part'] : null,
+                'head' => isset($data['head']) ? (int) $data['head'] : null,
+                'body' => isset($data['body']) ? (int) $data['body'] : null,
+                'leg' => isset($data['leg']) ? (int) $data['leg'] : null,
+                'description' => (string) ($data['description'] ?? ''),
+                'is_up_to_up' => !empty($data['is_up_to_up']),
+                'updated_at' => now(),
+            ];
+
+            if (Schema::hasColumn('game_item_indexes', 'gender')) {
+                $payload['gender'] = isset($data['gender']) ? (int) $data['gender'] : null;
+            }
+
+            DB::table('game_item_indexes')->where('id', $id)->update($payload);
+        } catch (\Throwable) {
+            // The game database is the source of truth; stale web indexes can be rebuilt with admin:sync-game-indexes.
+        }
     }
 
     protected function fixJson(?string $value): string

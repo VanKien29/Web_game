@@ -328,6 +328,28 @@ class GameAssetService
         return $deleted;
     }
 
+    public function mirrorGameIconToPublic(int $iconId): array
+    {
+        if ($iconId <= 0) {
+            return [];
+        }
+
+        $copied = [];
+        foreach ([1, 2, 3, 4] as $zoom) {
+            $source = $this->gameSrcPath("data/icon/x{$zoom}/{$iconId}.png");
+            if (!is_file($source)) {
+                continue;
+            }
+
+            $target = public_path("assets/game-icons/x{$zoom}/{$iconId}.png");
+            File::ensureDirectoryExists(dirname($target), 0775, true);
+            File::copy($source, $target);
+            $copied[] = $target;
+        }
+
+        return $copied;
+    }
+
     public function parsePartLayers(string $raw): array
     {
         $normalized = trim($raw);

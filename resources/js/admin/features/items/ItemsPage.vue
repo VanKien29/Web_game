@@ -76,6 +76,7 @@
                                 <td>
                                     <AdminIcon
                                         :icon-id="item.icon_id"
+                                        :cache-bust="iconCacheBust"
                                         class="item-icon"
                                     />
                                 </td>
@@ -392,15 +393,56 @@
 
                 <div class="editor-body">
                     <div class="editor-preview">
-                        <AdminIcon
-                            :icon-id="editorNumber('icon_id')"
-                            class="editor-icon"
-                        />
-                        <div>
+                        <div class="editor-icon-wrap">
+                            <img
+                                v-if="editor.iconPreviewUrl"
+                                :src="editor.iconPreviewUrl"
+                                class="editor-icon-preview-img"
+                                alt=""
+                            />
+                            <AdminIcon
+                                v-else
+                                :icon-id="editorNumber('icon_id')"
+                                :cache-bust="iconCacheBust"
+                                class="editor-icon"
+                            />
+                        </div>
+                        <div class="editor-preview-copy">
                             <strong>{{ editor.form.name || "Chưa đặt tên" }}</strong>
                             <small>
                                 Type {{ editor.form.type }} ·
                                 {{ itemGenderLabel(editor.form.gender) }}
+                            </small>
+                            <div class="icon-replace-row">
+                                <input
+                                    ref="iconFileInput"
+                                    type="file"
+                                    accept="image/png"
+                                    class="hidden-file-input"
+                                    @change="handleIconFileChange"
+                                />
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    type="button"
+                                    :disabled="editor.saving"
+                                    @click="chooseIconFile"
+                                >
+                                    <span class="mi" style="font-size: 15px">image</span>
+                                    Thay ảnh
+                                </button>
+                                <button
+                                    v-if="editor.iconFile"
+                                    class="btn btn-ghost btn-sm"
+                                    type="button"
+                                    :disabled="editor.saving"
+                                    @click="clearIconFile"
+                                >
+                                    <span class="mi" style="font-size: 15px">close</span>
+                                    Bỏ ảnh
+                                </button>
+                            </div>
+                            <small v-if="editor.iconFile" class="icon-file-name">
+                                {{ editor.iconFile.name }} sẽ ghi đè icon #{{ editorNumber("icon_id") }}
                             </small>
                         </div>
                     </div>
@@ -506,6 +548,7 @@ export default {
             totalPages: 1,
             total: 0,
             expandedId: null,
+            iconCacheBust: Date.now(),
             searchTimer: null,
             error: "",
             editor: {
@@ -513,6 +556,8 @@ export default {
                 saving: false,
                 error: "",
                 form: {},
+                iconFile: null,
+                iconPreviewUrl: "",
             },
         };
     },
@@ -535,6 +580,7 @@ export default {
     },
     unmounted() {
         window.clearTimeout(this.searchTimer);
+        this.revokeIconPreview();
     },
     methods: {
         debouncedLoadPage() {
@@ -585,11 +631,50 @@ export default {
             const value = Number(this.editor.form?.[field] ?? 0);
             return Number.isFinite(value) ? value : 0;
         },
+        chooseIconFile() {
+            this.$refs.iconFileInput?.click();
+        },
+        handleIconFileChange(event) {
+            const file = event?.target?.files?.[0] || null;
+            this.revokeIconPreview();
+
+            if (!file) {
+                this.editor.iconFile = null;
+                return;
+            }
+
+            if (file.type !== "image/png") {
+                this.editor.error = "Chỉ hỗ trợ ảnh PNG.";
+                event.target.value = "";
+                this.editor.iconFile = null;
+                return;
+            }
+
+            this.editor.error = "";
+            this.editor.iconFile = file;
+            this.editor.iconPreviewUrl = URL.createObjectURL(file);
+        },
+        clearIconFile() {
+            this.revokeIconPreview();
+            this.editor.iconFile = null;
+            if (this.$refs.iconFileInput) {
+                this.$refs.iconFileInput.value = "";
+            }
+        },
+        revokeIconPreview() {
+            if (this.editor.iconPreviewUrl) {
+                URL.revokeObjectURL(this.editor.iconPreviewUrl);
+                this.editor.iconPreviewUrl = "";
+            }
+        },
         openEditor(item) {
+            this.revokeIconPreview();
             this.editor = {
                 open: true,
                 saving: false,
                 error: "",
+                iconFile: null,
+                iconPreviewUrl: "",
                 form: {
                     id: item.id,
                     name: item.name || "",
@@ -607,6 +692,7 @@ export default {
         },
         closeEditor() {
             if (this.editor.saving) return;
+            this.clearIconFile();
             this.editor.open = false;
             this.editor.error = "";
         },
@@ -619,16 +705,26 @@ export default {
             this.editor.saving = true;
             this.editor.error = "";
             try {
+                const formData = new FormData();
+                Object.entries(this.editor.form).forEach(([key, value]) => {
+                    formData.append(
+                        key,
+                        typeof value === "boolean" ? (value ? "1" : "0") : String(value ?? ""),
+                    );
+                });
+                if (this.editor.iconFile) {
+                    formData.append("icon_x4", this.editor.iconFile);
+                }
+
                 const res = await fetch(
                     `/admin/api/items/${this.editor.form.id}`,
                     {
-                        method: "PUT",
+                        method: "POST",
                         headers: {
-                            "Content-Type": "application/json",
                             "X-Requested-With": "XMLHttpRequest",
                             "X-CSRF-TOKEN": csrfToken(),
                         },
-                        body: JSON.stringify(this.editor.form),
+                        body: formData,
                     },
                 );
                 const data = await readJsonResponse(
@@ -638,6 +734,7 @@ export default {
                 if (!data.ok) {
                     throw new Error(data.message || "Không thể lưu item");
                 }
+                this.iconCacheBust = Date.now();
                 this.editor.saving = false;
                 this.closeEditor();
                 await this.loadPage(this.page);
@@ -1063,15 +1160,47 @@ export default {
     background: var(--ds-surface-2);
     padding: 12px;
 }
+.editor-preview-copy {
+    min-width: 0;
+}
 .editor-preview strong,
 .editor-preview small {
     display: block;
+}
+.editor-icon-wrap {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
 }
 .editor-icon {
     width: 46px;
     height: 46px;
     border-radius: 10px;
     background: var(--ds-gray-100);
+}
+.editor-icon-preview-img {
+    width: 46px;
+    height: 46px;
+    display: block;
+    object-fit: contain;
+    border: 1px solid var(--ds-border);
+    border-radius: 10px;
+    background: var(--ds-gray-100);
+}
+.hidden-file-input {
+    display: none;
+}
+.icon-replace-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.icon-file-name {
+    margin-top: 6px !important;
+    color: var(--ds-primary) !important;
+    word-break: break-word;
 }
 .editor-grid {
     display: grid;

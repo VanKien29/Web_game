@@ -25,6 +25,10 @@ export default {
             type: String,
             default: "",
         },
+        cacheBust: {
+            type: [Number, String],
+            default: "",
+        },
     },
     data() {
         return {
@@ -46,13 +50,16 @@ export default {
             const id = Number(this.iconId);
             if (!Number.isInteger(id) || id < 0) return "";
             if (this.fallbackStep === 1) {
-                return `/admin/api/title-items/icon/${id}?v=${this.cacheKey}`;
+                return `/admin/api/title-items/icon/${id}?v=${this.resolvedCacheKey}`;
             }
             if (this.fallbackStep >= 2) {
                 return `/assets/frontend/home/v1/images/x4/${id}.png`;
             }
 
-            return `/assets/game-icons/x4/${id}.png?v=${this.cacheKey}`;
+            return `/assets/game-icons/x4/${id}.png?v=${this.resolvedCacheKey}`;
+        },
+        resolvedCacheKey() {
+            return this.cacheBust || this.cacheKey;
         },
     },
     watch: {
@@ -61,6 +68,10 @@ export default {
             this.loaded = false;
         },
         iconId() {
+            this.fallbackStep = 0;
+            this.cacheKey = Date.now();
+        },
+        cacheBust() {
             this.fallbackStep = 0;
             this.cacheKey = Date.now();
         },
