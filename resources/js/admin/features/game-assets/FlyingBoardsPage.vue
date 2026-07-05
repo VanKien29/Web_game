@@ -11,7 +11,7 @@
                     <span class="current">Ván bay</span>
                 </nav>
             </div>
-            <button class="btn btn-primary" @click="openEditor()">
+            <button class="btn btn-primary admin-fab" title="Thêm ván bay" @click="openEditor()">
                 <span class="mi" style="font-size: 16px">add</span>
                 Thêm ván bay
             </button>
@@ -109,16 +109,20 @@
                             <td class="action-cell">
                                 <button
                                     class="btn btn-primary btn-sm"
+                                    title="Sửa ván bay"
                                     :disabled="deletingId === item.id"
                                     @click="openEditor(item)"
                                 >
+                                    <span class="mi">edit</span>
                                     Sửa
                                 </button>
                                 <button
                                     class="btn btn-danger btn-sm"
+                                    title="Xóa ván bay"
                                     :disabled="deletingId === item.id"
                                     @click="deleteFlyingBoard(item)"
                                 >
+                                    <span class="mi">delete</span>
                                     {{ deletingId === item.id ? "Đang xóa..." : "Xóa" }}
                                 </button>
                             </td>
@@ -655,9 +659,12 @@ export default {
             }
         },
         async deleteFlyingBoard(item) {
-            const ok = window.confirm(
-                `Xóa ván bay "${item.name}"?\n\nHệ thống sẽ xóa item_template, img_by_name và ảnh mount_*.`,
-            );
+            const ok = await window.adminConfirm({
+                title: "Xóa ván bay",
+                message: `Xóa ván bay "${item.name}"?\n\nHệ thống sẽ xóa item_template, img_by_name và ảnh mount_*.`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
             if (!ok) return;
 
             this.deletingId = item.id;
@@ -799,7 +806,7 @@ export default {
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: flex-start;

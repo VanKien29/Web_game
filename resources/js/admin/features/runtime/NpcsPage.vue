@@ -1,20 +1,19 @@
-﻿<template>
-    <div class="costumes-page">
+<template>
+    <div class="npcs-page">
         <div class="page-top">
             <div>
-                <h2 class="page-title">Cải trang</h2>
+                <h2 class="page-title">NPC</h2>
                 <nav class="breadcrumb">
                     <router-link :to="{ name: 'admin.dashboard' }">
                         Trang chủ
                     </router-link>
                     <span>/</span>
-                    <span class="current">Cải trang</span>
+                    <span class="current">NPC</span>
                 </nav>
             </div>
-            <button class="btn btn-primary admin-fab" title="Thêm cải trang" @click="openEditor()">
-                <span class="mi" style="font-size: 16px">add</span>
-                Thêm cải trang
-            </button>
+            <span v-if="total" class="total-count">
+                {{ total.toLocaleString("vi-VN") }} NPC
+            </span>
         </div>
 
         <div class="filter-bar">
@@ -23,15 +22,11 @@
                 <input
                     v-model="search"
                     class="form-input search-input"
-                    placeholder="Tìm ID, tên, icon, head/body/leg..."
+                    placeholder="Tìm ID, tên, avatar, head/body/leg..."
                     @input="debouncedLoad"
                 />
             </div>
-            <button
-                class="btn btn-outline"
-                :disabled="loading"
-                @click="load(1)"
-            >
+            <button class="btn btn-outline" :disabled="loading" @click="load(1)">
                 <span class="mi" style="font-size: 16px">refresh</span>
                 Tải lại
             </button>
@@ -45,10 +40,9 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Item</th>
-                            <th>Icon</th>
-                            <th>Tên</th>
-                            <th>Gender</th>
+                            <th>ID</th>
+                            <th>Avatar</th>
+                            <th>Tên NPC</th>
                             <th>Head</th>
                             <th>Body</th>
                             <th>Leg</th>
@@ -56,69 +50,57 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in rows" :key="item.id">
-                            <td>#{{ item.id }}</td>
+                        <tr v-for="npc in rows" :key="npc.id">
+                            <td>#{{ npc.id }}</td>
                             <td>
                                 <img
-                                    v-if="item.icon_url"
-                                    :src="item.icon_url"
+                                    v-if="npc.avatar_url"
+                                    :src="npc.avatar_url"
                                     loading="lazy"
                                     decoding="async"
-                                    class="costume-icon"
-                                    :alt="item.name"
+                                    class="npc-avatar"
+                                    :alt="npc.name"
                                 />
                                 <AdminIcon
                                     v-else
-                                    :icon-id="item.icon_id"
-                                    class="costume-icon"
+                                    :icon-id="npc.avatar"
+                                    class="npc-avatar"
                                 />
                             </td>
                             <td>
-                                <div class="item-name">{{ item.name }}</div>
-                                <div class="item-meta">
-                                    icon {{ item.icon_id }} · part
-                                    {{ item.part }}
-                                </div>
+                                <div class="item-name">{{ npc.name }}</div>
+                                <div class="item-meta">Avatar {{ npc.avatar }}</div>
                             </td>
-                            <td>{{ genderLabel(item.gender) }}</td>
-                            <td>#{{ item.head }}</td>
-                            <td>#{{ item.body }}</td>
-                            <td>#{{ item.leg }}</td>
+                            <td>
+                                <span class="part-chip">#{{ npc.head }}</span>
+                            </td>
+                            <td>
+                                <span class="part-chip">#{{ npc.body }}</span>
+                            </td>
+                            <td>
+                                <span class="part-chip">#{{ npc.leg }}</span>
+                            </td>
                             <td class="action-cell">
                                 <button
                                     class="btn btn-primary btn-sm"
-                                    title="Sửa cải trang"
-                                    :disabled="deletingId === item.id"
-                                    @click="openEditor(item)"
+                                    type="button"
+                                    title="Sửa NPC"
+                                    @click="openEditor(npc)"
                                 >
                                     <span class="mi">edit</span>
-                                    Sửa
-                                </button>
-                                <button
-                                    class="btn btn-danger btn-sm"
-                                    title="Xóa cải trang"
-                                    :disabled="deletingId === item.id"
-                                    @click="deleteCostume(item)"
-                                >
-                                    <span class="mi">delete</span>
-                                    {{
-                                        deletingId === item.id
-                                            ? "Đang xóa..."
-                                            : "Xóa"
-                                    }}
                                 </button>
                             </td>
                         </tr>
                         <tr v-if="loading" class="admin-loading-row">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <span class="admin-loading-row__content">
                                     <span class="admin-loading-spinner"></span>
                                 </span>
                             </td>
                         </tr>
                         <tr v-if="!rows.length && !loading">
-                            <td colspan="8" class="empty-cell">
-                                Chưa có cải trang phù hợp.
+                            <td colspan="7" class="empty-cell">
+                                Chưa có NPC phù hợp.
                             </td>
                         </tr>
                     </tbody>
@@ -147,15 +129,10 @@
             <div class="modal-panel">
                 <div class="modal-head">
                     <div>
-                        <h3>
-                            {{
-                                editor.form.id
-                                    ? "Sửa cải trang"
-                                    : "Thêm cải trang"
-                            }}
-                        </h3>
+                        <h3>Sửa NPC #{{ editor.form.id }}</h3>
+                        <p>Thay avatar hoặc sprite sẽ tự sinh icon mới và dọn ảnh cũ nếu không còn dùng.</p>
                     </div>
-                    <button class="icon-action danger" @click="closeEditor">
+                    <button class="icon-action danger" type="button" @click="closeEditor">
                         <span class="mi">close</span>
                     </button>
                 </div>
@@ -169,75 +146,73 @@
                         <div class="preview-card">
                             <div class="preview-icon-wrap">
                                 <img
-                                    v-if="previewIcon"
-                                    :src="previewIcon"
+                                    v-if="avatarPreview"
+                                    :src="avatarPreview"
                                     decoding="async"
                                     class="preview-image"
-                                    alt="Avatar preview"
+                                    alt="NPC avatar"
                                 />
-                                <span v-else class="mi preview-empty"
-                                    >face</span
-                                >
+                                <AdminIcon
+                                    v-else
+                                    :icon-id="Number(editor.form.avatar || 0)"
+                                    class="preview-image"
+                                />
                             </div>
-                            <strong>{{
-                                editor.form.name || "Cải trang mới"
-                            }}</strong>
+                            <strong>{{ editor.form.name || "NPC" }}</strong>
+                            <small>Avatar {{ editor.form.avatar || 0 }}</small>
                         </div>
-
-                        <label class="small-toggle">
-                            <input
-                                v-model="editor.hasExtraHeads"
-                                type="checkbox"
-                            />
-                            <span>Thêm head phụ</span>
-                        </label>
                     </aside>
 
                     <div class="editor-main">
                         <section class="editor-card">
                             <div class="form-grid">
                                 <label>
-                                    <span class="form-label">
-                                        Item ID muốn chèn
-                                    </span>
-                                    <input
-                                        v-model.number="editor.form.item_id"
-                                        class="form-input"
-                                        type="number"
-                                        min="1"
-                                        :disabled="!!editor.form.id"
-                                        placeholder="Trống = tự lấy ID mới"
-                                    />
-                                </label>
-                                <label>
-                                    <span class="form-label"
-                                        >Tên cải trang</span
-                                    >
+                                    <span class="form-label">Tên NPC</span>
                                     <input
                                         v-model.trim="editor.form.name"
                                         class="form-input"
-                                        placeholder="Ví dụ: Gogeta Hắc Hóa"
+                                        placeholder="Tên NPC"
                                     />
                                 </label>
                                 <label>
-                                    <span class="form-label">Mô tả</span>
+                                    <span class="form-label">Avatar ID</span>
                                     <input
-                                        v-model.trim="editor.form.description"
+                                        v-model.number="editor.form.avatar"
                                         class="form-input"
-                                        placeholder="Cải trang ..."
+                                        type="number"
+                                        min="0"
+                                        max="32767"
                                     />
                                 </label>
                                 <label>
-                                    <span class="form-label">Gender</span>
-                                    <select
-                                        v-model.number="editor.form.gender"
+                                    <span class="form-label">Head part</span>
+                                    <input
+                                        v-model.number="editor.form.head"
                                         class="form-input"
-                                    >
-                                        <option :value="0">Trái Đất</option>
-                                        <option :value="1">Namek</option>
-                                        <option :value="2">Xayda</option>
-                                        <option :value="3">Chung/Tất cả</option>
-                                    </select>
+                                        type="number"
+                                        min="0"
+                                        max="32767"
+                                    />
+                                </label>
+                                <label>
+                                    <span class="form-label">Body part</span>
+                                    <input
+                                        v-model.number="editor.form.body"
+                                        class="form-input"
+                                        type="number"
+                                        min="0"
+                                        max="32767"
+                                    />
+                                </label>
+                                <label>
+                                    <span class="form-label">Leg part</span>
+                                    <input
+                                        v-model.number="editor.form.leg"
+                                        class="form-input"
+                                        type="number"
+                                        min="0"
+                                        max="32767"
+                                    />
                                 </label>
                             </div>
                         </section>
@@ -246,113 +221,56 @@
                             <div class="upload-grid">
                                 <div
                                     class="file-box"
+                                    @dragover.prevent="dragField = 'avatar_x4'"
+                                    @dragleave.prevent="dragField = ''"
+                                    @drop.prevent="dropFiles('avatar_x4', $event)"
+                                >
+                                    <input
+                                        id="npc-avatar"
+                                        class="file-input-hidden"
+                                        type="file"
+                                        accept="image/png"
+                                        @change="setFiles('avatar_x4', $event.target.files)"
+                                    />
+                                    <label
+                                        class="drop-box"
+                                        :class="{ dragging: dragField === 'avatar_x4' }"
+                                        for="npc-avatar"
+                                    >
+                                        <span class="mi">account_circle</span>
+                                        <strong>Avatar NPC</strong>
+                                        <small>
+                                            {{ fileSummary("avatar_x4") || "PNG x4, tự sinh avatar ID" }}
+                                        </small>
+                                    </label>
+                                </div>
+
+                                <div
+                                    class="file-box"
                                     @dragover.prevent="dragField = 'icon_x4'"
                                     @dragleave.prevent="dragField = ''"
                                     @drop.prevent="dropFiles('icon_x4', $event)"
                                 >
                                     <input
-                                        id="costume-icons"
+                                        id="npc-part-icons"
                                         class="file-input-hidden"
                                         type="file"
                                         accept="image/png"
                                         multiple
                                         webkitdirectory
                                         directory
-                                        @change="
-                                            setFiles(
-                                                'icon_x4',
-                                                $event.target.files,
-                                            )
-                                        "
+                                        @change="setFiles('icon_x4', $event.target.files)"
                                     />
                                     <label
                                         class="drop-box"
-                                        :class="{
-                                            dragging: dragField === 'icon_x4',
-                                        }"
-                                        for="costume-icons"
+                                        :class="{ dragging: dragField === 'icon_x4' }"
+                                        for="npc-part-icons"
                                     >
                                         <span class="mi">image</span>
-                                        <strong>Icon/sprite x4</strong>
-                                        <small>{{
-                                            fileSummary("icon_x4") ||
-                                            "Kéo thả nhiều ảnh/folder"
-                                        }}</small>
-                                    </label>
-                                </div>
-
-                                <div
-                                    class="file-box"
-                                    @dragover.prevent="
-                                        dragField = 'item_icon_x4'
-                                    "
-                                    @dragleave.prevent="dragField = ''"
-                                    @drop.prevent="
-                                        dropFiles('item_icon_x4', $event)
-                                    "
-                                >
-                                    <input
-                                        id="costume-item-icon"
-                                        class="file-input-hidden"
-                                        type="file"
-                                        accept="image/png"
-                                        @change="
-                                            setFiles(
-                                                'item_icon_x4',
-                                                $event.target.files,
-                                            )
-                                        "
-                                    />
-                                    <label
-                                        class="drop-box"
-                                        :class="{
-                                            dragging:
-                                                dragField === 'item_icon_x4',
-                                        }"
-                                        for="costume-item-icon"
-                                    >
-                                        <span class="mi">inventory_2</span>
-                                        <strong>Icon item</strong>
-                                        <small>{{
-                                            fileSummary("item_icon_x4") ||
-                                            "Ảnh item_template.icon_id"
-                                        }}</small>
-                                    </label>
-                                </div>
-
-                                <div
-                                    class="file-box"
-                                    @dragover.prevent="dragField = 'avatar_x4'"
-                                    @dragleave.prevent="dragField = ''"
-                                    @drop.prevent="
-                                        dropFiles('avatar_x4', $event)
-                                    "
-                                >
-                                    <input
-                                        id="costume-avatar"
-                                        class="file-input-hidden"
-                                        type="file"
-                                        accept="image/png"
-                                        @change="
-                                            setFiles(
-                                                'avatar_x4',
-                                                $event.target.files,
-                                            )
-                                        "
-                                    />
-                                    <label
-                                        class="drop-box"
-                                        :class="{
-                                            dragging: dragField === 'avatar_x4',
-                                        }"
-                                        for="costume-avatar"
-                                    >
-                                        <span class="mi">face</span>
-                                        <strong>Avatar head</strong>
-                                        <small>{{
-                                            fileSummary("avatar_x4") ||
-                                            "Ảnh head_avatar/avatar_id"
-                                        }}</small>
+                                        <strong>Sprite part</strong>
+                                        <small>
+                                            {{ fileSummary("icon_x4") || "Nhiều PNG/folder, map theo ID trong DATA" }}
+                                        </small>
                                     </label>
                                 </div>
                             </div>
@@ -365,7 +283,7 @@
                                     <textarea
                                         v-model="editor.form.head_data"
                                         class="form-input part-input"
-                                        rows="5"
+                                        rows="6"
                                     ></textarea>
                                 </label>
                                 <label>
@@ -373,7 +291,7 @@
                                     <textarea
                                         v-model="editor.form.body_data"
                                         class="form-input part-input"
-                                        rows="5"
+                                        rows="6"
                                     ></textarea>
                                 </label>
                                 <label>
@@ -381,21 +299,7 @@
                                     <textarea
                                         v-model="editor.form.leg_data"
                                         class="form-input part-input"
-                                        rows="5"
-                                    ></textarea>
-                                </label>
-                                <label
-                                    v-if="editor.hasExtraHeads"
-                                    class="full-row"
-                                >
-                                    <span class="form-label">
-                                        Head phụ DATA
-                                    </span>
-                                    <textarea
-                                        v-model="editor.form.extra_head_data"
-                                        class="form-input part-input"
-                                        rows="5"
-                                        placeholder="Mỗi head phụ cách nhau bằng một dòng trống"
+                                        rows="6"
                                     ></textarea>
                                 </label>
                             </div>
@@ -405,23 +309,8 @@
 
                 <div class="modal-actions">
                     <button
-                        v-if="!editor.form.id"
                         class="btn btn-outline"
-                        :disabled="editor.saving"
-                        @click="applyDraft"
-                    >
-                        Nạp bộ đã lưu
-                    </button>
-                    <button
-                        v-if="!editor.form.id"
-                        class="btn btn-outline"
-                        :disabled="editor.saving"
-                        @click="saveDraft"
-                    >
-                        Lưu bộ đang nhập
-                    </button>
-                    <button
-                        class="btn btn-outline"
+                        type="button"
                         :disabled="editor.saving"
                         @click="closeEditor"
                     >
@@ -429,17 +318,12 @@
                     </button>
                     <button
                         class="btn btn-primary"
+                        type="button"
                         :disabled="editor.saving"
-                        @click="saveCostume"
+                        @click="saveNpc"
                     >
                         <span class="mi" style="font-size: 16px">save</span>
-                        {{
-                            editor.saving
-                                ? "Đang lưu..."
-                                : editor.form.id
-                                  ? "Lưu thay đổi"
-                                  : "Tạo cải trang"
-                        }}
+                        {{ editor.saving ? "Đang lưu..." : "Lưu NPC" }}
                     </button>
                 </div>
             </div>
@@ -451,7 +335,7 @@
 import { csrfToken } from "../../shared/format";
 import { readJsonResponse } from "../../shared/api";
 import { filesToPayload } from "../../shared/files";
-import { gameAssetGenderLabel } from "../../shared/gameAssets";
+
 export default {
     data() {
         return {
@@ -459,19 +343,19 @@ export default {
             search: "",
             page: 1,
             perPage: 30,
+            total: 0,
             totalPages: 1,
             loading: false,
             error: "",
             success: "",
-            deletingId: null,
             searchTimer: null,
             dragField: "",
-            previewIcon: "",
+            avatarPreview: "",
             editor: this.blankEditor(),
         };
     },
     created() {
-        this.load();
+        this.load(1);
     },
     beforeUnmount() {
         window.clearTimeout(this.searchTimer);
@@ -483,72 +367,22 @@ export default {
                 open: false,
                 saving: false,
                 error: "",
-                hasExtraHeads: false,
                 files: {
-                    icon_x4: [],
-                    item_icon_x4: [],
                     avatar_x4: [],
+                    icon_x4: [],
                 },
                 form: {
                     id: null,
-                    item_id: "",
                     name: "",
-                    description: "",
-                    gender: 3,
+                    avatar: 0,
+                    head: 0,
+                    body: 0,
+                    leg: 0,
                     head_data: "",
                     body_data: "",
                     leg_data: "",
-                    extra_head_data: "",
                 },
             };
-        },
-        draftKey() {
-            return "admin_costume_create_draft_v1";
-        },
-        loadDraftEditor() {
-            try {
-                const raw = localStorage.getItem(this.draftKey());
-                if (!raw) return this.blankEditor();
-                const draft = JSON.parse(raw);
-                const editor = this.blankEditor();
-                editor.hasExtraHeads = !!draft.hasExtraHeads;
-                editor.form = { ...editor.form, ...(draft.form || {}) };
-                return editor;
-            } catch {
-                return this.blankEditor();
-            }
-        },
-        saveDraft() {
-            if (!this.editor.open || this.editor.form?.id) return;
-            try {
-                localStorage.setItem(
-                    this.draftKey(),
-                    JSON.stringify({
-                        hasExtraHeads: this.editor.hasExtraHeads,
-                        form: this.editor.form,
-                    }),
-                );
-                this.editor.error = "";
-                this.success = "Đã lưu bộ cải trang đang nhập.";
-            } catch {
-                this.editor.error =
-                    "Không lưu được bộ đang nhập trên trình duyệt.";
-            }
-        },
-        clearDraft() {
-            try {
-                localStorage.removeItem(this.draftKey());
-            } catch {
-                // ignore storage errors
-            }
-        },
-        applyDraft() {
-            if (this.editor.form?.id) return;
-            const draft = this.loadDraftEditor();
-            this.editor.hasExtraHeads = draft.hasExtraHeads;
-            this.editor.form = { ...this.editor.form, ...draft.form, id: null };
-            this.editor.error = "";
-            this.success = "Đã nạp bộ cải trang đã lưu. File ảnh cần chọn lại.";
         },
         async load(page = this.page) {
             this.loading = true;
@@ -559,21 +393,22 @@ export default {
                     per_page: this.perPage,
                     search: this.search,
                 });
-                const res = await fetch(`/admin/api/costumes?${params}`, {
+                const res = await fetch(`/admin/api/npcs?${params}`, {
                     headers: {
                         Accept: "application/json",
                         "X-Requested-With": "XMLHttpRequest",
                     },
                 });
-                const data = await readJsonResponse(res);
+                const data = await readJsonResponse(res, "Không tải được NPC");
                 if (!res.ok || !data.ok) {
-                    throw new Error(data.message || "Không tải được cải trang");
+                    throw new Error(data.message || "Không tải được NPC");
                 }
                 this.rows = data.data || [];
                 this.page = data.page || page;
+                this.total = data.total || 0;
                 this.totalPages = data.total_pages || 1;
             } catch (error) {
-                this.error = error?.message || "Không tải được cải trang";
+                this.error = error?.message || "Không tải được NPC";
             } finally {
                 this.loading = false;
             }
@@ -582,44 +417,39 @@ export default {
             window.clearTimeout(this.searchTimer);
             this.searchTimer = window.setTimeout(() => this.load(1), 260);
         },
-        async openEditor(item = null) {
+        async openEditor(npc) {
             this.revokePreview();
+            this.avatarPreview = npc?.avatar_url || "";
             this.editor = this.blankEditor();
             this.editor.open = true;
-            const isEdit = item && Number.isFinite(Number(item.id));
-            this.previewIcon = isEdit ? item?.icon_url || "" : "";
-            if (!isEdit) return;
-
             this.editor.saving = true;
             try {
-                const res = await fetch(`/admin/api/costumes/${item.id}`, {
+                const res = await fetch(`/admin/api/npcs/${npc.id}`, {
                     headers: {
                         Accept: "application/json",
                         "X-Requested-With": "XMLHttpRequest",
                     },
                 });
-                const data = await readJsonResponse(res);
+                const data = await readJsonResponse(res, "Không tải được NPC");
                 if (!res.ok || !data.ok) {
-                    throw new Error(data.message || "Không tải được cải trang");
+                    throw new Error(data.message || "Không tải được NPC");
                 }
                 const detail = data.data || {};
                 this.editor.form = {
                     ...this.editor.form,
                     id: detail.id,
-                    item_id: detail.id,
                     name: detail.name || "",
-                    description: detail.description || "",
-                    gender: Number(detail.gender ?? 3),
+                    avatar: Number(detail.avatar || 0),
+                    head: Number(detail.head || 0),
+                    body: Number(detail.body || 0),
+                    leg: Number(detail.leg || 0),
                     head_data: detail.head_data || "",
                     body_data: detail.body_data || "",
                     leg_data: detail.leg_data || "",
-                    extra_head_data: detail.extra_head_data || "",
                 };
-                this.editor.hasExtraHeads = Boolean(detail.extra_head_data);
-                this.previewIcon = detail.icon_url || item.icon_url || "";
+                this.avatarPreview = detail.avatar_url || npc.avatar_url || "";
             } catch (error) {
-                this.editor.error =
-                    error?.message || "Không tải được cải trang";
+                this.editor.error = error?.message || "Không tải được NPC";
             } finally {
                 this.editor.saving = false;
             }
@@ -632,19 +462,11 @@ export default {
         setFiles(field, fileList) {
             const files = Array.from(fileList || []);
             this.editor.files[field] =
-                field === "avatar_x4" || field === "item_icon_x4"
-                    ? files.slice(0, 1)
-                    : files;
+                field === "avatar_x4" ? files.slice(0, 1) : files;
             this.dragField = "";
-            if (
-                field === "item_icon_x4" ||
-                field === "avatar_x4" ||
-                (!this.previewIcon && field === "icon_x4")
-            ) {
+            if (field === "avatar_x4") {
                 this.revokePreview();
-                this.previewIcon = files[0]
-                    ? URL.createObjectURL(files[0])
-                    : "";
+                this.avatarPreview = files[0] ? URL.createObjectURL(files[0]) : "";
             }
         },
         dropFiles(field, event) {
@@ -657,19 +479,12 @@ export default {
             return `${files.length} file`;
         },
         revokePreview() {
-            if (this.previewIcon?.startsWith("blob:")) {
-                URL.revokeObjectURL(this.previewIcon);
+            if (this.avatarPreview?.startsWith("blob:")) {
+                URL.revokeObjectURL(this.avatarPreview);
             }
         },
-        genderLabel(gender) {
-            return gameAssetGenderLabel(gender);
-        },
         numericIdFromFilename(name) {
-            const base =
-                String(name || "")
-                    .replace(/\\/g, "/")
-                    .split("/")
-                    .pop() || "";
+            const base = String(name || "").replace(/\\/g, "/").split("/").pop() || "";
             const stem = base.replace(/\.[^.]+$/, "");
             const match = stem.match(/(\d+)(?!.*\d)/);
             if (!match) return null;
@@ -681,7 +496,6 @@ export default {
                 this.editor.form.head_data,
                 this.editor.form.body_data,
                 this.editor.form.leg_data,
-                this.editor.form.extra_head_data,
             ].join("\n");
             const ids = new Set();
             const pattern = /\[\s*(-?\d+)\s*,\s*-?\d+\s*,\s*-?\d+\s*\]/g;
@@ -695,23 +509,19 @@ export default {
         filteredSpriteFiles(files) {
             const referenced = this.referencedPartIconIds();
             const byNumericName = (left, right) =>
-                (this.numericIdFromFilename(left.name) ??
-                    Number.MAX_SAFE_INTEGER) -
-                    (this.numericIdFromFilename(right.name) ??
-                        Number.MAX_SAFE_INTEGER) ||
+                (this.numericIdFromFilename(left.name) ?? Number.MAX_SAFE_INTEGER) -
+                    (this.numericIdFromFilename(right.name) ?? Number.MAX_SAFE_INTEGER) ||
                 String(left.name).localeCompare(String(right.name));
             if (!referenced.size) return [...files].sort(byNumericName);
             const filtered = files.filter((file) => {
                 const id = this.numericIdFromFilename(file.name);
                 return id !== null && referenced.has(id);
             });
-            return (filtered.length ? filtered : files)
-                .slice()
-                .sort(byNumericName);
+            return (filtered.length ? filtered : files).slice().sort(byNumericName);
         },
-        async saveCostume() {
+        async saveNpc() {
             if (!this.editor.form.name) {
-                this.editor.error = "Tên cải trang không được để trống.";
+                this.editor.error = "Tên NPC không được để trống.";
                 return;
             }
             if (
@@ -727,14 +537,7 @@ export default {
             this.editor.error = "";
             const formData = new FormData();
             Object.entries(this.editor.form).forEach(([key, value]) => {
-                formData.set(
-                    key,
-                    typeof value === "boolean"
-                        ? value
-                            ? "1"
-                            : "0"
-                        : (value ?? ""),
-                );
+                formData.set(key, value ?? "");
             });
 
             try {
@@ -743,90 +546,42 @@ export default {
                 if (filteredSprites.length) {
                     formData.set(
                         "icon_x4_payload",
-                        JSON.stringify(
-                            await filesToPayload(filteredSprites),
-                        ),
+                        JSON.stringify(await filesToPayload(filteredSprites)),
                     );
                 }
 
-                ["item_icon_x4", "avatar_x4"].forEach((field) => {
-                    (this.editor.files[field] || []).forEach((file) =>
-                        formData.append(`${field}[]`, file),
-                    );
-                });
-
-                const isEdit = Boolean(this.editor.form.id);
-                const res = await fetch(
-                    isEdit
-                        ? `/admin/api/costumes/${this.editor.form.id}`
-                        : "/admin/api/costumes",
-                    {
-                        method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                            "X-Requested-With": "XMLHttpRequest",
-                            "X-CSRF-TOKEN": csrfToken(),
-                        },
-                        body: formData,
-                    },
+                (this.editor.files.avatar_x4 || []).forEach((file) =>
+                    formData.append("avatar_x4[]", file),
                 );
-                const data = await readJsonResponse(res);
-                if (!res.ok || !data.ok) {
-                    throw new Error(data.message || "Không lưu được cải trang");
-                }
-                this.success = data.message || "Đã lưu cải trang";
-                if (!isEdit) {
-                    this.clearDraft();
-                }
-                this.closeEditor();
-                await this.load(isEdit ? this.page : 1);
-            } catch (error) {
-                this.editor.error =
-                    error?.message || "Không lưu được cải trang";
-            } finally {
-                this.editor.saving = false;
-            }
-        },
-        async deleteCostume(item) {
-            const ok = await window.adminConfirm({
-                title: "Xóa cải trang",
-                message: `Xóa cải trang "${item.name}"?\n\nHệ thống sẽ xóa item_template, part head/body/leg, head_avatar và dồn lại ID part.`,
-                tone: "danger",
-                confirmText: "Xóa",
-            });
-            if (!ok) return;
 
-            this.deletingId = item.id;
-            this.error = "";
-            this.success = "";
-            try {
-                const res = await fetch(`/admin/api/costumes/${item.id}`, {
-                    method: "DELETE",
+                const res = await fetch(`/admin/api/npcs/${this.editor.form.id}`, {
+                    method: "POST",
                     headers: {
                         Accept: "application/json",
                         "X-Requested-With": "XMLHttpRequest",
                         "X-CSRF-TOKEN": csrfToken(),
                     },
+                    body: formData,
                 });
-                const data = await readJsonResponse(res);
+                const data = await readJsonResponse(res, "Không lưu được NPC");
                 if (!res.ok || !data.ok) {
-                    throw new Error(data.message || "Không xóa được cải trang");
+                    throw new Error(data.message || "Không lưu được NPC");
                 }
-                this.success = data.message || "Đã xóa cải trang";
+                this.success = data.message || "Đã lưu NPC";
+                this.closeEditor();
                 await this.load(this.page);
             } catch (error) {
-                this.error = error?.message || "Không xóa được cải trang";
+                this.editor.error = error?.message || "Không lưu được NPC";
             } finally {
-                this.deletingId = null;
+                this.editor.saving = false;
             }
         },
-
     },
 };
 </script>
 
 <style scoped>
-.costumes-page {
+.npcs-page {
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -834,8 +589,7 @@ export default {
 .page-top,
 .filter-bar,
 .modal-head,
-.modal-actions,
-.section-head {
+.modal-actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -854,21 +608,9 @@ export default {
     color: var(--ds-text-muted);
     font-size: 13px;
 }
-.info-strip {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    border: 1px solid rgba(var(--ds-primary-rgb), 0.22);
-    border-radius: 8px;
-    background: rgba(var(--ds-primary-rgb), 0.07);
-    color: var(--ds-text);
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-.info-strip .mi {
-    color: var(--ds-primary);
-    font-size: 18px;
+.total-count {
+    color: var(--ds-text-muted);
+    font-weight: 700;
 }
 .search-input-wrap {
     position: relative;
@@ -881,10 +623,10 @@ export default {
     color: var(--ds-text-muted);
 }
 .search-input {
-    width: min(420px, calc(100vw - 48px));
+    width: min(460px, calc(100vw - 48px));
     padding-left: 40px !important;
 }
-.costume-icon,
+.npc-avatar,
 .preview-image {
     width: 42px;
     height: 42px;
@@ -897,10 +639,22 @@ export default {
     font-weight: 700;
 }
 .item-meta,
-.section-head span,
 .drop-box small,
 .preview-card small {
     color: var(--ds-text-muted);
+    font-size: 12px;
+}
+.part-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    border: 1px solid rgba(var(--ds-primary-rgb), 0.18);
+    border-radius: 999px;
+    background: rgba(var(--ds-primary-rgb), 0.08);
+    color: var(--ds-primary);
+    padding: 4px 9px;
+    font-weight: 700;
     font-size: 12px;
 }
 .empty-cell {
@@ -942,8 +696,7 @@ export default {
         transparent
     );
 }
-.modal-head h3,
-.section-head h4 {
+.modal-head h3 {
     margin: 0;
     color: var(--ds-text-emphasis);
 }
@@ -998,15 +751,6 @@ export default {
     width: 64px;
     height: 64px;
 }
-.preview-empty {
-    color: var(--ds-text-muted);
-}
-.small-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--ds-text);
-}
 .form-grid,
 .upload-grid {
     display: grid;
@@ -1017,9 +761,6 @@ export default {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-}
-.full-row {
-    grid-column: 1 / -1;
 }
 .file-input-hidden {
     position: absolute;
@@ -1114,6 +855,3 @@ export default {
     }
 }
 </style>
-
-
-

@@ -10,7 +10,7 @@
                 </nav>
             </div>
             <div class="page-top-actions">
-                <button type="button" class="btn btn-primary" @click="openCreate">
+                <button type="button" class="btn btn-primary admin-fab" title="Tạo bài admin" @click="openCreate">
                     <span class="mi" style="font-size: 16px">add</span>
                     Tạo bài admin
                 </button>
@@ -134,17 +134,17 @@
                                 </span>
                             </td>
                             <td>{{ formatDate(post.created_at) }}</td>
-                            <td style="text-align: right">
+                            <td class="action-cell">
                                 <div class="row-actions">
-                                    <button type="button" class="btn btn-outline btn-sm" @click="openComments(post)">
+                                    <button type="button" class="btn btn-outline btn-sm" title="Xem bình luận" @click="openComments(post)">
                                         <span class="mi" style="font-size: 14px">forum</span>
                                         Bình luận
                                     </button>
-                                    <button type="button" class="btn btn-primary btn-sm" @click="edit(post)">
+                                    <button type="button" class="btn btn-primary btn-sm" title="Sửa bài diễn đàn" @click="edit(post)">
                                         <span class="mi" style="font-size: 14px">edit</span>
                                         Sửa
                                     </button>
-                                    <button type="button" class="btn btn-danger btn-sm" @click="deletePost(post)">
+                                    <button type="button" class="btn btn-danger btn-sm" title="Xóa bài diễn đàn" @click="deletePost(post)">
                                         <span class="mi" style="font-size: 14px">delete</span>
                                         Xóa
                                     </button>
@@ -421,7 +421,13 @@ export default {
             this.form = emptyForm();
         },
         async deletePost(post) {
-            if (!confirm(`Xóa bài diễn đàn #${post.id}?`)) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa bài diễn đàn",
+                message: `Xóa bài diễn đàn #${post.id}?`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             this.error = "";
             this.success = "";
             try {
@@ -461,7 +467,13 @@ export default {
             }
         },
         async deleteComment(post, comment) {
-            if (!confirm("Xóa bình luận này?")) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa bình luận",
+                message: "Xóa bình luận này?",
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             try {
                 const res = await fetch(`/admin/api/forum/posts/${post.id}/comments/${comment.id}`, {
                     method: "DELETE",
@@ -664,7 +676,7 @@ export default {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(6, 10, 15, 0.68);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
 }
 .forum-modal__panel {

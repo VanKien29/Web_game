@@ -11,7 +11,7 @@
                     <span class="current">Đeo lưng</span>
                 </nav>
             </div>
-            <button class="btn btn-primary" @click="openEditor()">
+            <button class="btn btn-primary admin-fab" title="Thêm đeo lưng" @click="openEditor()">
                 <span class="mi" style="font-size: 16px">add</span>
                 Thêm đeo lưng
             </button>
@@ -117,16 +117,20 @@
                             <td class="action-cell">
                                 <button
                                     class="btn btn-primary btn-sm"
+                                    title="Sửa đeo lưng"
                                     :disabled="deletingId === item.id"
                                     @click="openEditor(item)"
                                 >
+                                    <span class="mi">edit</span>
                                     Sửa
                                 </button>
                                 <button
                                     class="btn btn-danger btn-sm"
+                                    title="Xóa đeo lưng"
                                     :disabled="deletingId === item.id"
                                     @click="deleteBackAccessory(item)"
                                 >
+                                    <span class="mi">delete</span>
                                     {{
                                         deletingId === item.id
                                             ? "Đang xóa..."
@@ -748,9 +752,12 @@ export default {
             }
         },
         async deleteBackAccessory(item) {
-            const ok = window.confirm(
-                `Xóa đeo lưng "${item.name}"?\n\nHệ thống sẽ xóa item_template, flag_bag và ảnh icon không còn được dùng.`,
-            );
+            const ok = await window.adminConfirm({
+                title: "Xóa đeo lưng",
+                message: `Xóa đeo lưng "${item.name}"?\n\nHệ thống sẽ xóa item_template, flag_bag và ảnh icon không còn được dùng.`,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
             if (!ok) return;
 
             this.deletingId = item.id;
@@ -902,7 +909,7 @@ export default {
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: flex-start;

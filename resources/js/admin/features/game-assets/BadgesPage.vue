@@ -11,7 +11,7 @@
                     <span class="current">Danh hiệu</span>
                 </nav>
             </div>
-            <button class="btn btn-primary" @click="openEditor()">
+            <button class="btn btn-primary admin-fab" title="Thêm danh hiệu" @click="openEditor()">
                 <span class="mi" style="font-size: 16px">add</span>
                 Thêm danh hiệu
             </button>
@@ -102,8 +102,10 @@
                             <td class="action-cell">
                                 <button
                                     class="btn btn-primary btn-sm"
+                                    title="Sửa danh hiệu"
                                     @click="openEditor(item)"
                                 >
+                                    <span class="mi">edit</span>
                                     Sửa
                                 </button>
                             </td>
@@ -791,7 +793,7 @@ export default {
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: flex-start;

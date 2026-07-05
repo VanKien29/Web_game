@@ -14,7 +14,8 @@
             </div>
             <router-link
                 :to="{ name: 'admin.accounts.create' }"
-                class="btn btn-primary"
+                class="btn btn-primary admin-fab"
+                title="Tạo tài khoản"
             >
                 <span class="mi">person_add</span>
                 <span>Tạo tài khoản</span>
@@ -220,19 +221,20 @@
                                     >{{ fmt(acc.diem_danh) }}</span
                                 >
                             </td>
-                            <td style="text-align: right">
+                            <td class="action-cell">
                                 <router-link
                                     :to="{
                                         name: 'admin.accounts.edit',
                                         params: { id: acc.id },
                                     }"
                                     class="btn btn-primary btn-sm"
-                            >
-                                <span class="mi" style="font-size: 14px"
-                                    >edit</span
+                                    title="Sửa tài khoản"
                                 >
-                                <span>Sửa</span>
-                            </router-link>
+                                    <span class="mi" style="font-size: 14px"
+                                        >edit</span
+                                    >
+                                    <span>Sửa</span>
+                                </router-link>
                             </td>
                         </tr>
                         <!-- <tr v-if="loading" class="admin-loading-row">

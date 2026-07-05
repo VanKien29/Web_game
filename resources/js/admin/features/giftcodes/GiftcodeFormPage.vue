@@ -1199,6 +1199,7 @@ export default {
         },
         pickItemFromPicker(item) {
             this.addItem(item);
+            this.closeItemPicker();
         },
         itemTypeLabel(typeValue) {
             return itemTypeLabel(typeValue, this.itemPickerTypes);
@@ -1579,7 +1580,13 @@ export default {
             }
         },
         async del() {
-            if (!confirm("Xoá giftcode này?")) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa giftcode",
+                message: "Xoá giftcode này?",
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             try {
                 const token = document
                     .querySelector('meta[name="csrf-token"]')
@@ -1598,7 +1605,13 @@ export default {
         },
         async cloneCurrentGiftcode() {
             if (!this.isEdit) return;
-            if (!confirm(`Clone giftcode "${this.form.code}"?`)) return;
+            const ok = await window.adminConfirm({
+                title: "Clone giftcode",
+                message: `Clone giftcode "${this.form.code}"?`,
+                tone: "primary",
+                confirmText: "Clone",
+            });
+            if (!ok) return;
             try {
                 const token = document
                     .querySelector('meta[name="csrf-token"]')
@@ -2349,7 +2362,7 @@ export default {
 .picker-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(5, 10, 18, 0.72);
+    background: var(--ds-overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;

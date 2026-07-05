@@ -150,10 +150,11 @@
                                         >
                                     </div>
                                 </td>
-                                <td style="text-align: right">
+                                <td class="action-cell">
                                     <button
                                         type="button"
-                                        class="edit-link"
+                                        class="btn btn-primary btn-sm"
+                                        title="Sửa tab shop"
                                         @click.stop="
                                             $router.push({
                                                 name: 'admin.shops.tab.edit',

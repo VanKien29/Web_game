@@ -1089,6 +1089,7 @@ export default {
         },
         pickItemFromPicker(item) {
             this.addItem(item);
+            this.closeItemPicker();
         },
         normalizePickerPage(page) {
             return normalizePickerPage(page, this.itemPicker.totalPages);
@@ -1251,17 +1252,17 @@ export default {
     margin-bottom: 0;
     padding: 18px;
     border: 1px solid var(--ds-border);
-    border-radius: 8px;
+    border-radius: var(--ds-radius-lg);
     box-shadow: none;
     background: var(--ds-surface);
     min-width: 0;
 }
 .runtime-buffs-page select.form-input,
 .runtime-buffs-page input.form-input {
-    background-color: #0f1418;
+    background-color: var(--ds-input-bg);
 }
 .runtime-buffs-page select.form-input option {
-    background: #17212b;
+    background: var(--ds-surface);
     color: var(--ds-text-emphasis);
 }
 .runtime-buffs-page .card-header {
@@ -1294,8 +1295,8 @@ export default {
 }
 .summary-strip > div {
     border: 1px solid var(--ds-border);
-    background: var(--ds-body-bg);
-    border-radius: 8px;
+    background: var(--ds-surface-2);
+    border-radius: var(--ds-radius-lg);
     padding: 9px 10px;
     min-width: 0;
 }
@@ -1324,8 +1325,8 @@ export default {
     height: 40px;
     padding: 0 12px;
     border: 1px solid var(--ds-border);
-    border-radius: 8px;
-    background: var(--ds-body-bg);
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-surface-2);
     min-width: 0;
 }
 .toggle-field strong {
@@ -1373,7 +1374,7 @@ export default {
 }
 .toggle input:checked + .toggle-slider::before {
     transform: translateX(18px);
-    background: #fff;
+    background: var(--primary-foreground);
 }
 .item-toolbar {
     display: grid;
@@ -1409,12 +1410,10 @@ export default {
     top: calc(100% + 4px);
     max-height: 320px;
     overflow: auto;
-    background: #17212b;
-    border: 1px solid rgba(143, 211, 196, 0.28);
-    border-radius: 8px;
-    box-shadow:
-        0 18px 42px rgba(0, 0, 0, 0.42),
-        0 0 0 1px rgba(0, 0, 0, 0.22);
+    background: var(--ds-popover);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-xl);
     backdrop-filter: none;
 }
 .option-dropdown {
@@ -1739,9 +1738,9 @@ export default {
     max-height: calc(100vh - 48px);
     display: flex;
     flex-direction: column;
-    background: #151d25;
-    border: 1px solid rgba(143, 211, 196, 0.24);
-    border-radius: 8px;
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
     box-shadow: var(--ds-shadow-xl);
     overflow: hidden;
 }

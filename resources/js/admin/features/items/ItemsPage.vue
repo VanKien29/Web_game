@@ -153,6 +153,7 @@
                                 <td class="action-cell">
                                     <button
                                         class="btn btn-primary btn-sm"
+                                        title="Sửa item"
                                         @click="openEditor(item)"
                                     >
                                         <span
@@ -164,8 +165,12 @@
                                     </button>
                                     <button
                                         class="btn btn-outline btn-sm"
+                                        :title="expandedId === item.id ? 'Ẩn chi tiết' : 'Xem chi tiết'"
                                         @click="toggleExpanded(item.id)"
                                     >
+                                        <span class="mi" style="font-size: 14px">
+                                            {{ expandedId === item.id ? "visibility_off" : "visibility" }}
+                                        </span>
                                         {{
                                             expandedId === item.id
                                                 ? "Ẩn"
@@ -998,7 +1003,7 @@ export default {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(4, 8, 12, 0.66);
+    background: var(--ds-overlay-bg);
     backdrop-filter: blur(4px);
 }
 .editor-panel {

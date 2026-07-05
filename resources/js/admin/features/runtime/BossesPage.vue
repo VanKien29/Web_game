@@ -2000,9 +2000,12 @@ export default {
             const isGroup = scope === "group";
             if (
                 action === "delete" &&
-                !confirm(
-                    `Xóa ${isGroup ? "nhóm boss" : "boss"} ${boss.name || boss.boss_id}?`,
-                )
+                !(await window.adminConfirm({
+                    title: `Xóa ${isGroup ? "nhóm boss" : "boss"}`,
+                    message: `Xóa ${isGroup ? "nhóm boss" : "boss"} ${boss.name || boss.boss_id}?`,
+                    tone: "danger",
+                    confirmText: "Xóa",
+                }))
             )
                 return;
             await this.persistAction(

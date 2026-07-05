@@ -16,7 +16,8 @@
                     name: 'admin.milestones.create',
                     params: { type: currentType },
                 }"
-                class="btn btn-primary"
+                class="btn btn-primary admin-fab"
+                title="Tạo mốc quà"
             >
                 <span class="mi" style="font-size: 16px">add</span>
                 Tạo mốc quà
@@ -104,7 +105,7 @@
                                 </div>
                             </td>
                             <td>{{ row.detail_count || 0 }}</td>
-                            <td style="text-align: right">
+                            <td class="action-cell">
                                 <router-link
                                     :to="{
                                         name: 'admin.milestones.edit',
@@ -114,6 +115,7 @@
                                         },
                                     }"
                                     class="btn btn-primary btn-sm"
+                                    title="Sửa mốc quà"
                                 >
                                     <span class="mi" style="font-size: 14px"
                                         >edit</span

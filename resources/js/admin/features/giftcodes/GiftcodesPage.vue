@@ -14,7 +14,8 @@
             </div>
             <router-link
                 :to="{ name: 'admin.giftcodes.create' }"
-                class="btn btn-primary"
+                class="btn btn-primary admin-fab"
+                title="Tạo giftcode"
             >
                 <span class="mi" style="font-size: 16px">add</span> Tạo giftcode
             </router-link>
@@ -156,11 +157,12 @@
                                     >Đang ẩn</span
                                 >
                             </td>
-                            <td style="text-align: right">
+                            <td class="action-cell">
                                 <div class="row-actions">
                                     <button
                                         type="button"
                                         class="btn btn-outline btn-sm"
+                                        title="Nhân bản giftcode"
                                         @click="cloneGiftcode(gc)"
                                     >
                                         <span class="mi" style="font-size: 14px"
@@ -174,6 +176,7 @@
                                             params: { id: gc.id },
                                         }"
                                         class="btn btn-primary btn-sm"
+                                        title="Sửa giftcode"
                                     >
                                         <span class="mi" style="font-size: 14px"
                                             >edit</span
@@ -426,7 +429,13 @@ export default {
             }
         },
         async cloneGiftcode(row) {
-            if (!confirm(`Clone giftcode "${row.code}"?`)) return;
+            const ok = await window.adminConfirm({
+                title: "Clone giftcode",
+                message: `Clone giftcode "${row.code}"?`,
+                tone: "primary",
+                confirmText: "Clone",
+            });
+            if (!ok) return;
             try {
                 const token = document
                     .querySelector('meta[name="csrf-token"]')

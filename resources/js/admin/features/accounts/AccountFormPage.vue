@@ -1680,7 +1680,13 @@ export default {
             }
         },
         async del() {
-            if (!confirm("Bạn chắc chắn muốn xoá tài khoản này?")) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa tài khoản",
+                message: "Bạn chắc chắn muốn xoá tài khoản này?",
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
             try {
                 const token = document
                     .querySelector('meta[name="csrf-token"]')

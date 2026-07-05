@@ -93,20 +93,21 @@
 
                         <div class="comment-actions">
                             <template v-if="editingId === row.comment.id">
-                                <button type="button" class="btn btn-primary btn-sm" @click="saveComment(row.comment)">
+                                <button type="button" class="btn btn-primary btn-sm" title="Lưu bình luận" @click="saveComment(row.comment)">
                                     <span class="mi" style="font-size: 14px">save</span>
                                     Lưu
                                 </button>
-                                <button type="button" class="btn btn-outline btn-sm" @click="cancelEdit">
+                                <button type="button" class="btn btn-outline btn-sm" title="Hủy sửa" @click="cancelEdit">
+                                    <span class="mi" style="font-size: 14px">close</span>
                                     Hủy
                                 </button>
                             </template>
                             <template v-else>
-                                <button type="button" class="btn btn-outline btn-sm" @click="startEdit(row.comment)">
+                                <button type="button" class="btn btn-outline btn-sm" title="Sửa bình luận" @click="startEdit(row.comment)">
                                     <span class="mi" style="font-size: 14px">edit</span>
                                     Sửa
                                 </button>
-                                <button type="button" class="btn btn-danger btn-sm" @click="deleteComment(row.comment)">
+                                <button type="button" class="btn btn-danger btn-sm" title="Xóa bình luận" @click="deleteComment(row.comment)">
                                     <span class="mi" style="font-size: 14px">delete</span>
                                     Xóa
                                 </button>
@@ -217,7 +218,13 @@ export default {
             const label = comment.parent_comment_id
                 ? `Xóa phản hồi #${comment.id}?`
                 : `Xóa bình luận #${comment.id} và các phản hồi của nó?`;
-            if (!confirm(label)) return;
+            const ok = await window.adminConfirm({
+                title: "Xóa bình luận",
+                message: label,
+                tone: "danger",
+                confirmText: "Xóa",
+            });
+            if (!ok) return;
 
             this.error = "";
             this.success = "";

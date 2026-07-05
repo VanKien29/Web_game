@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Admin\GiftBoxController;
 use App\Http\Controllers\Api\Admin\GiftcodeController;
 use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
+use App\Http\Controllers\Api\Admin\NpcTemplateController;
 use App\Http\Controllers\Api\Admin\PetController;
 use App\Http\Controllers\Api\Admin\PostController;
 use App\Http\Controllers\Api\Admin\PlayerController;
@@ -105,6 +106,10 @@ Route::prefix('admin')->group(function () {
         Route::put('/api/items/{id}', [ItemController::class, 'update'])->whereNumber('id');
         Route::get('/api/items/search', [CatalogLookupController::class, 'searchItems']);
         Route::get('/api/options', [CatalogLookupController::class, 'options']);
+
+        Route::get('/api/npcs', [NpcTemplateController::class, 'index']);
+        Route::get('/api/npcs/{id}', [NpcTemplateController::class, 'show'])->whereNumber('id');
+        Route::post('/api/npcs/{id}', [NpcTemplateController::class, 'update'])->whereNumber('id');
 
         Route::get('/api/gift-boxes', [GiftBoxController::class, 'index']);
         Route::post('/api/gift-boxes', [GiftBoxController::class, 'store']);
