@@ -36,6 +36,7 @@ final class ItemController extends Controller
             'leg' => 'nullable|integer|min:-1',
             'description' => 'nullable|string|max:2000',
             'is_up_to_up' => 'nullable|boolean',
+            'icon_x4' => 'nullable|file|mimes:png|max:2048',
         ]);
 
         $result = $this->catalog->updateItem($request, $id);

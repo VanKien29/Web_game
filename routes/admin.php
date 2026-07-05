@@ -104,6 +104,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/items', [ItemController::class, 'index']);
         Route::get('/api/items/batch', [ItemController::class, 'batch']);
         Route::put('/api/items/{id}', [ItemController::class, 'update'])->whereNumber('id');
+        Route::post('/api/items/{id}', [ItemController::class, 'update'])->whereNumber('id');
         Route::get('/api/items/search', [CatalogLookupController::class, 'searchItems']);
         Route::get('/api/options', [CatalogLookupController::class, 'options']);
 
