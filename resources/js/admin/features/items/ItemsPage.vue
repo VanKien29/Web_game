@@ -392,7 +392,14 @@
                 </div>
 
                 <div class="editor-body">
-                    <div class="editor-preview">
+                    <div
+                        class="editor-preview"
+                        :class="{ 'is-dragging': editor.iconDragging }"
+                        @dragenter.prevent="handleIconDragEnter"
+                        @dragover.prevent="handleIconDragOver"
+                        @dragleave.prevent="handleIconDragLeave"
+                        @drop.prevent="handleIconDrop"
+                    >
                         <div class="editor-icon-wrap">
                             <img
                                 v-if="editor.iconPreviewUrl"
@@ -443,6 +450,9 @@
                             </div>
                             <small v-if="editor.iconFile" class="icon-file-name">
                                 {{ editor.iconFile.name }} sẽ ghi đè icon #{{ editorNumber("icon_id") }}
+                            </small>
+                            <small v-else class="icon-drop-hint">
+                                Kéo PNG vào đây để thay ảnh icon.
                             </small>
                         </div>
                     </div>
@@ -558,6 +568,7 @@ export default {
                 form: {},
                 iconFile: null,
                 iconPreviewUrl: "",
+                iconDragging: false,
             },
         };
     },
@@ -636,6 +647,40 @@ export default {
         },
         handleIconFileChange(event) {
             const file = event?.target?.files?.[0] || null;
+            this.acceptIconFile(file);
+            if (event?.target && !this.editor.iconFile) {
+                event.target.value = "";
+            }
+        },
+        handleIconDragEnter(event) {
+            if (this.editor.saving) return;
+            if (this.hasDraggedFile(event)) {
+                this.editor.iconDragging = true;
+            }
+        },
+        handleIconDragOver(event) {
+            if (this.editor.saving) return;
+            if (this.hasDraggedFile(event)) {
+                event.dataTransfer.dropEffect = "copy";
+                this.editor.iconDragging = true;
+            }
+        },
+        handleIconDragLeave(event) {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+                this.editor.iconDragging = false;
+            }
+        },
+        handleIconDrop(event) {
+            this.editor.iconDragging = false;
+            if (this.editor.saving) return;
+
+            const file = event.dataTransfer?.files?.[0] || null;
+            this.acceptIconFile(file);
+        },
+        hasDraggedFile(event) {
+            return Array.from(event.dataTransfer?.types || []).includes("Files");
+        },
+        acceptIconFile(file) {
             this.revokeIconPreview();
 
             if (!file) {
@@ -645,7 +690,6 @@ export default {
 
             if (file.type !== "image/png") {
                 this.editor.error = "Chỉ hỗ trợ ảnh PNG.";
-                event.target.value = "";
                 this.editor.iconFile = null;
                 return;
             }
@@ -675,6 +719,7 @@ export default {
                 error: "",
                 iconFile: null,
                 iconPreviewUrl: "",
+                iconDragging: false,
                 form: {
                     id: item.id,
                     name: item.name || "",
@@ -1159,6 +1204,15 @@ export default {
     border-radius: 10px;
     background: var(--ds-surface-2);
     padding: 12px;
+    transition:
+        border-color 0.16s ease,
+        background-color 0.16s ease,
+        box-shadow 0.16s ease;
+}
+.editor-preview.is-dragging {
+    border-color: var(--ds-primary);
+    background: rgba(var(--ds-primary-rgb), 0.08);
+    box-shadow: 0 0 0 3px rgba(var(--ds-primary-rgb), 0.12);
 }
 .editor-preview-copy {
     min-width: 0;
@@ -1201,6 +1255,10 @@ export default {
     margin-top: 6px !important;
     color: var(--ds-primary) !important;
     word-break: break-word;
+}
+.icon-drop-hint {
+    margin-top: 6px !important;
+    color: var(--ds-text-muted) !important;
 }
 .editor-grid {
     display: grid;
