@@ -432,10 +432,19 @@
                                     class="btn btn-outline btn-sm"
                                     type="button"
                                     :disabled="editor.saving"
-                                    @click="chooseIconFile"
+                                    @click="chooseIconFile('replace')"
                                 >
                                     <span class="mi" style="font-size: 15px">image</span>
                                     Thay ảnh
+                                </button>
+                                <button
+                                    class="btn btn-primary btn-sm"
+                                    type="button"
+                                    :disabled="editor.saving"
+                                    @click="chooseIconFile('split')"
+                                >
+                                    <span class="mi" style="font-size: 15px">call_split</span>
+                                    Tách icon_id
                                 </button>
                                 <button
                                     v-if="editor.iconFile"
@@ -449,10 +458,16 @@
                                 </button>
                             </div>
                             <small v-if="editor.iconFile" class="icon-file-name">
-                                {{ editor.iconFile.name }} sẽ ghi đè icon #{{ editorNumber("icon_id") }}
+                                {{ editor.iconFile.name }}
+                                <template v-if="editor.iconUploadMode === 'split'">
+                                    sẽ tạo icon ID mới và chỉ áp dụng cho item này.
+                                </template>
+                                <template v-else>
+                                    sẽ ghi đè icon #{{ editorNumber("icon_id") }}.
+                                </template>
                             </small>
                             <small v-else class="icon-drop-hint">
-                                Kéo PNG vào đây để thay ảnh icon.
+                                Kéo PNG vào đây để thay ảnh icon, hoặc bấm Tách icon_id để tạo ID riêng.
                             </small>
                         </div>
                     </div>
@@ -569,6 +584,8 @@ export default {
                 iconFile: null,
                 iconPreviewUrl: "",
                 iconDragging: false,
+                iconUploadMode: "replace",
+                pendingIconUploadMode: "replace",
             },
         };
     },
@@ -642,12 +659,17 @@ export default {
             const value = Number(this.editor.form?.[field] ?? 0);
             return Number.isFinite(value) ? value : 0;
         },
-        chooseIconFile() {
+        chooseIconFile(mode = "replace") {
+            this.editor.pendingIconUploadMode =
+                mode === "split" ? "split" : "replace";
+            if (this.$refs.iconFileInput) {
+                this.$refs.iconFileInput.value = "";
+            }
             this.$refs.iconFileInput?.click();
         },
         handleIconFileChange(event) {
             const file = event?.target?.files?.[0] || null;
-            this.acceptIconFile(file);
+            this.acceptIconFile(file, this.editor.pendingIconUploadMode);
             if (event?.target && !this.editor.iconFile) {
                 event.target.value = "";
             }
@@ -675,32 +697,38 @@ export default {
             if (this.editor.saving) return;
 
             const file = event.dataTransfer?.files?.[0] || null;
-            this.acceptIconFile(file);
+            this.acceptIconFile(file, "replace");
         },
         hasDraggedFile(event) {
             return Array.from(event.dataTransfer?.types || []).includes("Files");
         },
-        acceptIconFile(file) {
+        acceptIconFile(file, mode = "replace") {
             this.revokeIconPreview();
 
             if (!file) {
                 this.editor.iconFile = null;
+                this.editor.pendingIconUploadMode = "replace";
                 return;
             }
 
             if (file.type !== "image/png") {
                 this.editor.error = "Chỉ hỗ trợ ảnh PNG.";
                 this.editor.iconFile = null;
+                this.editor.pendingIconUploadMode = "replace";
                 return;
             }
 
             this.editor.error = "";
             this.editor.iconFile = file;
+            this.editor.iconUploadMode = mode === "split" ? "split" : "replace";
+            this.editor.pendingIconUploadMode = "replace";
             this.editor.iconPreviewUrl = URL.createObjectURL(file);
         },
         clearIconFile() {
             this.revokeIconPreview();
             this.editor.iconFile = null;
+            this.editor.iconUploadMode = "replace";
+            this.editor.pendingIconUploadMode = "replace";
             if (this.$refs.iconFileInput) {
                 this.$refs.iconFileInput.value = "";
             }
@@ -720,6 +748,8 @@ export default {
                 iconFile: null,
                 iconPreviewUrl: "",
                 iconDragging: false,
+                iconUploadMode: "replace",
+                pendingIconUploadMode: "replace",
                 form: {
                     id: item.id,
                     name: item.name || "",
@@ -759,6 +789,7 @@ export default {
                 });
                 if (this.editor.iconFile) {
                     formData.append("icon_x4", this.editor.iconFile);
+                    formData.append("icon_upload_mode", this.editor.iconUploadMode);
                 }
 
                 const res = await fetch(
@@ -1298,7 +1329,6 @@ export default {
     }
 }
 </style>
-
 
 
 

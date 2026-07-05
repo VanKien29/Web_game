@@ -181,7 +181,11 @@ class GameCatalogService extends AdminServiceSupport
 
         $iconFile = $this->assets->requestFiles($request, 'icon_x4')[0] ?? null;
         if ($iconFile) {
-            $iconId = (int) ($data['icon_id'] ?? 0);
+            $iconUploadMode = $request->input('icon_upload_mode') === 'split' ? 'split' : 'replace';
+            $iconId = $iconUploadMode === 'split'
+                ? $this->assets->resolveGameAssetId(null, 'icon', [])
+                : (int) ($data['icon_id'] ?? 0);
+
             if ($iconId <= 0) {
                 return [
                     'ok' => false,
@@ -191,13 +195,14 @@ class GameCatalogService extends AdminServiceSupport
             }
 
             try {
+                $data['icon_id'] = $iconId;
                 $savedFiles = $this->assets->saveGamePngPyramid($iconFile, 'data/icon', "{$iconId}.png", 96);
                 $savedFiles = array_merge($savedFiles, $this->assets->mirrorGameIconToPublic($iconId));
             } catch (\Throwable $e) {
                 return [
                     'ok' => false,
                     'status' => 422,
-                    'message' => 'Không thể thay ảnh icon: ' . $e->getMessage(),
+                    'message' => ($iconUploadMode === 'split' ? 'Không thể tách icon: ' : 'Không thể thay ảnh icon: ') . $e->getMessage(),
                 ];
             }
         }
