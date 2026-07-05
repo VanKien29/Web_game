@@ -42,6 +42,18 @@
                         {{ t.name }} ({{ t.id }})
                     </option>
                 </select>
+                <select
+                    v-model="genderFilter"
+                    class="form-input"
+                    style="width: 180px"
+                    @change="loadPage(1)"
+                >
+                    <option value="">Tất cả gender</option>
+                    <option :value="'0'">Trái Đất (0)</option>
+                    <option :value="'1'">Namek (1)</option>
+                    <option :value="'2'">Xayda (2)</option>
+                    <option :value="'3'">Chung/Tất cả (3)</option>
+                </select>
                 <button class="btn btn-primary btn-sm" type="submit">
                     <span class="mi" style="font-size: 16px">filter_list</span>
                     Lọc
@@ -552,6 +564,7 @@ export default {
             typeOptions: [],
             search: "",
             typeFilter: "",
+            genderFilter: "",
             loading: false,
             page: 1,
             pageInput: "1",
@@ -850,6 +863,7 @@ export default {
                 const params = new URLSearchParams({ page: String(this.page) });
                 if (this.search) params.set("search", this.search);
                 if (this.typeFilter) params.set("type", this.typeFilter);
+                if (this.genderFilter) params.set("gender", this.genderFilter);
 
                 const res = await fetch(
                     `/admin/api/items?${params.toString()}`,
