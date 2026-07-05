@@ -37,6 +37,7 @@ final class ItemController extends Controller
             'description' => 'nullable|string|max:2000',
             'is_up_to_up' => 'nullable|boolean',
             'icon_x4' => 'nullable|file|mimes:png|max:2048',
+            'icon_upload_mode' => 'nullable|string|in:replace,split',
         ]);
 
         $result = $this->catalog->updateItem($request, $id);
