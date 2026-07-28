@@ -35,8 +35,16 @@ class ProfileAppearanceService
             $bodyItem = $templates[$equippedItemIds[0]] ?? null;
             $legItem = $templates[$equippedItemIds[1]] ?? null;
 
-            $defaultBodyPart = (int) ($bodyItem->part ?? $this->defaultBodyPart($player));
-            $defaultLegPart = (int) ($legItem->part ?? $this->defaultLegPart($player));
+            $defaultBodyPart = $this->templatePart(
+                $bodyItem,
+                'part',
+                $this->defaultBodyPart($player),
+            );
+            $defaultLegPart = $this->templatePart(
+                $legItem,
+                'part',
+                $this->defaultLegPart($player),
+            );
             $usesCostume = $costume && (int) ($costume->type ?? -1) === 5;
             $partIds = [
                 'head' => $this->costumePart($costume, 'head', (int) ($player->head ?? 0)),
@@ -44,13 +52,21 @@ class ProfileAppearanceService
                 'leg' => $this->costumePart($costume, 'leg', $defaultLegPart),
             ];
 
+            $layers = $this->idleLayers($partIds);
+
             return [
                 'mode' => $usesCostume ? 'costume' : 'default',
                 'costume_id' => $usesCostume ? (int) $costume->id : null,
                 'costume_name' => $usesCostume ? (string) $costume->name : null,
                 'parts' => $partIds,
-                'layers' => $this->idleLayers($partIds),
+                'pose' => [
+                    'key' => 'idle-right',
+                    'zoom' => 4,
+                    'origin' => 'bottom-center',
+                ],
+                'layers' => $layers,
                 'extensions' => [],
+                'complete' => count($layers) === 3,
             ];
         } catch (Throwable $exception) {
             report($exception);
@@ -90,26 +106,54 @@ class ProfileAppearanceService
 
         $layers = [];
         foreach ([
-            ['key' => 'leg', 'z_index' => 10],
-            ['key' => 'body', 'z_index' => 20],
-            ['key' => 'head', 'z_index' => 30],
+            [
+                'key' => 'head',
+                'frame' => 0,
+                'anchor_x' => -13,
+                'anchor_y' => -34,
+                'z_index' => 0,
+            ],
+            [
+                'key' => 'leg',
+                'frame' => 1,
+                'anchor_x' => -8,
+                'anchor_y' => -10,
+                'z_index' => 1,
+            ],
+            [
+                'key' => 'body',
+                'frame' => 1,
+                'anchor_x' => -9,
+                'anchor_y' => -16,
+                'z_index' => 2,
+            ],
         ] as $definition) {
             $key = $definition['key'];
             $partId = $partIds[$key];
             $part = $parts->get($partId);
-            $frame = $part ? Arr::get($this->decodeArray($part->data ?? null), 0) : null;
-            if (!is_array($frame) || (int) Arr::get($frame, 0, -1) < 0) {
+            $frame = $part
+                ? Arr::get(
+                    $this->decodeArray($part->data ?? null),
+                    $definition['frame'],
+                )
+                : null;
+            if (! is_array($frame) || (int) Arr::get($frame, 0, -1) < 0) {
                 continue;
             }
 
             $iconId = (int) Arr::get($frame, 0);
+            $spritePath = "assets/frontend/home/v1/images/x4/{$iconId}.png";
+            if (! is_file(public_path($spritePath))) {
+                continue;
+            }
+
             $layers[] = [
                 'key' => $key,
                 'part_id' => (int) $partId,
                 'icon_id' => $iconId,
-                'url' => "/assets/frontend/home/v1/images/x4/{$iconId}.png",
-                'dx' => (int) Arr::get($frame, 1, 0),
-                'dy' => (int) Arr::get($frame, 2, 0),
+                'url' => "/{$spritePath}",
+                'x' => $definition['anchor_x'] + (int) Arr::get($frame, 1, 0),
+                'y' => $definition['anchor_y'] + (int) Arr::get($frame, 2, 0),
                 'z_index' => $definition['z_index'],
             ];
         }
@@ -128,11 +172,18 @@ class ProfileAppearanceService
 
     private function costumePart(?object $costume, string $part, int $fallback): int
     {
-        if (!$costume || (int) ($costume->type ?? -1) !== 5) {
+        if (! $costume || (int) ($costume->type ?? -1) !== 5) {
             return $fallback;
         }
 
         $partId = (int) ($costume->{$part} ?? -1);
+
+        return $partId >= 0 ? $partId : $fallback;
+    }
+
+    private function templatePart(?object $template, string $part, int $fallback): int
+    {
+        $partId = (int) ($template->{$part} ?? -1);
 
         return $partId >= 0 ? $partId : $fallback;
     }
@@ -162,8 +213,14 @@ class ProfileAppearanceService
                 'body' => $this->defaultBodyPart($player),
                 'leg' => $this->defaultLegPart($player),
             ],
+            'pose' => [
+                'key' => 'idle-right',
+                'zoom' => 4,
+                'origin' => 'bottom-center',
+            ],
             'layers' => [],
             'extensions' => [],
+            'complete' => false,
         ];
     }
 
@@ -173,7 +230,7 @@ class ProfileAppearanceService
             return $value;
         }
 
-        if (!is_string($value) || trim($value) === '') {
+        if (! is_string($value) || trim($value) === '') {
             return [];
         }
 

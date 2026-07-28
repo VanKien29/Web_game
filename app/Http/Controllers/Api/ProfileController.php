@@ -14,15 +14,14 @@ class ProfileController extends Controller
 {
     public function __construct(
         private readonly ProfileAppearanceService $appearance,
-    ) {
-    }
+    ) {}
 
     public function profile(Request $request): JsonResponse
     {
         $account = $request->get('game_user');
         $player = $account->player;
 
-        if (!$player) {
+        if (! $player) {
             return response()->json([
                 'ok' => true,
                 'data' => [
@@ -38,7 +37,7 @@ class ProfileController extends Controller
                         'has_character' => false,
                     ],
                 ],
-            ]);
+            ])->header('Cache-Control', 'private, no-store');
         }
 
         $pointData = $this->decodeArray($player->data_point ?? null);
@@ -60,7 +59,7 @@ class ProfileController extends Controller
                     ?? $task->getAttribute('name')
                     ?? $taskName;
             } else {
-                $taskName = 'Nhiệm vụ #' . $taskId;
+                $taskName = 'Nhiệm vụ #'.$taskId;
             }
         }
 
@@ -74,10 +73,10 @@ class ProfileController extends Controller
 
         // Avatar
         $avatarUrl = '/assets/frontend/home/v1/images/bannergame.png';
-        if (!empty($player->head)) {
+        if (! empty($player->head)) {
             $headAvatar = HeadAvatar::where('head_id', $player->head)->first();
             if ($headAvatar) {
-                $avatarUrl = '/assets/frontend/home/v1/images/x4/' . $headAvatar->avatar_id . '.png';
+                $avatarUrl = '/assets/frontend/home/v1/images/x4/'.$headAvatar->avatar_id.'.png';
             }
         }
 
@@ -115,16 +114,17 @@ class ProfileController extends Controller
                     ],
                 ],
             ],
-        ]);
+        ])->header('Cache-Control', 'private, no-store');
     }
 
     private function decodeArray($value): array
     {
-        if (!is_string($value) || trim($value) === '') {
+        if (! is_string($value) || trim($value) === '') {
             return [];
         }
 
         $decoded = json_decode($this->fixJson($value), true);
+
         return is_array($decoded) ? $decoded : [];
     }
 
