@@ -23,7 +23,15 @@
 
             <section class="client-panel profile-hero-card">
                 <div class="profile-hero-card__main">
-                    <img :src="avatarUrl" class="profile-avatar" />
+                    <img
+                        v-if="player.avatar_url"
+                        :src="player.avatar_url"
+                        alt=""
+                        class="profile-avatar"
+                    />
+                    <span v-else class="profile-avatar" aria-hidden="true">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </span>
                     <div>
                         <div class="client-panel__eyebrow">Tài khoản</div>
                         <h1 class="client-panel__title">
@@ -260,12 +268,6 @@ export default {
         },
         inventory() {
             return this.player.inventory || {};
-        },
-        avatarUrl() {
-            return (
-                this.player.avatar_url ||
-                "/assets/frontend/home/v1/images/bannergame.png"
-            );
         },
     },
     methods: {

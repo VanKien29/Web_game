@@ -5,42 +5,27 @@
             <span>›</span>
             <span>Đăng ký</span>
         </div>
+
         <div class="client-auth-shell">
-            <section class="client-panel client-auth-card">
-                <div class="client-auth-art">
-                    <img
-                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
-                        alt="Ngọc Rồng Horizon"
-                        class="client-auth-logo"
-                    />
-                    <img
-                        src="/assets/frontend/home/v1/images/goku.png"
-                        alt=""
-                        class="client-auth-hero"
-                    />
-                </div>
-                <div class="client-panel__eyebrow">Người chơi mới</div>
-                <h1 class="client-panel__title">Đăng ký</h1>
-                <p class="client-panel__desc">
-                    Tạo tài khoản để bắt đầu chơi và trải nghiệm.
-                </p>
-                <div class="client-auth-links">
-                    <router-link to="/giftcode">Giftcode</router-link>
-                    <router-link to="/bxh">Bảng xếp hạng</router-link>
-                    <router-link to="/nap-atm">Nạp tiền</router-link>
-                </div>
-            </section>
+            <AuthWelcomePanel
+                eyebrow="Người chơi mới"
+                title="Tạo chiến binh"
+                description="Tạo tài khoản để bắt đầu hành trình tại Horizon."
+            />
+
             <section class="client-panel client-auth-form">
                 <div v-if="error" class="alert alert-error">{{ error }}</div>
                 <div v-if="success" class="alert alert-success">
                     {{ success }}
                 </div>
+
                 <form novalidate @submit.prevent="handleRegister">
                     <label class="client-field">
                         <span>Tên đăng nhập</span>
                         <input
                             v-model.trim="username"
                             type="text"
+                            autocomplete="username"
                             placeholder="Tên đăng nhập"
                             required
                         />
@@ -50,6 +35,7 @@
                         <input
                             v-model="password"
                             type="password"
+                            autocomplete="new-password"
                             placeholder="Mật khẩu"
                             required
                         />
@@ -59,6 +45,7 @@
                         <input
                             v-model="confirmPassword"
                             type="password"
+                            autocomplete="new-password"
                             placeholder="Nhập lại mật khẩu"
                             required
                         />
@@ -69,9 +56,10 @@
                         :disabled="loading"
                     >
                         <span v-if="loading" class="btn-loading-dot"></span>
-                        {{ loading ? "Đang xử lý..." : "Đăng ký" }}
+                        {{ loading ? "Đang xử lý..." : "Tạo tài khoản" }}
                     </button>
                 </form>
+
                 <p class="client-auth-note">
                     Đã có tài khoản?
                     <router-link to="/login">Đăng nhập</router-link>
@@ -81,53 +69,75 @@
     </div>
 </template>
 
-<script>
-import axios from "axios";
+<script setup lang="ts">
+import axios, { AxiosError } from "axios";
+import { onBeforeUnmount, ref } from "vue";
+import { useRouter } from "vue-router";
+import AuthWelcomePanel from "../components/auth/AuthWelcomePanel.vue";
 
-export default {
-    name: "RegisterPage",
-    data() {
-        return {
-            username: "",
-            password: "",
-            confirmPassword: "",
-            error: "",
-            success: "",
-            loading: false,
-        };
-    },
-    methods: {
-        async handleRegister() {
-            this.error = "";
-            this.success = "";
-            if (!this.username || !this.password || !this.confirmPassword) {
-                this.error = "Vui lòng nhập đầy đủ thông tin đăng ký";
-                return;
-            }
+interface RegisterResponse {
+    status: "success" | "error";
+    message?: string;
+}
 
-            if (this.password !== this.confirmPassword) {
-                this.error = "Mật khẩu không khớp";
-                return;
-            }
-            this.loading = true;
-            try {
-                const { data } = await axios.post("/api/auth/register", {
-                    username: this.username,
-                    password: this.password,
-                });
-                if (data.status === "success") {
-                    this.success =
-                        "Đăng ký thành công! Đang chuyển đến trang đăng nhập...";
-                    setTimeout(() => this.$router.push("/login"), 2000);
-                } else {
-                    this.error = data.message || "Đăng ký thất bại";
-                }
-            } catch (err) {
-                this.error = err.response?.data?.message || "Đăng ký thất bại";
-            } finally {
-                this.loading = false;
-            }
-        },
-    },
-};
+interface ApiError {
+    message?: string;
+}
+
+const router = useRouter();
+const username = ref("");
+const password = ref("");
+const confirmPassword = ref("");
+const error = ref("");
+const success = ref("");
+const loading = ref(false);
+let redirectTimer: ReturnType<typeof window.setTimeout> | null = null;
+
+async function handleRegister(): Promise<void> {
+    error.value = "";
+    success.value = "";
+
+    if (!username.value || !password.value || !confirmPassword.value) {
+        error.value = "Vui lòng nhập đầy đủ thông tin đăng ký";
+        return;
+    }
+
+    if (password.value !== confirmPassword.value) {
+        error.value = "Mật khẩu không khớp";
+        return;
+    }
+
+    loading.value = true;
+    try {
+        const { data } = await axios.post<RegisterResponse>(
+            "/api/auth/register",
+            {
+                username: username.value,
+                password: password.value,
+            },
+        );
+
+        if (data.status === "success") {
+            success.value =
+                "Đăng ký thành công! Đang chuyển đến trang đăng nhập...";
+            redirectTimer = window.setTimeout(() => {
+                void router.push("/login");
+            }, 1600);
+        } else {
+            error.value = data.message || "Đăng ký thất bại";
+        }
+    } catch (caughtError) {
+        const requestError = caughtError as AxiosError<ApiError>;
+        error.value =
+            requestError.response?.data?.message || "Đăng ký thất bại";
+    } finally {
+        loading.value = false;
+    }
+}
+
+onBeforeUnmount(() => {
+    if (redirectTimer) {
+        window.clearTimeout(redirectTimer);
+    }
+});
 </script>

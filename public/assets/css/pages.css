@@ -419,8 +419,14 @@ html body .welcome-popup-overlay * {
 
 .inner-page {
     background:
-        linear-gradient(180deg, rgba(4, 12, 31, 0.7) 0%, rgba(8, 26, 54, 0.94) 44%, rgba(5, 14, 33, 0.98) 100%),
-        url("/assets/frontend/home/v1/images/fullBg.jpg") center top / cover fixed;
+        linear-gradient(
+            180deg,
+            rgba(4, 12, 31, 0.7) 0%,
+            rgba(8, 26, 54, 0.94) 44%,
+            rgba(5, 14, 33, 0.98) 100%
+        ),
+        url("/assets/frontend/home/v1/images/fullBg.jpg") center top / cover
+            fixed;
 }
 
 .client-page {
@@ -451,7 +457,11 @@ html body .welcome-popup-overlay * {
 .sidebar-widget,
 .client-page-head--split {
     background:
-        linear-gradient(180deg, rgba(255, 252, 244, 0.97), rgba(255, 246, 224, 0.95)),
+        linear-gradient(
+            180deg,
+            rgba(255, 252, 244, 0.97),
+            rgba(255, 246, 224, 0.95)
+        ),
         var(--client-panel);
     border: 1px solid var(--client-line);
     border-radius: 10px;
@@ -1091,7 +1101,11 @@ html body .welcome-popup-overlay * {
     border-radius: 12px;
     border: 1px solid rgba(255, 216, 138, 0.2);
     background:
-        radial-gradient(circle at 20% 20%, rgba(255, 216, 138, 0.16), transparent 32%),
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(255, 216, 138, 0.16),
+            transparent 32%
+        ),
         linear-gradient(135deg, rgba(7, 20, 45, 0.88), rgba(30, 58, 105, 0.76));
 }
 
@@ -1701,19 +1715,22 @@ html body .welcome-popup-overlay * {
 .fa-sharp,
 .fas,
 .fa-solid {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 900 !important;
 }
 
 .far,
 .fa-regular {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 400 !important;
 }
 
 .fab,
 .fa-brands {
-    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
     font-weight: 400 !important;
 }
 
@@ -1775,19 +1792,22 @@ html body .welcome-popup-overlay * {
 .fa-sharp,
 .fas,
 .fa-solid {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 900 !important;
 }
 
 .far,
 .fa-regular {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 400 !important;
 }
 
 .fab,
 .fa-brands {
-    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
     font-weight: 400 !important;
 }
 
@@ -2223,8 +2243,30 @@ html body .welcome-popup-overlay * {
     color: #1877f2 !important;
 }
 
-.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid, .far, .fa-regular, .fab, .fa-brands),
-.client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid, .far, .fa-regular, .fab, .fa-brands)::before {
+.client-page--post
+    :is(
+        .fa,
+        .fa-classic,
+        .fa-sharp,
+        .fas,
+        .fa-solid,
+        .far,
+        .fa-regular,
+        .fab,
+        .fa-brands
+    ),
+.client-page--post
+    :is(
+        .fa,
+        .fa-classic,
+        .fa-sharp,
+        .fas,
+        .fa-solid,
+        .far,
+        .fa-regular,
+        .fab,
+        .fa-brands
+    )::before {
     font-style: normal !important;
     font-synthesis: none !important;
     line-height: 1 !important;
@@ -2232,19 +2274,25 @@ html body .welcome-popup-overlay * {
 
 .client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid)::before,
 .client-page--post :is(.fa, .fa-classic, .fa-sharp, .fas, .fa-solid) {
-    font-family: "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free",
+        FontAwesome !important;
     font-weight: 900 !important;
 }
 
 .client-page--post :is(.far, .fa-regular)::before,
 .client-page--post :is(.far, .fa-regular) {
-    font-family: "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 7 Free", "Font Awesome 6 Free", "Font Awesome 5 Free",
+        FontAwesome !important;
     font-weight: 400 !important;
 }
 
 .client-page--post :is(.fab, .fa-brands)::before,
 .client-page--post :is(.fab, .fa-brands) {
-    font-family: "Font Awesome 7 Brands", "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-family:
+        "Font Awesome 7 Brands", "Font Awesome 6 Brands",
+        "Font Awesome 5 Brands", FontAwesome !important;
     font-weight: 400 !important;
 }
 
@@ -4021,7 +4069,7 @@ html body .welcome-popup-overlay * {
         #1a3060 60%,
         #0b1a3b 100%
     );
-    background-attachment: fixed;
+    background-attachment: scroll;
     min-height: calc(100vh - 68px);
     padding-top: 88px;
     padding-bottom: 40px;
@@ -4030,7 +4078,7 @@ html body .welcome-popup-overlay * {
 
 .inner-page::before {
     content: "";
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -4510,6 +4558,19 @@ main:not(.inner-page) {
 .tab-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.tab-navigation.client-tab-list {
+    display: flex !important;
+    width: 100%;
+    gap: 10px;
+}
+
+.tab-navigation.client-tab-list .tab-btn {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    margin: 0;
 }
 
 .tab-btn.active {
@@ -6186,7 +6247,8 @@ html body .welcome-popup-overlay * {
 .inner-page {
     background:
         linear-gradient(180deg, rgba(7, 19, 38, 0.7), rgba(9, 30, 61, 0.92)),
-        url("/assets/frontend/home/v1/images/bg-content.jpg") center top / cover fixed;
+        url("/assets/frontend/home/v1/images/bg-content.jpg") center top / cover
+            fixed;
 }
 
 .inner-page::before {
@@ -6300,7 +6362,11 @@ html body .welcome-popup-overlay * {
     justify-content: center;
     background:
         linear-gradient(135deg, rgba(249, 115, 22, 0.14), transparent 46%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 253, 250, 0.96));
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.98),
+            rgba(240, 253, 250, 0.96)
+        );
 }
 
 .client-auth-form {
@@ -6440,7 +6506,14 @@ html body .welcome-popup-overlay * {
     border: 1px solid #e4e7ec;
     border-radius: 8px;
 }
-
+.client-page--ranking .tab-navigation.client-tab-list {
+    border: 1px solid #f59e0b !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
 .tab-btn {
     min-height: 42px;
     padding: 0 12px;
@@ -7200,8 +7273,14 @@ html body .sidebar_right * {
 
 .inner-page {
     background:
-        linear-gradient(180deg, rgba(4, 12, 31, 0.7) 0%, rgba(8, 26, 54, 0.94) 44%, rgba(5, 14, 33, 0.98) 100%),
-        url("/assets/frontend/home/v1/images/fullBg.jpg") center top / cover fixed !important;
+        linear-gradient(
+            180deg,
+            rgba(4, 12, 31, 0.7) 0%,
+            rgba(8, 26, 54, 0.94) 44%,
+            rgba(5, 14, 33, 0.98) 100%
+        ),
+        url("/assets/frontend/home/v1/images/fullBg.jpg") center top / cover
+            fixed !important;
 }
 
 .inner-page::before {
@@ -7236,7 +7315,11 @@ html body .sidebar_right * {
 .sidebar-widget,
 .client-page-head--split {
     background:
-        linear-gradient(180deg, rgba(255, 252, 244, 0.97), rgba(255, 246, 224, 0.95)),
+        linear-gradient(
+            180deg,
+            rgba(255, 252, 244, 0.97),
+            rgba(255, 246, 224, 0.95)
+        ),
         var(--client-panel) !important;
     border: 1px solid var(--client-line) !important;
     border-radius: 10px !important;
@@ -8372,19 +8455,22 @@ html body .sidebar_right * {
 .fa-sharp,
 .fas,
 .fa-solid {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 900 !important;
 }
 
 .far,
 .fa-regular {
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
     font-weight: 400 !important;
 }
 
 .fab,
 .fa-brands {
-    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+    font-family:
+        "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
     font-weight: 400 !important;
 }
 

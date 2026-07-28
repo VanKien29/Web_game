@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game\HeadAvatar;
 use App\Models\Game\TaskMainTemplate;
+use App\Services\ProfileAppearanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly ProfileAppearanceService $appearance,
+    ) {
+    }
+
     public function profile(Request $request): JsonResponse
     {
         $account = $request->get('game_user');
@@ -92,6 +98,7 @@ class ProfileController extends Controller
                     'task_name' => $taskName,
                     'gender_text' => $genderText,
                     'avatar_url' => $avatarUrl,
+                    'appearance' => $this->appearance->resolve($player),
                     'stats' => [
                         'potential' => (int) ($pointData[2] ?? 0),
                         'hp' => (int) ($pointData[5] ?? 0),

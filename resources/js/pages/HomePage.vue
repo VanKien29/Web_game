@@ -1,448 +1,333 @@
 <template>
-    <div>
-        <!-- HERO -->
-        <section class="__section game--brand__show __1">
-            <div class="bg_video" style="display: none">
-                <video
-                    id="videoBgPC"
-                    class="videobg hidden__mobile"
-                    muted
-                    loop
-                    preload="none"
-                >
-                    <source
-                        src="/assets/frontend/teaser/videos/g.mp4"
-                        type="video/mp4"
-                    />
-                </video>
+    <div class="pixel-home">
+        <section class="pixel-home-hero">
+            <div class="pixel-home-hero__sky">
+                <div class="pixel-home-hero__content">
+                    <h1><span>Ngọc Rồng</span> <strong>Horizon</strong></h1>
+                </div>
             </div>
 
-            <div class="limit__game">
-                <div class="box--download jCenter">
-                    <div class="list-link-dl">
-                        <a
-                            :href="settings.ios_download_url || '#'"
-                            class="item-link link-apple"
-                        >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl.png"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl-hv.png"
-                            />
-                        </a>
-                        <a
-                            :href="settings.android_download_url || '#'"
-                            class="item-link link-android"
-                        >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl-android.png"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl-android-hv.png"
-                            />
-                        </a>
-                        <a
-                            :href="settings.apk_download_url || '#'"
-                            class="item-link link-android"
-                        >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl-apk.png?v=2"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-dl-apk-hv.png?v=2"
-                            />
-                        </a>
-                        <router-link to="/nap-card" class="item-link link-card">
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-card.png"
-                            />
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-card-hv.png"
-                            />
-                        </router-link>
-                        <a
-                            :href="settings.facebook_url || '#'"
-                            class="item-link link-fb"
-                        >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl.png?v=2"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/btn-dl/btn-zl-hv.png?v=2"
-                            />
-                        </a>
+            <div class="pixel-home-hero__ground">
+                <div class="pixel-home-hero__status">
+                    <i class="fa-solid fa-server" aria-hidden="true"></i>
+                    <div>
+                        <small>Máy chủ</small>
+                        <strong>Online 24/7 mượt mà</strong>
+                    </div>
+                </div>
+
+                <div class="pixel-home-hero__status">
+                    <i class="fa-solid fa-dragon"></i>
+                    <div>
+                        <small>Lối chơi</small>
+                        <strong>Đa dạng chuẩn dame gốc</strong>
+                    </div>
+                </div>
+
+                <div class="pixel-home-hero__status">
+                    <i class="fa-solid fa-fire"></i>
+                    <div>
+                        <small>Sự kiện</small>
+                        <strong>Cập nhật liên tục</strong>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- CONTENT -->
-        <div class="box--content">
-            <section class="__section box__new __2 clearfix" id="su-kien">
-                <div class="tit-frame tCenter">
-                    <img
-                        src="/assets/frontend/home/v1/images/ttsk.png"
-                        style="width: 60%; max-width: 411px"
-                    />
+        <section class="pixel-home-section pixel-home-section--quick">
+            <div class="pixel-section-heading">
+                <div>
+                    <span class="pixel-kicker">Bắt đầu hành trình</span>
+                    <h2>Trạm dịch chuyển</h2>
                 </div>
+                <p>Chọn điểm đến của chiến binh!</p>
+            </div>
 
-                <div class="limit__game">
-                    <div
-                        class="main--box__new clearfix p-r"
-                        data-aos="fade-up"
-                        data-aos-duration="700"
-                        data-aos-delay="400"
-                    >
-                        <!-- Slides -->
-                        <div class="list-slide box-border p-r">
-                            <div class="listSlide__new" ref="slickSlider">
-                                <div
-                                    v-if="loading"
-                                    class="page-loading page-loading--compact"
-                                >
-                                    <div class="page-loading__spinner"></div>
-                                </div>
-                                <template v-else>
-                                    <div
-                                        v-for="slide in slides"
-                                        :key="slide.id"
-                                    >
-                                        <img
-                                            :src="slide.image"
-                                            :alt="slide.title"
-                                        />
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="icon-rau rau-left-top"></div>
-                            <div class="icon-rau rau-right-bottom"></div>
-                        </div>
+            <div class="pixel-action-grid">
+                <a
+                    :href="settings.ios_download_url || '#'"
+                    class="pixel-action-card"
+                >
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-brands fa-apple" aria-hidden="true"></i>
+                    </span>
+                    <strong>iOS</strong>
+                    <small>Tải cho iPhone</small>
+                </a>
+                <a
+                    :href="settings.android_download_url || '#'"
+                    class="pixel-action-card"
+                >
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-brands fa-android" aria-hidden="true"></i>
+                    </span>
+                    <strong>Android</strong>
+                    <small>Tải cho Android</small>
+                </a>
+                <a
+                    :href="settings.apk_download_url || '#'"
+                    class="pixel-action-card"
+                >
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+                    </span>
+                    <strong>PC</strong>
+                    <small>Tải cho PC</small>
+                </a>
+                <router-link to="/nap-card" class="pixel-action-card">
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-solid fa-coins" aria-hidden="true"></i>
+                    </span>
+                    <strong>Nạp thẻ</strong>
+                    <small>Nạp nhanh vào game</small>
+                </router-link>
+                <router-link to="/giftcode" class="pixel-action-card">
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-solid fa-gift" aria-hidden="true"></i>
+                    </span>
+                    <strong>Giftcode</strong>
+                    <small>Nhận quà sự kiện</small>
+                </router-link>
+            </div>
+        </section>
 
-                        <!-- News Tabs -->
-                        <div class="box-list-new box-border p-r">
-                            <div class="tab-new clearfix f-utm_facebook">
-                                <div
-                                    class="tab-link custom-border"
-                                    :class="{
-                                        current: activeTab === 'tin-tuc',
-                                    }"
-                                    @click="activeTab = 'tin-tuc'"
-                                >
-                                    <span>Tin tức</span>
-                                </div>
-                                <div
-                                    class="tab-link custom-border"
-                                    :class="{
-                                        current: activeTab === 'su-kien',
-                                    }"
-                                    @click="activeTab = 'su-kien'"
-                                >
-                                    <span>Sự kiện</span>
-                                </div>
-                                <div
-                                    class="tab-link custom-border"
-                                    :class="{
-                                        current: activeTab === 'huong-dan',
-                                    }"
-                                    @click="activeTab = 'huong-dan'"
-                                >
-                                    <span>Hướng dẫn</span>
-                                </div>
-                            </div>
+        <section class="pixel-home-section">
+            <div class="pixel-section-heading">
+                <div>
+                    <span class="pixel-kicker">Thông tin mới</span>
+                    <h2>Bảng tin hành tinh</h2>
+                </div>
+                <router-link to="/forum" class="pixel-text-link">
+                    Đến diễn đàn
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </router-link>
+            </div>
 
-                            <div class="tab-content">
-                                <div
-                                    v-if="loading"
-                                    class="page-loading page-loading--compact"
-                                >
-                                    <div class="page-loading__spinner"></div>
-                                </div>
-
-                                <template v-else>
-                                    <div
-                                        class="tab-detail"
-                                        :class="{
-                                            current: activeTab === 'tin-tuc',
-                                        }"
-                                    >
-                                        <router-link
-                                            v-for="post in tin_tuc"
-                                            :key="post.id"
-                                            :to="`/post/${post.slug}`"
-                                            class="item-new-box f-Roboto-Regular"
-                                        >
-                                            <div class="cat-des">
-                                                {{ post.title }}
-                                            </div>
-                                            <div class="date-open">
-                                                {{
-                                                    formatDate(post.created_at)
-                                                }}
-                                            </div>
-                                        </router-link>
-                                    </div>
-
-                                    <div
-                                        class="tab-detail"
-                                        :class="{
-                                            current: activeTab === 'su-kien',
-                                        }"
-                                    >
-                                        <router-link
-                                            v-for="post in su_kien"
-                                            :key="post.id"
-                                            :to="`/post/${post.slug}`"
-                                            class="item-new-box f-Roboto-Regular"
-                                        >
-                                            <div class="cat-des">
-                                                {{ post.title }}
-                                            </div>
-                                            <div class="date-open">
-                                                {{
-                                                    formatDate(post.created_at)
-                                                }}
-                                            </div>
-                                        </router-link>
-                                    </div>
-
-                                    <div
-                                        class="tab-detail"
-                                        :class="{
-                                            current: activeTab === 'huong-dan',
-                                        }"
-                                    >
-                                        <router-link
-                                            v-for="post in huong_dan"
-                                            :key="post.id"
-                                            :to="`/post/${post.slug}`"
-                                            class="item-new-box f-Roboto-Regular"
-                                        >
-                                            <div class="cat-des">
-                                                {{ post.title }}
-                                            </div>
-                                            <div class="date-open">
-                                                {{
-                                                    formatDate(post.created_at)
-                                                }}
-                                            </div>
-                                        </router-link>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <div class="icon-rau rau-left-bottom"></div>
-                            <div class="icon-rau rau-right-top"></div>
-                        </div>
+            <div class="pixel-news-layout">
+                <article class="pixel-news-feature">
+                    <div class="pixel-news-feature__scene" aria-hidden="true">
+                        <span class="pixel-orb pixel-orb--large">
+                            <span>H</span>
+                        </span>
                     </div>
-                </div>
-            </section>
+                    <div>
+                        <span class="pixel-kicker">Horizon nhật báo</span>
+                        <h3>Đừng bỏ lỡ hoạt động mới trong game</h3>
+                        <p>
+                            Theo dõi thông báo máy chủ, sự kiện và hướng dẫn
+                            dành cho chiến binh mới ngay hôm nay.
+                        </p>
+                    </div>
+                </article>
 
-            <!-- Box Links -->
-            <div class="box-link">
-                <div class="container">
-                    <div class="main-box-link">
-                        <a
-                            href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
-                            class="item-box-link"
-                            data-aos="fade-up"
-                            data-aos-delay="400"
+                <div class="pixel-news-panel">
+                    <div class="pixel-segment" role="tablist">
+                        <button
+                            v-for="tab in newsTabs"
+                            :key="tab.key"
+                            type="button"
+                            :class="{ active: activeTab === tab.key }"
+                            role="tab"
+                            :aria-selected="activeTab === tab.key"
+                            @click="activeTab = tab.key"
                         >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/box-link/img-gr.png"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/box-link/img-gr-hv.png"
-                            />
-                        </a>
-                        <a
-                            :href="settings.facebook_url || '#'"
-                            class="item-box-link hidden-mobile"
-                            data-aos="fade-up"
-                            data-aos-delay="600"
-                        >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/box-link/img-fb.png"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/box-link/img-fb-hv.png"
-                            />
-                        </a>
+                            {{ tab.label }}
+                        </button>
+                    </div>
+
+                    <div
+                        v-if="loading"
+                        class="page-loading page-loading--compact"
+                    >
+                        <div class="page-loading__spinner"></div>
+                    </div>
+
+                    <div v-else-if="activePosts.length" class="pixel-news-list">
                         <router-link
-                            to="/giftcode"
-                            class="item-box-link"
-                            data-aos="fade-up"
-                            data-aos-delay="800"
+                            v-for="post in activePosts.slice(0, 5)"
+                            :key="post.id"
+                            :to="`/post/${post.slug}`"
+                            class="pixel-news-item"
                         >
-                            <img
-                                class="img-ac"
-                                src="/assets/frontend/home/v1/images/box-link/img-gc.png"
-                            />
-                            <img
-                                class="img-hv"
-                                src="/assets/frontend/home/v1/images/box-link/img-gc-hv.png"
-                            />
+                            <span class="pixel-news-item__marker">
+                                <i
+                                    class="fa-solid fa-scroll fa-lg"
+                                    aria-hidden="true"
+                                ></i>
+                            </span>
+                            <span>
+                                <strong>{{ post.title }}</strong>
+                                <small>{{ formatDate(post.created_at) }}</small>
+                            </span>
+                            <i
+                                class="fa-solid fa-chevron-right"
+                                aria-hidden="true"
+                            ></i>
                         </router-link>
+                    </div>
+
+                    <div v-else class="client-empty">
+                        Chưa có bài viết trong mục này.
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Feature Section -->
-        <section class="__section box_game ftg__sl __3">
-            <div class="limit__game">
-                <div class="tit-frame tCenter">
-                    <img
-                        src="/assets/frontend/teaser/images/ten_box_game/tit-tinhnang.png"
-                        style="width: 60%; max-width: 411px"
-                    />
+        <section class="pixel-home-section">
+            <div class="pixel-section-heading">
+                <div>
+                    <span class="pixel-kicker">Khám phá Horizon</span>
+                    <h2>Ba hành tinh — một cuộc đua</h2>
                 </div>
-                <div class="bg__sl_ft p-r m__inline">
-                    <img
-                        src="/assets/frontend/teaser/images/ftgame/bg-tn.png"
-                        style="width: 100%"
-                    />
-                    <div
-                        class="slide__tinhnang slide__feature p-a slick-custom-dots"
-                        ref="featureSlider"
-                    >
+            </div>
+
+            <div class="pixel-feature-grid">
+                <article
+                    v-for="character in horizonCharacters"
+                    :key="character.name"
+                    class="pixel-character-card"
+                >
+                    <div class="pixel-character-card__portrait">
                         <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser1.jpg?v=4"
-                        />
-                        <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser2.jpg?v=4"
-                        />
-                        <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser3.jpg?v=4"
-                        />
-                        <img
-                            src="/assets/frontend/teaser/images/ftgame/teaser4.jpg?v=4"
+                            :src="character.avatar"
+                            :alt="`Nhân vật ${character.name}`"
+                            width="198"
+                            height="227"
+                            loading="lazy"
+                            decoding="async"
                         />
                     </div>
-                </div>
+                    <span class="pixel-character-card__origin">
+                        {{ character.origin }}
+                    </span>
+                    <h3>{{ character.name }}</h3>
+                    <p>{{ character.description }}</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="pixel-community-banner">
+            <div>
+                <span class="pixel-kicker">Tín hiệu từ Trái Đất</span>
+                <h2>Sẵn sàng gia nhập cộng đồng?</h2>
+                <p>Cùng trao đổi chiến thuật và nhận thông báo sớm nhất.</p>
+            </div>
+            <div class="pixel-community-banner__actions">
+                <a
+                    href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
+                    class="client-btn client-btn--primary"
+                >
+                    Nhóm Zalo
+                </a>
+                <a :href="settings.facebook_url || '#'" class="client-btn">
+                    Facebook
+                </a>
             </div>
         </section>
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from "axios";
+import { computed, onMounted, ref } from "vue";
 
-export default {
-    name: "HomePage",
-    data() {
-        return {
-            slides: [],
-            tin_tuc: [],
-            su_kien: [],
-            huong_dan: [],
-            settings: {},
-            activeTab: "tin-tuc",
-            loading: true,
-        };
+interface PostSummary {
+    id: number | string;
+    slug: string;
+    title: string;
+    created_at?: string;
+}
+
+interface HomeSettings {
+    ios_download_url?: string;
+    android_download_url?: string;
+    apk_download_url?: string;
+    facebook_url?: string;
+}
+
+type NewsTabKey = "tin-tuc" | "su-kien" | "huong-dan";
+
+interface HomeResponse {
+    tin_tuc?: PostSummary[];
+    su_kien?: PostSummary[];
+    huong_dan?: PostSummary[];
+    settings?: HomeSettings;
+}
+
+interface HorizonCharacter {
+    name: string;
+    origin: string;
+    description: string;
+    avatar: string;
+}
+
+const newsTabs: Array<{ key: NewsTabKey; label: string }> = [
+    { key: "tin-tuc", label: "Tin tức" },
+    { key: "su-kien", label: "Sự kiện" },
+    { key: "huong-dan", label: "Hướng dẫn" },
+];
+
+const horizonCharacters: HorizonCharacter[] = [
+    {
+        name: "Vegeta",
+        origin: "Chiến binh Saiyan",
+        description:
+            "Saiyan kiêu hãnh, sức mạnh vượt trội cùng khả năng lì đòn.",
+        avatar: "/assets/pixel/characters/vegeta.webp",
     },
-    async mounted() {
-        await this.loadData();
-        this.$nextTick(() => {
-            this.initSliders();
-            this.initAOS();
-        });
+    {
+        name: "Piccolo",
+        origin: "Chiến binh Namek",
+        description:
+            "Điềm tĩnh, bền bỉ và tinh thông chiến thuật trong mọi trận chiến.",
+        avatar: "/assets/pixel/characters/piccolo.webp",
     },
-    methods: {
-        async loadData() {
-            try {
-                const { data } = await axios.get("/api/home");
-                this.slides = data.slides || [];
-                this.tin_tuc = data.tin_tuc || [];
-                this.su_kien = data.su_kien || [];
-                this.huong_dan = data.huong_dan || [];
-                this.settings = data.settings || {};
-            } catch (err) {
-                console.error("Failed to load home data:", err);
-            } finally {
-                this.loading = false;
-            }
-        },
-        formatDate(dateStr) {
-            if (!dateStr) return "";
-            const d = new Date(dateStr);
-            return d.toLocaleDateString("vi-VN");
-        },
-        initSliders() {
-            if (window.$ && window.$.fn.slick) {
-                window.$(this.$refs.slickSlider).slick({
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    dots: true,
-                    arrows: false,
-                    infinite: true,
-                    speed: 500,
-                    fade: true,
-                });
-                window.$(this.$refs.featureSlider).slick({
-                    autoplay: true,
-                    autoplaySpeed: 4000,
-                    dots: true,
-                    arrows: false,
-                    infinite: true,
-                    speed: 500,
-                    fade: true,
-                });
-            }
-        },
-        initAOS() {
-            if (window.AOS) {
-                window.AOS.init();
-            }
-        },
+    {
+        name: "Songoku",
+        origin: "Chiến binh Trái Đất",
+        description: "Sức mạnh vô hạn, tinh thần bất khuất và hút gái.",
+        avatar: "/assets/pixel/characters/goku.webp",
     },
-};
+];
+
+const tinTuc = ref<PostSummary[]>([]);
+const suKien = ref<PostSummary[]>([]);
+const huongDan = ref<PostSummary[]>([]);
+const settings = ref<HomeSettings>({});
+const activeTab = ref<NewsTabKey>("tin-tuc");
+const loading = ref(true);
+
+const activePosts = computed(() => {
+    const posts: Record<NewsTabKey, PostSummary[]> = {
+        "tin-tuc": tinTuc.value,
+        "su-kien": suKien.value,
+        "huong-dan": huongDan.value,
+    };
+    return posts[activeTab.value];
+});
+
+function formatDate(dateString?: string): string {
+    if (!dateString) return "";
+    return new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    }).format(new Date(dateString));
+}
+
+async function loadData(): Promise<void> {
+    try {
+        const { data } = await axios.get<HomeResponse>("/api/home");
+        tinTuc.value = data.tin_tuc || [];
+        suKien.value = data.su_kien || [];
+        huongDan.value = data.huong_dan || [];
+        settings.value = data.settings || {};
+    } catch (error) {
+        console.error("Failed to load home data:", error);
+    } finally {
+        loading.value = false;
+    }
+}
+
+onMounted(loadData);
 </script>
-
-<style scoped>
-.box-list-new .tab-content .tab-detail .item-new-box,
-.box-list-new .tab-content .tab-detail .item-new-box:link,
-.box-list-new .tab-content .tab-detail .item-new-box:visited,
-.box-list-new .tab-content .tab-detail .item-new-box .cat-des,
-.box-list-new .tab-content .tab-detail .item-new-box .date-open {
-    color: #1f140d !important;
-    text-shadow: none !important;
-}
-
-.box-list-new .tab-content .tab-detail .item-new-box:hover .cat-des {
-    color: #7b3b09 !important;
-}
-
-.slide__tinhnang {
-    top: 9%;
-    bottom: 9%;
-    overflow: hidden;
-}
-
-.slide__tinhnang :deep(.slick-list),
-.slide__tinhnang :deep(.slick-track),
-.slide__tinhnang :deep(.slick-slide),
-.slide__tinhnang :deep(.slick-slide > div) {
-    height: 100%;
-}
-
-.slide__tinhnang img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-</style>
