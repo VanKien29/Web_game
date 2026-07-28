@@ -29,11 +29,6 @@
             />
             <span v-else>?</span>
         </div>
-
-        <div class="profile-character__plate">
-            <strong>{{ characterName }}</strong>
-            <span>{{ appearanceLabel }}</span>
-        </div>
     </div>
 </template>
 
@@ -45,12 +40,10 @@ const props = withDefaults(
     defineProps<{
         appearance?: CharacterAppearance;
         fallbackAvatarUrl?: string;
-        characterName?: string;
     }>(),
     {
         appearance: undefined,
         fallbackAvatarUrl: "",
-        characterName: "Chiến binh",
     },
 );
 
@@ -63,18 +56,6 @@ const visibleLayers = computed(() =>
         .sort((left, right) => left.z_index - right.z_index),
 );
 
-const appearanceLabel = computed(() => {
-    if (props.appearance?.mode === "equipment-fallback") {
-        return "Trang bị hiện tại";
-    }
-
-    if (props.appearance?.mode === "costume" && props.appearance.costume_name) {
-        return props.appearance.costume_name;
-    }
-
-    return "Trang phục chiến đấu";
-});
-
 function layerStyle(layer: CharacterLayer): Record<string, string | number> {
     const zoom = Math.max(
         1,
@@ -85,7 +66,7 @@ function layerStyle(layer: CharacterLayer): Record<string, string | number> {
 
     return {
         left: `calc(50% + ${x}px)`,
-        top: `calc(85% + ${y}px)`,
+        top: `calc(162px + ${y}px)`,
         zIndex: layer.z_index,
     };
 }
@@ -113,13 +94,10 @@ function layerAlt(key: string): string {
 
 .profile-character__sprite {
     position: absolute;
-    bottom: 70px;
-    left: 50%;
+    bottom: 24px;
+    left: calc(50% - 95px);
     width: 190px;
     height: 190px;
-    transform: translateX(-50%) scale(1.3);
-    transform-origin: center bottom;
-    animation: profile-character-idle 2.8s steps(2, end) infinite;
 }
 
 .profile-character__layer {
@@ -133,7 +111,7 @@ function layerAlt(key: string): string {
 
 .profile-character__fallback {
     position: absolute;
-    bottom: 78px;
+    bottom: 24px;
     display: grid;
     width: 160px;
     height: 160px;
@@ -154,69 +132,13 @@ function layerAlt(key: string): string {
     image-rendering: pixelated;
 }
 
-.profile-character__plate {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    display: grid;
-    min-width: 220px;
-    gap: 2px;
-    padding: 8px 18px 9px;
-    transform: translateX(-50%);
-    color: var(--pixel-ink);
-    background: rgb(255 246 211 / 94%);
-    border: 2px solid var(--pixel-line);
-    box-shadow: 3px 3px 0 rgb(61 42 34 / 26%);
-    text-align: center;
-}
-
-.profile-character__plate strong {
-    font-family: var(--pixel-font);
-    font-size: 1.45rem;
-    line-height: 1;
-}
-
-.profile-character__plate span {
-    color: var(--pixel-muted);
-    font-size: 0.7rem;
-}
-
-@keyframes profile-character-idle {
-    0%,
-    100% {
-        transform: translateX(-50%) translateY(0) scale(1.3);
-    }
-
-    50% {
-        transform: translateX(-50%) translateY(-3px) scale(1.3);
-    }
-}
-
 @media (max-width: 820px) {
     .profile-character {
         height: 300px;
     }
 
     .profile-character__sprite {
-        bottom: 66px;
-        transform: translateX(-50%) scale(1.15);
-    }
-
-    @keyframes profile-character-idle {
-        0%,
-        100% {
-            transform: translateX(-50%) translateY(0) scale(1.15);
-        }
-
-        50% {
-            transform: translateX(-50%) translateY(-2px) scale(1.15);
-        }
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .profile-character__sprite {
-        animation: none;
+        bottom: 18px;
     }
 }
 </style>

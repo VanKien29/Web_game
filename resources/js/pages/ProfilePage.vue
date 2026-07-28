@@ -29,7 +29,6 @@
                         v-if="player.has_character"
                         :appearance="player.appearance"
                         :fallback-avatar-url="player.avatar_url"
-                        :character-name="player.name"
                     />
                     <div v-else class="profile-no-character">
                         <strong>Chưa có chiến binh</strong>
