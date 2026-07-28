@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Services\GameRuntimeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -9,8 +10,10 @@ use Illuminate\Support\Facades\Schema;
 
 class GameCatalogService extends AdminServiceSupport
 {
-    public function __construct(private readonly GameAssetService $assets)
-    {
+    public function __construct(
+        private readonly GameAssetService $assets,
+        private readonly GameRuntimeService $runtime,
+    ) {
     }
 
     public function listItems(Request $request): array
@@ -178,31 +181,34 @@ class GameCatalogService extends AdminServiceSupport
             'is_up_to_up' => $request->boolean('is_up_to_up') ? 1 : 0,
         ];
         $savedFiles = [];
+        $deletedIconFiles = [];
 
         $iconFile = $this->assets->requestFiles($request, 'icon_x4')[0] ?? null;
         if ($iconFile) {
-            $iconUploadMode = $request->input('icon_upload_mode') === 'split' ? 'split' : 'replace';
-            $iconId = $iconUploadMode === 'split'
-                ? $this->assets->resolveGameAssetId(null, 'icon', [])
-                : (int) ($data['icon_id'] ?? 0);
+            $iconUploadMode = 'split';
+            $iconId = $this->assets->resolveGameAssetId(null, 'icon', []);
 
             if ($iconId <= 0) {
                 return [
                     'ok' => false,
                     'status' => 422,
-                    'message' => 'Icon ID phải lớn hơn 0 trước khi thay ảnh icon.',
+                    'message' => 'Icon ID phải lớn hơn 0 trước khi chèn lại ảnh.',
                 ];
             }
 
             try {
                 $data['icon_id'] = $iconId;
-                $savedFiles = $this->assets->saveGamePngPyramid($iconFile, 'data/icon', "{$iconId}.png", 96);
+                $maxIconSize = (int) ($data['TYPE'] ?? 0) === 37 ? 84 : 96;
+                $savedFiles = $this->assets->saveGamePngPyramid($iconFile, 'data/icon', "{$iconId}.png", $maxIconSize);
+                if ((int) ($data['TYPE'] ?? 0) === 37) {
+                    $savedFiles = array_merge($savedFiles, $this->assets->addGameIconInnerBorder($iconId));
+                }
                 $savedFiles = array_merge($savedFiles, $this->assets->mirrorGameIconToPublic($iconId));
             } catch (\Throwable $e) {
                 return [
                     'ok' => false,
                     'status' => 422,
-                    'message' => ($iconUploadMode === 'split' ? 'Không thể tách icon: ' : 'Không thể thay ảnh icon: ') . $e->getMessage(),
+                    'message' => ($iconUploadMode === 'split' ? 'Không thể tạo icon ID mới: ' : 'Không thể chèn lại ảnh: ') . $e->getMessage(),
                 ];
             }
         }
@@ -225,7 +231,15 @@ class GameCatalogService extends AdminServiceSupport
         $this->syncWebItemIndex($id, $data);
         $this->clearItemTypeOptionCache();
 
+        $oldIconId = (int) ($before->icon_id ?? 0);
+        $newIconId = (int) ($data['icon_id'] ?? $oldIconId);
+        if ($oldIconId >= 30000 && $oldIconId !== $newIconId) {
+            $unreferenced = $this->assets->filterUnreferencedIconIds($game, [$oldIconId]);
+            $deletedIconFiles = $this->assets->deleteGameIconFiles($unreferenced);
+        }
+
         $after = $game->table('item_template')->where('id', $id)->first();
+        $syncedSkillTemplates = $this->syncSkillTemplateIconForType37($after);
         $this->logAdminAction(
             'item.update',
             'item',
@@ -235,15 +249,174 @@ class GameCatalogService extends AdminServiceSupport
             $this->sanitizeLogState([
                 'row' => (array) $after,
                 'saved_files' => $savedFiles,
+                'deleted_icon_files' => $deletedIconFiles,
+                'synced_skill_templates' => $syncedSkillTemplates,
             ])
         );
 
+        $runtimeSync = $this->syncItemRuntime($id);
+
         return [
             'ok' => true,
-            'message' => 'Đã cập nhật item',
+            'message' => ($runtimeSync['ok'] ?? false)
+                ? 'Đã cập nhật item và làm mới trong game'
+                : 'Đã cập nhật item; game runtime chưa nhận được thay đổi',
             'data' => $after,
             'saved_files' => $savedFiles,
+            'deleted_icon_files' => $deletedIconFiles,
+            'runtime_sync' => $runtimeSync,
         ];
+    }
+
+    private function syncItemRuntime(int $itemId): array
+    {
+        try {
+            $result = $this->runtime->refreshItem($itemId);
+
+            return [
+                'ok' => ($result['ok'] ?? false) === true,
+                'code' => $result['code'] ?? null,
+                'message' => $result['message'] ?? null,
+            ];
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return [
+                'ok' => false,
+                'code' => 'RUNTIME_UNAVAILABLE',
+                'message' => $exception->getMessage(),
+            ];
+        }
+    }
+
+    private function syncSkillTemplateIconForType37(?object $item): array
+    {
+        if (!$item || !Schema::connection('game')->hasTable('skill_template')) {
+            return [];
+        }
+
+        $type = (int) ($item->TYPE ?? $item->type ?? 0);
+        $iconId = (int) ($item->icon_id ?? 0);
+        if ($type !== 37 || $iconId <= 0) {
+            return [];
+        }
+
+        $itemId = (int) $item->id;
+        $keys = $this->skillTemplateKeysForType37($itemId);
+        $names = $this->skillTemplateNamesForType37($itemId, (string) ($item->NAME ?? $item->name ?? ''));
+        if (!$keys && !$names) {
+            return [];
+        }
+
+        $game = DB::connection('game');
+        $updated = [];
+        foreach ($keys as $key) {
+            $affected = $game->table('skill_template')
+                ->where('nclass_id', $key['nclass_id'])
+                ->where('id', $key['id'])
+                ->update(['icon_id' => $iconId]);
+
+            if ($affected > 0) {
+                $updated[] = [
+                    'nclass_id' => $key['nclass_id'],
+                    'id' => $key['id'],
+                    'icon_id' => $iconId,
+                    'rows' => $affected,
+                ];
+            }
+        }
+
+        foreach ($names as $name) {
+            $affected = $game->table('skill_template')
+                ->where('NAME', $name)
+                ->update(['icon_id' => $iconId]);
+
+            if ($affected > 0) {
+                $updated[] = [
+                    'name' => $name,
+                    'icon_id' => $iconId,
+                    'rows' => $affected,
+                ];
+            }
+        }
+
+        return $updated;
+    }
+
+    private function skillTemplateKeysForType37(int $itemId): array
+    {
+        return [
+            1319 => [['nclass_id' => 0, 'id' => 0]],
+            1320 => [['nclass_id' => 0, 'id' => 1]],
+            1321 => [['nclass_id' => 0, 'id' => 6]],
+            1322 => [['nclass_id' => 0, 'id' => 9]],
+            1323 => [['nclass_id' => 0, 'id' => 10]],
+            1324 => [['nclass_id' => 0, 'id' => 20]],
+            1325 => [['nclass_id' => 0, 'id' => 22]],
+            1326 => [['nclass_id' => 1, 'id' => 2]],
+            1327 => [['nclass_id' => 1, 'id' => 3]],
+            1328 => [['nclass_id' => 1, 'id' => 7]],
+            1329 => [['nclass_id' => 1, 'id' => 11]],
+            1330 => [['nclass_id' => 1, 'id' => 12]],
+            1331 => [['nclass_id' => 1, 'id' => 18]],
+            1332 => [['nclass_id' => 1, 'id' => 17]],
+            1333 => [['nclass_id' => 2, 'id' => 4]],
+            1334 => [['nclass_id' => 2, 'id' => 5]],
+            1335 => [['nclass_id' => 2, 'id' => 8]],
+            1336 => [['nclass_id' => 2, 'id' => 13]],
+            1337 => [['nclass_id' => 2, 'id' => 14]],
+            1338 => [['nclass_id' => 2, 'id' => 23]],
+            1339 => [['nclass_id' => 2, 'id' => 21]],
+            1340 => [
+                ['nclass_id' => 0, 'id' => 19],
+                ['nclass_id' => 1, 'id' => 19],
+                ['nclass_id' => 2, 'id' => 19],
+            ],
+            1341 => [['nclass_id' => 0, 'id' => 24]],
+            1342 => [['nclass_id' => 1, 'id' => 26]],
+            1343 => [['nclass_id' => 2, 'id' => 25]],
+        ][$itemId] ?? [];
+    }
+
+    private function skillTemplateNamesForType37(int $itemId, string $itemName): array
+    {
+        $map = [
+            1319 => ['Chiêu đấm Dragon'],
+            1320 => ['Chiêu Kamejoko'],
+            1321 => ['Thái Dương Hạ San'],
+            1322 => ['Kaioken'],
+            1323 => ['Quả cầu kênh khi'],
+            1324 => ['Dịch chuyển tức thời'],
+            1325 => ['Thôi miên'],
+            1326 => ['Chiêu đấm Demon'],
+            1327 => ['Chiêu Masenko'],
+            1328 => ['Trị thương'],
+            1329 => ['Makankosappo'],
+            1330 => ['Đẻ trứng'],
+            1331 => ['Biến Sôcôla'],
+            1332 => ['Liên hoàn'],
+            1333 => ['Chiêu đấm Galick'],
+            1334 => ['Chiêu Antomic'],
+            1335 => ['Tái tạo năng lượng'],
+            1336 => ['Hóa khỉ khổng lồ'],
+            1337 => ['Bom hi sinh'],
+            1338 => ['Trói'],
+            1339 => ['Huýt sáo'],
+            1340 => ['Khiên năng lượng'],
+            1341 => ['Super Kamejoko'],
+            1342 => ['Ma phong ba'],
+            1343 => ['Cađíc liên hoàn chưởng'],
+        ];
+
+        if (isset($map[$itemId])) {
+            return $map[$itemId];
+        }
+
+        $normalized = preg_replace('/^Sách\s+/iu', '', trim($itemName));
+        $normalized = preg_replace('/^học\s+/iu', '', (string) $normalized);
+        $normalized = trim((string) $normalized);
+
+        return $normalized === '' ? [] : [$normalized, 'Chiêu ' . $normalized];
     }
 
     public function itemOptions(): array

@@ -322,6 +322,11 @@ class GameAssetService
                 if (is_file($path) && @unlink($path)) {
                     $deleted[] = $path;
                 }
+
+                $publicPath = public_path("assets/game-icons/x{$zoom}/{$iconId}.png");
+                if (is_file($publicPath) && @unlink($publicPath)) {
+                    $deleted[] = $publicPath;
+                }
             }
         }
 
@@ -348,6 +353,50 @@ class GameAssetService
         }
 
         return $copied;
+    }
+
+    public function addGameIconInnerBorder(int $iconId): array
+    {
+        if ($iconId <= 0) {
+            return [];
+        }
+
+        $updated = [];
+        foreach ([1 => 1, 2 => 1, 3 => 2, 4 => 2] as $zoom => $thickness) {
+            $path = $this->gameSrcPath("data/icon/x{$zoom}/{$iconId}.png");
+            if (!is_file($path)) {
+                continue;
+            }
+
+            $image = @\imagecreatefrompng($path);
+            if (!$image) {
+                continue;
+            }
+
+            \imagealphablending($image, true);
+            \imagesavealpha($image, true);
+            $width = \imagesx($image);
+            $height = \imagesy($image);
+            $white = \imagecolorallocatealpha($image, 255, 255, 255, 32);
+
+            for ($offset = 0; $offset < $thickness; $offset++) {
+                \imagerectangle(
+                    $image,
+                    $offset,
+                    $offset,
+                    max($offset, $width - 1 - $offset),
+                    max($offset, $height - 1 - $offset),
+                    $white
+                );
+            }
+
+            \imagepng($image, $path);
+            \imagedestroy($image);
+            @touch($path);
+            $updated[] = $path;
+        }
+
+        return $updated;
     }
 
     public function parsePartLayers(string $raw): array
@@ -599,7 +648,14 @@ class GameAssetService
     private function nextFreeGameAssetStart(string $kind): int
     {
         if ($kind === 'icon') {
-            return max(1, min(32767, $this->usedGameIconMax() + 1));
+            $used = $this->usedGameIconIds();
+            for ($id = 30000; $id <= 32767; $id++) {
+                if (!isset($used[$id])) {
+                    return $id;
+                }
+            }
+
+            throw new \RuntimeException('Không còn icon ID trống trong vùng 30000-32767.');
         }
 
         $dbMax = (int) (DB::connection('game')->table('item_template')->where('part', '>=', 0)->max('part') ?? 0);

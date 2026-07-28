@@ -12,6 +12,13 @@ class GameRuntimeService
         return $this->post('/internal/runtime/shop/reload', []);
     }
 
+    public function refreshItem(int $itemId): array
+    {
+        return $this->post('/internal/runtime/items/refresh', [
+            'item_id' => $itemId,
+        ]);
+    }
+
     public function bosses(): array
     {
         return $this->request('GET', '/internal/runtime/bosses', []);

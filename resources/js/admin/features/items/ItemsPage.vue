@@ -404,14 +404,7 @@
                 </div>
 
                 <div class="editor-body">
-                    <div
-                        class="editor-preview"
-                        :class="{ 'is-dragging': editor.iconDragging }"
-                        @dragenter.prevent="handleIconDragEnter"
-                        @dragover.prevent="handleIconDragOver"
-                        @dragleave.prevent="handleIconDragLeave"
-                        @drop.prevent="handleIconDrop"
-                    >
+                    <div class="editor-preview">
                         <div class="editor-icon-wrap">
                             <img
                                 v-if="editor.iconPreviewUrl"
@@ -432,56 +425,79 @@
                                 Type {{ editor.form.type }} ·
                                 {{ itemGenderLabel(editor.form.gender) }}
                             </small>
-                            <div class="icon-replace-row">
-                                <input
-                                    ref="iconFileInput"
-                                    type="file"
-                                    accept="image/png"
-                                    class="hidden-file-input"
-                                    @change="handleIconFileChange"
-                                />
-                                <button
-                                    class="btn btn-outline btn-sm"
-                                    type="button"
-                                    :disabled="editor.saving"
-                                    @click="chooseIconFile('replace')"
-                                >
-                                    <span class="mi" style="font-size: 15px">image</span>
-                                    Thay ảnh
-                                </button>
-                                <button
-                                    class="btn btn-primary btn-sm"
-                                    type="button"
-                                    :disabled="editor.saving"
-                                    @click="chooseIconFile('split')"
-                                >
-                                    <span class="mi" style="font-size: 15px">call_split</span>
-                                    Tách icon_id
-                                </button>
-                                <button
-                                    v-if="editor.iconFile"
-                                    class="btn btn-ghost btn-sm"
-                                    type="button"
-                                    :disabled="editor.saving"
-                                    @click="clearIconFile"
-                                >
-                                    <span class="mi" style="font-size: 15px">close</span>
-                                    Bỏ ảnh
-                                </button>
-                            </div>
-                            <small v-if="editor.iconFile" class="icon-file-name">
-                                {{ editor.iconFile.name }}
-                                <template v-if="editor.iconUploadMode === 'split'">
-                                    sẽ tạo icon ID mới và chỉ áp dụng cho item này.
-                                </template>
-                                <template v-else>
-                                    sẽ ghi đè icon #{{ editorNumber("icon_id") }}.
-                                </template>
-                            </small>
-                            <small v-else class="icon-drop-hint">
-                                Kéo PNG vào đây để thay ảnh icon, hoặc bấm Tách icon_id để tạo ID riêng.
-                            </small>
                         </div>
+                    </div>
+
+                    <input
+                        ref="iconFileInput"
+                        type="file"
+                        accept="image/png"
+                        class="hidden-file-input"
+                        @change="handleIconFileChange"
+                    />
+                    <div class="icon-upload-grid">
+                        <button
+                            class="icon-upload-zone"
+                            :class="{
+                                'is-dragging': editor.iconDraggingMode === 'replace',
+                                'is-selected': editor.iconFile && editor.iconUploadMode === 'replace',
+                            }"
+                            type="button"
+                            :disabled="editor.saving"
+                            @click="chooseIconFile('replace')"
+                            @dragenter.prevent="handleIconDragEnter($event, 'replace')"
+                            @dragover.prevent="handleIconDragOver($event, 'replace')"
+                            @dragleave.prevent="handleIconDragLeave($event, 'replace')"
+                            @drop.prevent="handleIconDrop($event, 'replace')"
+                        >
+                            <span class="mi icon-upload-zone__icon">image</span>
+                            <span class="icon-upload-zone__copy">
+                                <strong>Chèn lại ảnh</strong>
+                                <small>Giữ icon #{{ editorNumber("icon_id") }}</small>
+                                <span>Kéo PNG vào đây hoặc bấm để chọn</span>
+                            </span>
+                        </button>
+                        <button
+                            class="icon-upload-zone icon-upload-zone--split"
+                            :class="{
+                                'is-dragging': editor.iconDraggingMode === 'split',
+                                'is-selected': editor.iconFile && editor.iconUploadMode === 'split',
+                            }"
+                            type="button"
+                            :disabled="editor.saving"
+                            @click="chooseIconFile('split')"
+                            @dragenter.prevent="handleIconDragEnter($event, 'split')"
+                            @dragover.prevent="handleIconDragOver($event, 'split')"
+                            @dragleave.prevent="handleIconDragLeave($event, 'split')"
+                            @drop.prevent="handleIconDrop($event, 'split')"
+                        >
+                            <span class="mi icon-upload-zone__icon">add_photo_alternate</span>
+                            <span class="icon-upload-zone__copy">
+                                <strong>Tạo ID mới</strong>
+                                <small>Chỉ áp dụng cho item này</small>
+                                <span>Kéo PNG vào đây hoặc bấm để chọn</span>
+                            </span>
+                        </button>
+                    </div>
+                    <div v-if="editor.iconFile" class="icon-upload-selection">
+                        <small class="icon-file-name">
+                            {{ editor.iconFile.name }}
+                            <template v-if="editor.iconUploadMode === 'split'">
+                                sẽ tạo icon ID mới và chỉ áp dụng cho item này.
+                            </template>
+                            <template v-else>
+                                sẽ chèn lại ảnh cho icon #{{ editorNumber("icon_id") }}.
+                            </template>
+                        </small>
+                        <button
+                            class="btn btn-ghost btn-sm"
+                            type="button"
+                            :disabled="editor.saving"
+                            @click="clearIconFile"
+                        >
+                            <span class="mi" style="font-size: 15px">close</span>
+                            Bỏ ảnh
+                        </button>
                     </div>
 
                     <div class="editor-grid">
@@ -596,9 +612,9 @@ export default {
                 form: {},
                 iconFile: null,
                 iconPreviewUrl: "",
-                iconDragging: false,
-                iconUploadMode: "replace",
-                pendingIconUploadMode: "replace",
+                iconDraggingMode: "",
+                iconUploadMode: "split",
+                pendingIconUploadMode: "split",
             },
         };
     },
@@ -672,9 +688,8 @@ export default {
             const value = Number(this.editor.form?.[field] ?? 0);
             return Number.isFinite(value) ? value : 0;
         },
-        chooseIconFile(mode = "replace") {
-            this.editor.pendingIconUploadMode =
-                mode === "split" ? "split" : "replace";
+        chooseIconFile(mode = "split") {
+            this.editor.pendingIconUploadMode = "split";
             if (this.$refs.iconFileInput) {
                 this.$refs.iconFileInput.value = "";
             }
@@ -687,61 +702,65 @@ export default {
                 event.target.value = "";
             }
         },
-        handleIconDragEnter(event) {
+        handleIconDragEnter(event, mode) {
             if (this.editor.saving) return;
             if (this.hasDraggedFile(event)) {
-                this.editor.iconDragging = true;
+                this.editor.iconDraggingMode = mode;
             }
         },
-        handleIconDragOver(event) {
+        handleIconDragOver(event, mode) {
             if (this.editor.saving) return;
             if (this.hasDraggedFile(event)) {
                 event.dataTransfer.dropEffect = "copy";
-                this.editor.iconDragging = true;
+                this.editor.iconDraggingMode = mode;
             }
         },
-        handleIconDragLeave(event) {
-            if (!event.currentTarget.contains(event.relatedTarget)) {
-                this.editor.iconDragging = false;
+        handleIconDragLeave(event, mode) {
+            if (
+                this.editor.iconDraggingMode === mode &&
+                !event.currentTarget.contains(event.relatedTarget)
+            ) {
+                this.editor.iconDraggingMode = "";
             }
         },
-        handleIconDrop(event) {
-            this.editor.iconDragging = false;
+        handleIconDrop(event, mode) {
+            this.editor.iconDraggingMode = "";
             if (this.editor.saving) return;
 
             const file = event.dataTransfer?.files?.[0] || null;
-            this.acceptIconFile(file, "replace");
+            this.acceptIconFile(file, mode);
         },
         hasDraggedFile(event) {
             return Array.from(event.dataTransfer?.types || []).includes("Files");
         },
-        acceptIconFile(file, mode = "replace") {
+        acceptIconFile(file, mode = "split") {
             this.revokeIconPreview();
 
             if (!file) {
                 this.editor.iconFile = null;
-                this.editor.pendingIconUploadMode = "replace";
+                this.editor.pendingIconUploadMode = "split";
                 return;
             }
 
             if (file.type !== "image/png") {
                 this.editor.error = "Chỉ hỗ trợ ảnh PNG.";
                 this.editor.iconFile = null;
-                this.editor.pendingIconUploadMode = "replace";
+                this.editor.pendingIconUploadMode = "split";
                 return;
             }
 
             this.editor.error = "";
             this.editor.iconFile = file;
-            this.editor.iconUploadMode = mode === "split" ? "split" : "replace";
-            this.editor.pendingIconUploadMode = "replace";
+            this.editor.iconUploadMode = "split";
+            this.editor.pendingIconUploadMode = "split";
             this.editor.iconPreviewUrl = URL.createObjectURL(file);
         },
         clearIconFile() {
             this.revokeIconPreview();
             this.editor.iconFile = null;
-            this.editor.iconUploadMode = "replace";
-            this.editor.pendingIconUploadMode = "replace";
+            this.editor.iconUploadMode = "split";
+            this.editor.pendingIconUploadMode = "split";
+            this.editor.iconDraggingMode = "";
             if (this.$refs.iconFileInput) {
                 this.$refs.iconFileInput.value = "";
             }
@@ -760,9 +779,9 @@ export default {
                 error: "",
                 iconFile: null,
                 iconPreviewUrl: "",
-                iconDragging: false,
-                iconUploadMode: "replace",
-                pendingIconUploadMode: "replace",
+                iconDraggingMode: "",
+                iconUploadMode: "split",
+                pendingIconUploadMode: "split",
                 form: {
                     id: item.id,
                     name: item.name || "",
@@ -1254,11 +1273,6 @@ export default {
         background-color 0.16s ease,
         box-shadow 0.16s ease;
 }
-.editor-preview.is-dragging {
-    border-color: var(--ds-primary);
-    background: rgba(var(--ds-primary-rgb), 0.08);
-    box-shadow: 0 0 0 3px rgba(var(--ds-primary-rgb), 0.12);
-}
 .editor-preview-copy {
     min-width: 0;
 }
@@ -1289,21 +1303,73 @@ export default {
 .hidden-file-input {
     display: none;
 }
-.icon-replace-row {
+.icon-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.icon-upload-zone {
+    width: 100%;
+    min-height: 104px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 12px;
+    border: 1px dashed var(--ds-border);
+    border-radius: 10px;
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+    padding: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.16s ease,
+        background-color 0.16s ease,
+        box-shadow 0.16s ease;
+}
+.icon-upload-zone:hover:not(:disabled),
+.icon-upload-zone.is-dragging,
+.icon-upload-zone.is-selected {
+    border-color: var(--ds-primary);
+    background: rgba(var(--ds-primary-rgb), 0.08);
+    box-shadow: 0 0 0 3px rgba(var(--ds-primary-rgb), 0.1);
+}
+.icon-upload-zone:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+.icon-upload-zone__icon {
+    flex-shrink: 0;
+    font-size: 28px;
+    color: var(--ds-primary);
+}
+.icon-upload-zone__copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.icon-upload-zone__copy strong {
+    color: var(--ds-text-emphasis);
+    font-size: 13px;
+}
+.icon-upload-zone__copy small,
+.icon-upload-zone__copy > span {
+    color: var(--ds-text-muted);
+    font-size: 11px;
+}
+.icon-upload-zone__copy > span {
+    margin-top: 3px;
+}
+.icon-upload-selection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     flex-wrap: wrap;
 }
 .icon-file-name {
-    margin-top: 6px !important;
     color: var(--ds-primary) !important;
     word-break: break-word;
-}
-.icon-drop-hint {
-    margin-top: 6px !important;
-    color: var(--ds-text-muted) !important;
 }
 .editor-grid {
     display: grid;
@@ -1338,11 +1404,9 @@ export default {
     margin-top: 16px;
 }
 @media (max-width: 720px) {
+    .icon-upload-grid,
     .editor-grid {
         grid-template-columns: 1fr;
     }
 }
 </style>
-
-
-
