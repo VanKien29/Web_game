@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Game\HeadAvatar;
 use App\Models\Game\TaskMainTemplate;
 use App\Services\ProfileAppearanceService;
 use Illuminate\Http\JsonResponse;
@@ -71,14 +70,9 @@ class ProfileController extends Controller
             default => 'Không xác định',
         };
 
-        // Avatar
-        $avatarUrl = '/assets/frontend/home/v1/images/bannergame.png';
-        if (! empty($player->head)) {
-            $headAvatar = HeadAvatar::where('head_id', $player->head)->first();
-            if ($headAvatar) {
-                $avatarUrl = '/assets/frontend/home/v1/images/x4/'.$headAvatar->avatar_id.'.png';
-            }
-        }
+        $appearance = $this->appearance->resolve($player);
+        $avatarUrl = $appearance['head_avatar_url']
+            ?? '/assets/frontend/home/v1/images/bannergame.png';
 
         return response()->json([
             'ok' => true,
@@ -97,7 +91,7 @@ class ProfileController extends Controller
                     'task_name' => $taskName,
                     'gender_text' => $genderText,
                     'avatar_url' => $avatarUrl,
-                    'appearance' => $this->appearance->resolve($player),
+                    'appearance' => $appearance,
                     'stats' => [
                         'potential' => (int) ($pointData[2] ?? 0),
                         'hp' => (int) ($pointData[5] ?? 0),

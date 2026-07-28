@@ -26,7 +26,10 @@
             <section class="profile-sanctuary">
                 <div v-if="player.has_character" class="profile-sanctuary__hud">
                     <ProfileStatusHud
-                        :avatar-url="player.avatar_url"
+                        :avatar-url="
+                            player.appearance?.head_avatar_url ||
+                            player.avatar_url
+                        "
                         :hp="hudMetrics.hp"
                         :mp="hudMetrics.mp"
                     />
@@ -1164,7 +1167,7 @@ async function logout(): Promise<void> {
         align-items: start;
         padding: 16px 12px;
         background-color: #b8e2c3;
-        background-position: 31% top;
+        background-position: calc(31% + 2px) top;
         background-size: auto 520px;
     }
 
@@ -1205,7 +1208,7 @@ async function logout(): Promise<void> {
     }
 
     .profile-sanctuary {
-        background-position: 30% top;
+        background-position: calc(30% + 2px) top;
         background-size: auto 500px;
     }
 

@@ -14,6 +14,8 @@ export interface CharacterAppearance {
     mode: "costume" | "equipment-fallback" | "default";
     costume_id: number | null;
     costume_name: string | null;
+    head_avatar_id?: number | null;
+    head_avatar_url?: string | null;
     parts: {
         head: number;
         body: number;

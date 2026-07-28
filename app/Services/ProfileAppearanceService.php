@@ -58,7 +58,8 @@ class ProfileAppearanceService
                 'leg' => $this->costumePart($costume, 'leg', $defaultLegPart),
             ];
 
-            $layers = $this->idleLayers($requestedPartIds, $fallbackPartIds);
+            $composition = $this->idleComposition($requestedPartIds, $fallbackPartIds);
+            $layers = $composition['layers'];
             $renderedPartIds = collect($layers)
                 ->pluck('part_id', 'key')
                 ->map(fn (mixed $partId) => (int) $partId)
@@ -74,6 +75,8 @@ class ProfileAppearanceService
                     : 'default',
                 'costume_id' => $usesCostume ? (int) $costume->id : null,
                 'costume_name' => $usesCostume ? (string) $costume->name : null,
+                'head_avatar_id' => $composition['head_avatar_id'],
+                'head_avatar_url' => $composition['head_avatar_url'],
                 'parts' => [
                     'head' => $renderedPartIds['head'] ?? $requestedPartIds['head'],
                     'body' => $renderedPartIds['body'] ?? $requestedPartIds['body'],
@@ -108,18 +111,29 @@ class ProfileAppearanceService
 
         return DB::connection('game')
             ->table('item_template')
-            ->selectRaw('id, NAME as name, TYPE as type, part, head, body, leg')
+            ->selectRaw(
+                'id, NAME as name, TYPE as type, part, head, body, leg',
+            )
             ->whereIn('id', $ids)
             ->get()
             ->keyBy(fn (object $item) => (int) $item->id)
             ->all();
     }
 
-    private function idleLayers(array $partIds, array $fallbackPartIds = []): array
-    {
+    private function idleComposition(
+        array $partIds,
+        array $fallbackPartIds = [],
+    ): array {
+        $headAvatarId = DB::connection('game')
+            ->table('head_avatar')
+            ->select('avatar_id')
+            ->whereColumn('head_avatar.head_id', 'part.id')
+            ->orderBy('avatar_id')
+            ->limit(1);
         $parts = DB::connection('game')
             ->table('part')
             ->selectRaw('id, TYPE as type, DATA as data')
+            ->selectSub($headAvatarId, 'head_avatar_id')
             ->whereIn(
                 'id',
                 collect([...array_values($partIds), ...array_values($fallbackPartIds)])
@@ -170,7 +184,40 @@ class ProfileAppearanceService
             }
         }
 
-        return $layers;
+        $headAvatar = $this->headAvatar(
+            $parts,
+            (int) ($partIds['head'] ?? -1),
+            (int) ($fallbackPartIds['head'] ?? -1),
+        );
+
+        return [
+            'layers' => $layers,
+            'head_avatar_id' => $headAvatar['id'],
+            'head_avatar_url' => $headAvatar['url'],
+        ];
+    }
+
+    private function headAvatar(
+        Collection $parts,
+        int $preferredHeadPartId,
+        int $fallbackHeadPartId,
+    ): array {
+        foreach (array_unique([$preferredHeadPartId, $fallbackHeadPartId]) as $partId) {
+            $avatarId = (int) ($parts->get($partId)->head_avatar_id ?? -1);
+            $avatarUrl = $this->spriteUrl($avatarId);
+
+            if ($avatarUrl) {
+                return [
+                    'id' => $avatarId,
+                    'url' => $avatarUrl,
+                ];
+            }
+        }
+
+        return [
+            'id' => null,
+            'url' => null,
+        ];
     }
 
     private function layerForPart(
@@ -267,6 +314,8 @@ class ProfileAppearanceService
             'mode' => 'default',
             'costume_id' => null,
             'costume_name' => null,
+            'head_avatar_id' => null,
+            'head_avatar_url' => null,
             'parts' => [
                 'head' => (int) ($player->head ?? 0),
                 'body' => $this->defaultBodyPart($player),

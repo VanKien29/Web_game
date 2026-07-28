@@ -114,7 +114,7 @@ withDefaults(
 .profile-hud__bar {
     position: absolute;
     z-index: 2;
-    left: 31.8%;
+    left: calc(31.8% + 1px);
     display: grid;
     align-items: center;
     overflow: hidden;
