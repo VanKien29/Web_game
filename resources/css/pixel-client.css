@@ -2649,11 +2649,11 @@ html
     }
 
     .game-header__logo .pixel-brand__copy strong {
-        font-size: 1.05rem;
+        font-size: 1.38rem;
     }
 
     .game-header__logo .pixel-brand__copy small {
-        font-size: 0.68rem;
+        font-size: 0.82rem;
     }
 
     .game-header__toggle {
@@ -3000,10 +3000,6 @@ html
 }
 
 @media (max-width: 390px) {
-    .game-header__logo .pixel-brand__copy {
-        display: flex;
-    }
-
     .pixel-action-grid {
         grid-template-columns: 1fr 1fr;
     }
