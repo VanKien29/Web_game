@@ -114,7 +114,7 @@ withDefaults(
 .profile-hud__bar {
     position: absolute;
     z-index: 2;
-    left: 32.4%;
+    left: 31.8%;
     display: grid;
     align-items: center;
     overflow: hidden;
@@ -146,20 +146,20 @@ withDefaults(
 }
 
 .profile-hud__bar--hp {
-    top: 26%;
-    width: 64.2%;
-    height: 17%;
+    top: 27.4%;
+    width: 65.7%;
+    height: 17.8%;
 }
 
 .profile-hud__bar--ki {
-    top: 51.8%;
-    width: 60.2%;
-    height: 17%;
+    top: 53.2%;
+    width: 61.5%;
+    height: 17.8%;
 }
 
 .profile-hud__bar--accent {
-    top: 81.5%;
-    width: 57.45%;
-    height: 3.7%;
+    top: 82.5%;
+    width: 58.8%;
+    height: 4.4%;
 }
 </style>
