@@ -1,5 +1,5 @@
 <template>
-    <div class="profile-hud" aria-label="Chỉ số nhanh của nhân vật">
+    <div class="profile-hud" aria-label="HP và MP của nhân vật">
         <img
             class="profile-hud__frame"
             src="/assets/pixel/profile-hud-frame.png"
@@ -39,14 +39,16 @@
             <strong>MP {{ mp }}</strong>
         </span>
 
-        <span class="profile-hud__bar profile-hud__bar--power">
+        <span
+            class="profile-hud__bar profile-hud__bar--accent"
+            aria-hidden="true"
+        >
             <img
                 src="/assets/pixel/profile-hud-power.png"
                 alt=""
                 aria-hidden="true"
                 draggable="false"
             />
-            <strong>SỨC MẠNH {{ power }}</strong>
         </span>
     </div>
 </template>
@@ -57,13 +59,11 @@ withDefaults(
         avatarUrl?: string;
         hp?: string;
         mp?: string;
-        power?: string;
     }>(),
     {
         avatarUrl: "",
         hp: "0",
         mp: "0",
-        power: "0",
     },
 );
 </script>
@@ -146,24 +146,20 @@ withDefaults(
 }
 
 .profile-hud__bar--hp {
-    top: 27%;
-    width: 64%;
-    height: 14%;
+    top: 26%;
+    width: 64.2%;
+    height: 17%;
 }
 
 .profile-hud__bar--ki {
-    top: 53%;
-    width: 60%;
-    height: 14%;
+    top: 51.8%;
+    width: 60.2%;
+    height: 17%;
 }
 
-.profile-hud__bar--power {
-    top: 79.5%;
-    width: 58%;
-    height: 10%;
-}
-
-.profile-hud__bar--power strong {
-    font-size: clamp(0.48rem, 0.95vw, 0.68rem);
+.profile-hud__bar--accent {
+    top: 81.5%;
+    width: 57.45%;
+    height: 3.7%;
 }
 </style>

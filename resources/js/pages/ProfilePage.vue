@@ -29,7 +29,6 @@
                         :avatar-url="player.avatar_url"
                         :hp="hudMetrics.hp"
                         :mp="hudMetrics.mp"
-                        :power="hudMetrics.power"
                     />
                 </div>
 
@@ -377,9 +376,13 @@ const appearanceName = computed(
 const hudMetrics = computed(() => ({
     hp: formatNumber(stats.value.hp),
     mp: formatNumber(stats.value.ki),
-    power: formatNumber(player.value.power),
 }));
 const statCards = computed(() => [
+    {
+        key: "power",
+        label: "Sức mạnh",
+        value: formatNumber(player.value.power),
+    },
     {
         key: "potential",
         label: "Tiềm năng",
@@ -600,7 +603,7 @@ async function logout(): Promise<void> {
     width: min(1260px, calc(100% - 32px));
     padding-top: 0;
     padding-bottom: 64px;
-    font-family: var(--pixel-font);
+    font-family: var(--pixel-font) !important;
 }
 
 .profile-page button,
@@ -827,7 +830,6 @@ async function logout(): Promise<void> {
 
 .profile-stat--defense {
     border-left-color: #8e6fb0;
-    grid-column: 1 / -1;
 }
 
 .profile-stat strong {
