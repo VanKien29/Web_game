@@ -645,6 +645,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.client-page--giftcode {
+    font-family: var(--pixel-font);
+}
+
+.client-page--giftcode button,
+.client-page--giftcode input,
+.client-page--giftcode select {
+    font-family: inherit;
+}
+
 .giftcode-hub {
     display: grid;
     gap: 16px;

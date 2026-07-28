@@ -24,6 +24,15 @@
             </div>
 
             <section class="profile-sanctuary">
+                <div v-if="player.has_character" class="profile-sanctuary__hud">
+                    <ProfileStatusHud
+                        :avatar-url="player.avatar_url"
+                        :hp="hudMetrics.hp"
+                        :mp="hudMetrics.mp"
+                        :power="hudMetrics.power"
+                    />
+                </div>
+
                 <div class="profile-sanctuary__character">
                     <ProfileCharacterStage
                         v-if="player.has_character"
@@ -317,6 +326,7 @@ import {
 } from "vue";
 import { useRouter } from "vue-router";
 import ProfileCharacterStage from "../components/profile/ProfileCharacterStage.vue";
+import ProfileStatusHud from "../components/profile/ProfileStatusHud.vue";
 import type {
     PlayerInventory,
     PlayerStats,
@@ -364,19 +374,17 @@ const inventory = computed(() => player.value.inventory ?? emptyInventory);
 const appearanceName = computed(
     () => player.value.appearance?.costume_name || "Trang phục đang mặc",
 );
+const hudMetrics = computed(() => ({
+    hp: formatNumber(stats.value.hp),
+    mp: formatNumber(stats.value.ki),
+    power: formatNumber(player.value.power),
+}));
 const statCards = computed(() => [
-    {
-        key: "power",
-        label: "Sức mạnh",
-        value: formatNumber(player.value.power),
-    },
     {
         key: "potential",
         label: "Tiềm năng",
         value: formatNumber(stats.value.potential),
     },
-    { key: "hp", label: "HP", value: formatNumber(stats.value.hp) },
-    { key: "ki", label: "KI", value: formatNumber(stats.value.ki) },
     {
         key: "damage",
         label: "Sức đánh",
@@ -592,6 +600,12 @@ async function logout(): Promise<void> {
     width: min(1260px, calc(100% - 32px));
     padding-top: 0;
     padding-bottom: 64px;
+    font-family: var(--pixel-font);
+}
+
+.profile-page button,
+.profile-page input {
+    font-family: inherit;
 }
 
 .profile-page__loading,
@@ -651,6 +665,14 @@ async function logout(): Promise<void> {
     );
 }
 
+.profile-sanctuary__hud {
+    position: absolute;
+    z-index: 3;
+    top: 18px;
+    left: 18px;
+    width: min(430px, calc(58% - 32px));
+}
+
 .profile-sanctuary__character {
     position: relative;
     z-index: 1;
@@ -658,7 +680,7 @@ async function logout(): Promise<void> {
     min-width: 0;
     min-height: 500px;
     place-items: center;
-    transform: translateY(42px);
+    transform: translate(24px, 42px);
 }
 
 .profile-dossier {
@@ -805,6 +827,7 @@ async function logout(): Promise<void> {
 
 .profile-stat--defense {
     border-left-color: #8e6fb0;
+    grid-column: 1 / -1;
 }
 
 .profile-stat strong {
@@ -956,7 +979,7 @@ async function logout(): Promise<void> {
     background: var(--pixel-cream);
     border: 2px solid var(--pixel-line);
     box-shadow: 2px 2px 0 rgb(61 42 34 / 22%);
-    font-family: var(--font-sans);
+    font-family: var(--pixel-font);
     font-size: 0.74rem;
     font-weight: 800;
     text-decoration: none;
@@ -1119,6 +1142,10 @@ async function logout(): Promise<void> {
         padding: 17px;
     }
 
+    .profile-sanctuary__hud {
+        width: min(390px, calc(52% - 24px));
+    }
+
     .profile-resource-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1143,6 +1170,13 @@ async function logout(): Promise<void> {
         min-height: 440px;
         align-items: end;
         transform: none;
+    }
+
+    .profile-sanctuary__hud {
+        top: 14px;
+        left: 50%;
+        width: min(430px, calc(100% - 28px));
+        transform: translateX(-50%);
     }
 
     .profile-dossier {
