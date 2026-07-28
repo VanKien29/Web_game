@@ -79,10 +79,6 @@
                                 <span>Hành tinh</span>
                                 <strong>{{ player.gender_text }}</strong>
                             </div>
-                            <div>
-                                <span>Ngoại hình</span>
-                                <strong>{{ appearanceName }}</strong>
-                            </div>
                         </div>
 
                         <div class="profile-mission">
@@ -373,9 +369,6 @@ const player = computed<ProfilePlayer>(
 );
 const stats = computed(() => player.value.stats ?? emptyStats);
 const inventory = computed(() => player.value.inventory ?? emptyInventory);
-const appearanceName = computed(
-    () => player.value.appearance?.costume_name || "Trang phục đang mặc",
-);
 const hudMetrics = computed(() => ({
     hp: formatNumber(stats.value.hp),
     mp: formatNumber(stats.value.ki),
@@ -772,7 +765,7 @@ async function logout(): Promise<void> {
 
 .profile-identity {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
 }
 
@@ -1167,7 +1160,7 @@ async function logout(): Promise<void> {
         align-items: start;
         padding: 16px 12px;
         background-color: #b8e2c3;
-        background-position: calc(31% + 2px) top;
+        background-position: calc(31% + 6px) top;
         background-size: auto 520px;
     }
 
@@ -1208,7 +1201,7 @@ async function logout(): Promise<void> {
     }
 
     .profile-sanctuary {
-        background-position: calc(30% + 2px) top;
+        background-position: calc(30% + 6px) top;
         background-size: auto 500px;
     }
 

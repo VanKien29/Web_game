@@ -2265,6 +2265,14 @@ html
     font-family: var(--pixel-font) !important;
 }
 
+html body #app .client-page--profile,
+html body #app .client-page--profile *,
+html body #app .client-page--giftcode,
+html body #app .client-page--giftcode * {
+    font-family: var(--pixel-font) !important;
+    font-style: normal !important;
+}
+
 .game-nav__link > i,
 .game-nav__btn > i {
     width: 1.55em !important;
