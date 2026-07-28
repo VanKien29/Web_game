@@ -741,7 +741,7 @@ export default {
             rgba(255, 240, 202, 0.95),
             rgba(255, 248, 232, 0.98)
         ),
-        url("/assets/frontend/home/v1/images/bg-box-new.png") center / cover;
+        url("/assets/pixel/nro-page-map.webp") center bottom / cover;
     border-bottom: 1px solid rgba(123, 76, 32, 0.16);
 }
 
@@ -1338,7 +1338,7 @@ export default {
             rgba(255, 240, 202, 0.95),
             rgba(255, 248, 232, 0.98)
         ),
-        url("/assets/frontend/home/v1/images/bg-box-new.png") center / cover;
+        url("/assets/pixel/nro-page-map.webp") center bottom / cover;
     border-bottom: 1px solid rgba(123, 76, 32, 0.16);
 }
 

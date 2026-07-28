@@ -1,6 +1,5 @@
 <template>
-    <div>
-        <!-- GAME HEADER -->
+    <div class="pixel-app">
         <header
             class="game-header"
             :class="{
@@ -9,57 +8,36 @@
             }"
         >
             <div class="game-header__inner">
-                <!-- Logo -->
-                <router-link to="/" class="game-header__logo">
-                    <!-- <img
-                        src="/assets/frontend/home/v1/images/bannergame.png"
-                        alt="Horizon"
-                        class="game-header__icon"
-                    /> -->
-                    <img
-                        :src="headerLogoSrc"
-                        alt="Ngọc Rồng Horizon"
-                        class="game-header__wordmark"
-                    />
+                <router-link
+                    to="/"
+                    class="pixel-brand game-header__logo"
+                    aria-label="Ngọc Rồng Horizon - Trang chủ"
+                    @click="menuOpen = false"
+                >
+                    <span class="pixel-orb" aria-hidden="true">
+                        <span>H</span>
+                    </span>
+                    <span class="pixel-brand__copy">
+                        <strong>Ngọc Rồng</strong>
+                        <small>Horizon</small>
+                    </span>
                 </router-link>
 
-                <!-- Main Nav -->
-                <nav class="game-nav" :class="{ 'game-nav--open': menuOpen }">
+                <nav
+                    id="main-navigation"
+                    class="game-nav"
+                    :class="{ 'game-nav--open': menuOpen }"
+                    aria-label="Điều hướng chính"
+                >
                     <router-link
-                        to="/"
-                        exact
+                        v-for="item in primaryNavigation"
+                        :key="item.to"
+                        :to="item.to"
                         class="game-nav__link"
                         @click="menuOpen = false"
                     >
-                        Trang chủ
-                    </router-link>
-                    <router-link
-                        to="/bxh"
-                        class="game-nav__link"
-                        @click="menuOpen = false"
-                    >
-                        Đua Top
-                    </router-link>
-                    <router-link
-                        to="/giftcode"
-                        class="game-nav__link"
-                        @click="menuOpen = false"
-                    >
-                        Giftcode
-                    </router-link>
-                    <router-link
-                        to="/forum"
-                        class="game-nav__link"
-                        @click="menuOpen = false"
-                    >
-                        Diễn đàn
-                    </router-link>
-                    <router-link
-                        to="/nap-atm"
-                        class="game-nav__link"
-                        @click="menuOpen = false"
-                    >
-                        Nạp Tiền
+                        <i :class="item.icon" aria-hidden="true"></i>
+                        <span>{{ item.label }}</span>
                     </router-link>
 
                     <template v-if="isLoggedIn">
@@ -68,15 +46,20 @@
                             class="game-nav__link game-nav__link--user"
                             @click="menuOpen = false"
                         >
-                            {{ username }}
+                            <i class="fa-solid fa-user" aria-hidden="true"></i>
+                            <span>{{ username }}</span>
                         </router-link>
-                        <a
-                            href="#"
+                        <button
+                            type="button"
                             class="game-nav__link game-nav__link--logout"
-                            @click.prevent="logout"
+                            @click="logout"
                         >
-                            Đăng xuất
-                        </a>
+                            <i
+                                class="fa-solid fa-right-from-bracket"
+                                aria-hidden="true"
+                            ></i>
+                            <span>Đăng xuất</span>
+                        </button>
                     </template>
                     <template v-else>
                         <router-link
@@ -91,33 +74,45 @@
                             class="game-nav__btn game-nav__btn--register"
                             @click="menuOpen = false"
                         >
-                            Đăng ký
+                            Tạo tài khoản
                         </router-link>
                     </template>
                 </nav>
 
-                <!-- Mobile toggle -->
                 <button
                     class="game-header__toggle"
+                    type="button"
+                    :aria-expanded="menuOpen"
+                    aria-controls="main-navigation"
+                    :aria-label="menuOpen ? 'Đóng menu' : 'Mở menu'"
                     @click="menuOpen = !menuOpen"
-                    aria-label="Menu"
-                    style="z-index: 2100"
                 >
-                    <span :class="{ open: menuOpen }"></span>
-                    <span :class="{ open: menuOpen }"></span>
-                    <span :class="{ open: menuOpen }"></span>
+                    <img
+                        src="/assets/pixel/mobile-menu.png"
+                        alt=""
+                        aria-hidden="true"
+                        :class="{ open: menuOpen }"
+                    />
                 </button>
             </div>
-            <!-- Overlay for mobile sidebar -->
-            <div
-                v-if="menuOpen"
-                class="mobile-overlay"
-                @click="menuOpen = false"
-            ></div>
+
+            <transition name="mobile-overlay-fade">
+                <button
+                    v-if="menuOpen"
+                    type="button"
+                    class="mobile-overlay"
+                    aria-label="Đóng menu"
+                    @click="menuOpen = false"
+                ></button>
+            </transition>
         </header>
 
-        <!-- PAGE CONTENT -->
-        <main :class="{ 'inner-page': !isHome, 'inner-page--forum': isForum }">
+        <main
+            :class="{
+                'inner-page': !isHome,
+                'inner-page--forum': isForum,
+            }"
+        >
             <router-view v-slot="{ Component }">
                 <transition name="page-switch" mode="out-in">
                     <component :is="Component" />
@@ -133,278 +128,237 @@
                 aria-live="polite"
             >
                 <div class="site-loading-card">
-                    <div class="site-loading-emblem">
+                    <div class="site-loading-emblem" aria-hidden="true">
                         <span></span>
                         <span></span>
                     </div>
-                    <div class="site-loading-bar">
-                        <span></span>
-                    </div>
+                    <p>Đang dịch chuyển...</p>
+                    <div class="site-loading-bar"><span></span></div>
                 </div>
             </div>
         </transition>
 
-        <!-- FOOTER -->
         <footer class="game-footer">
-            <div class="game-footer__glow"></div>
             <div class="game-footer__inner">
                 <div class="game-footer__left">
-                    <img
-                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
-                        alt="Logo"
-                        class="game-footer__logo"
-                    />
-                    <p class="game-footer__brand">Ngọc Rồng Horizon</p>
+                    <div class="pixel-brand pixel-brand--footer">
+                        <span class="pixel-orb" aria-hidden="true">
+                            <span>H</span>
+                        </span>
+                        <span class="pixel-brand__copy">
+                            <strong>Ngọc Rồng</strong>
+                            <small>Horizon</small>
+                        </span>
+                    </div>
                     <p class="game-footer__tagline">
-                        Game Ngọc Rồng Private Server
+                        Máy chủ nhập vai dành cho cộng đồng chiến binh.
                     </p>
                 </div>
+
                 <div class="game-footer__center">
-                    <div class="game-footer__links">
-                        <a href="/">Hỗ Trợ</a>
-                        <a href="/">Cài Đặt</a>
-                        <a href="/">Điều Khoản</a>
-                    </div>
                     <div class="game-footer__nav">
-                        <router-link to="/bxh">Đua Top</router-link>
+                        <router-link to="/bxh">Đua top</router-link>
                         <router-link to="/giftcode">Giftcode</router-link>
-                        <router-link to="/nap-atm">Nạp Tiền</router-link>
+                        <router-link to="/nap-atm">Nạp tiền</router-link>
+                        <router-link to="/forum">Diễn đàn</router-link>
                     </div>
                     <div class="game-footer__socials">
-                        <a
-                            href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
-                            class="social-btn social-btn--zalo"
-                            >Zalo</a
-                        >
+                        <a href="https://zalo.me/g/8shvq0alkwjqkuherfvg">
+                            Nhóm Zalo
+                        </a>
                         <a
                             href="https://www.facebook.com/groups/1444219976744071/"
-                            class="social-btn social-btn--fb"
-                            >Facebook</a
                         >
+                            Facebook
+                        </a>
                     </div>
                 </div>
+
                 <div class="game-footer__right">
-                    <p>HOTLINE: 036*****89</p>
-                    <p>EMAIL: vkien29****@gmail.com</p>
-                    <img
-                        src="/assets/frontend/home/v1/images/18_new.png"
-                        alt="18+"
-                        class="game-footer__age"
-                    />
+                    <p>Chơi mọi lúc - vui mọi nơi</p>
+                    <p>
+                        © 2026 Code By
+                        <span class="game-footer__developer">Vkien</span>
+                    </p>
                 </div>
             </div>
-            <div class="game-footer__bottom">
-                <p>
-                    © 2026 Ngọc Rồng Horizon — Website Phát Triển By
-                    <strong>Vkien</strong>
-                </p>
-            </div>
-            <img
-                src="/assets/frontend/home/v1/images/goku.png"
-                alt=""
-                class="game-footer__char"
-            />
+            <div class="game-footer__ground" aria-hidden="true"></div>
         </footer>
 
-        <!-- SIDEBAR RIGHT -->
-        <div
-            class="sidebar_right hidden__mobile"
-            :class="{ mo: sidebarOpen }"
-            style="top: 35%"
+        <aside
+            class="pixel-quickbar hidden__mobile"
+            :class="{ 'pixel-quickbar--open': sidebarOpen }"
+            aria-label="Liên kết nhanh"
         >
-            <div class="sidebar_right-content tCenter">
-                <img
-                    src="/assets/frontend/home/v1/images/sibarRight/qr.png"
-                    alt=""
-                    class="icon-right"
-                />
-                <div class="tCenter t-lineok">
-                    <img
-                        src="/assets/frontend/home/v1/images/sibarRight/line.png"
-                        alt=""
-                        class="line"
-                    />
-                </div>
-                <div class="clickGet m__inline">
-                    <a
-                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
-                        class="a100 f-tahomabold tCenter tUpper dFlex aCenter jCenter"
-                        >Nhóm Zalo</a
-                    >
-                </div>
-                <div class="clickGet m__inline">
-                    <a
-                        href="https://www.facebook.com/groups/1444219976744071/"
-                        class="a100 f-tahomabold tCenter tUpper dFlex aCenter jCenter"
-                        >Nhóm Facebook</a
-                    >
-                </div>
-                <div class="clickGet m__inline">
-                    <router-link
-                        to="/nap-atm"
-                        class="a100 f-tahomabold tCenter tUpper dFlex aCenter jCenter"
-                        >Nạp Tiền</router-link
-                    >
-                </div>
-                <div class="go-top" @click="scrollTop">
-                    <img
-                        src="/assets/frontend/home/v1/images/sibarRight/top.png"
-                        alt=""
-                    />
-                </div>
-            </div>
-            <span
-                class="ctFixRight dFlex aCenter jCenter"
+            <button
+                type="button"
+                class="pixel-quickbar__toggle"
+                :aria-expanded="sidebarOpen"
                 @click="toggleSidebar"
             >
+                <i
+                    :class="
+                        sidebarOpen
+                            ? 'fa-solid fa-chevron-right'
+                            : 'fa-solid fa-chevron-left'
+                    "
+                    aria-hidden="true"
+                ></i>
+            </button>
+            <div class="pixel-quickbar__content">
                 <img
-                    src="/assets/frontend/home/v1/images/sibarRight/img-arrow.png"
-                    class="imgCtr"
+                    src="/assets/frontend/home/v1/images/sibarRight/qr.png"
+                    alt="Mã QR cộng đồng"
                 />
-            </span>
-        </div>
+                <a href="https://zalo.me/g/8shvq0alkwjqkuherfvg">
+                    <i class="fa-solid fa-comments" aria-hidden="true"></i>
+                    Zalo
+                </a>
+                <a href="https://www.facebook.com/groups/1444219976744071/">
+                    <i class="fa-brands fa-facebook" aria-hidden="true"></i>
+                    Facebook
+                </a>
+                <router-link to="/nap-atm">
+                    <i class="fa-solid fa-coins" aria-hidden="true"></i>
+                    Nạp tiền
+                </router-link>
+                <button type="button" @click="scrollTop">
+                    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+                    Lên đầu
+                </button>
+            </div>
+        </aside>
     </div>
 </template>
 
-<script>
-import { prefetchPages } from "./router";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-export default {
-    name: "App",
-    data() {
-        return {
-            menuOpen: false,
-            sidebarOpen: false,
-            scrolled: false,
-            isMobileHeader: false,
-            loggedIn: !!localStorage.getItem("token"),
-            bootLoading: true,
-            routeLoading: false,
-            routeLoadingTimer: null,
-        };
-    },
-    computed: {
-        isAppLoading() {
-            return this.bootLoading || this.routeLoading;
-        },
-        isLoggedIn() {
-            return this.loggedIn;
-        },
-        username() {
-            try {
-                return (
-                    JSON.parse(localStorage.getItem("user") || "{}").username ||
-                    "Tài khoản"
-                );
-            } catch {
-                return "Tài khoản";
-            }
-        },
-        isHome() {
-            return this.$route.path === "/";
-        },
-        isForum() {
-            return this.$route.path.startsWith("/forum");
-        },
-        headerLogoSrc() {
-            return this.isMobileHeader
-                ? "/assets/frontend/home/v1/images/bannergame.png"
-                : "/assets/frontend/home/v1/images/logo_horizon.png?v=2";
-        },
-    },
-    watch: {
-        $route() {
-            this.menuOpen = false;
-        },
-    },
-    mounted() {
-        this._onScroll = () => {
-            this.scrolled = window.scrollY > 30;
-        };
-        window.addEventListener("scroll", this._onScroll, { passive: true });
-        this._onScroll();
-
-        this._onResize = () => {
-            this.isMobileHeader = window.innerWidth <= 860;
-        };
-        window.addEventListener("resize", this._onResize, { passive: true });
-        this._onResize();
-
-        this._onAuthChanged = () => {
-            this.loggedIn = !!localStorage.getItem("token");
-        };
-        window.addEventListener("auth-changed", this._onAuthChanged);
-
-        this._onRouteLoading = (event) => {
-            const loading = !!event.detail?.loading;
-            window.clearTimeout(this.routeLoadingTimer);
-
-            if (loading) {
-                this.routeLoading = true;
-                return;
-            }
-
-            this.routeLoadingTimer = window.setTimeout(() => {
-                this.routeLoading = false;
-            }, 180);
-        };
-        window.addEventListener("route-loading", this._onRouteLoading);
-
-        this.$nextTick(() => {
-            window.setTimeout(() => {
-                this.bootLoading = false;
-            }, 350);
-        });
-
-        const preload = () =>
-            prefetchPages([
-                "bxh",
-                "giftcode",
-                "forum",
-                "login",
-                "register",
-                "profile",
-                "topupAtm",
-                "topupCard",
-            ]);
-        if ("requestIdleCallback" in window) {
-            window.requestIdleCallback(preload, { timeout: 2500 });
-        } else {
-            window.setTimeout(preload, 1200);
-        }
-    },
-    beforeUnmount() {
-        window.removeEventListener("scroll", this._onScroll);
-        window.removeEventListener("resize", this._onResize);
-        window.removeEventListener("auth-changed", this._onAuthChanged);
-        window.removeEventListener("route-loading", this._onRouteLoading);
-        window.clearTimeout(this.routeLoadingTimer);
-    },
-    methods: {
-        logout() {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.dispatchEvent(new Event("auth-changed"));
-            this.$router.push("/");
-        },
-        toggleSidebar() {
-            this.sidebarOpen = !this.sidebarOpen;
-        },
-        scrollTop() {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        },
-    },
-};
-</script>
-
-<style>
-.inner-page.inner-page--forum {
-    padding-top: 62px !important;
+interface NavigationItem {
+    to: string;
+    label: string;
+    icon: string;
 }
 
-@media (max-width: 820px) {
-    .inner-page.inner-page--forum {
-        padding-top: 68px !important;
+interface StoredUser {
+    username?: string;
+}
+
+const route = useRoute();
+const router = useRouter();
+
+const primaryNavigation: NavigationItem[] = [
+    { to: "/", label: "Trang chủ", icon: "fa-solid fa-house" },
+    { to: "/bxh", label: "Đua top", icon: "fa-solid fa-ranking-star" },
+    { to: "/giftcode", label: "Giftcode", icon: "fa-solid fa-gift" },
+    { to: "/forum", label: "Diễn đàn", icon: "fa-solid fa-comments" },
+    { to: "/nap-atm", label: "Nạp tiền", icon: "fa-solid fa-coins" },
+];
+
+const menuOpen = ref(false);
+const sidebarOpen = ref(false);
+const scrolled = ref(false);
+const loggedIn = ref(!!localStorage.getItem("token"));
+const bootLoading = ref(true);
+const routeLoading = ref(false);
+let routeLoadingTimer: ReturnType<typeof window.setTimeout> | null = null;
+let scrollFrame: number | null = null;
+
+const isAppLoading = computed(() => bootLoading.value || routeLoading.value);
+const isLoggedIn = computed(() => loggedIn.value);
+const isHome = computed(() => route.path === "/");
+const isForum = computed(() => route.path.startsWith("/forum"));
+const username = computed(() => {
+    try {
+        const user = JSON.parse(
+            localStorage.getItem("user") || "{}",
+        ) as StoredUser;
+        return user.username || "Tài khoản";
+    } catch {
+        return "Tài khoản";
     }
+});
+
+function handleScroll(): void {
+    if (scrollFrame !== null) {
+        return;
+    }
+
+    scrollFrame = window.requestAnimationFrame(() => {
+        const nextScrolled = window.scrollY > 18;
+        if (scrolled.value !== nextScrolled) {
+            scrolled.value = nextScrolled;
+        }
+        scrollFrame = null;
+    });
 }
-</style>
+
+function handleAuthChanged(): void {
+    loggedIn.value = !!localStorage.getItem("token");
+}
+
+function handleRouteLoading(event: Event): void {
+    const customEvent = event as CustomEvent<{ loading?: boolean }>;
+    const loading = !!customEvent.detail?.loading;
+
+    if (routeLoadingTimer) {
+        window.clearTimeout(routeLoadingTimer);
+    }
+
+    if (loading) {
+        routeLoading.value = true;
+        return;
+    }
+
+    routeLoadingTimer = window.setTimeout(() => {
+        routeLoading.value = false;
+    }, 140);
+}
+
+function logout(): void {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.dispatchEvent(new Event("auth-changed"));
+    menuOpen.value = false;
+    void router.push("/");
+}
+
+function toggleSidebar(): void {
+    sidebarOpen.value = !sidebarOpen.value;
+}
+
+function scrollTop(): void {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+watch(
+    () => route.fullPath,
+    () => {
+        menuOpen.value = false;
+    },
+);
+
+onMounted(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("auth-changed", handleAuthChanged);
+    window.addEventListener("route-loading", handleRouteLoading);
+    handleScroll();
+
+    window.requestAnimationFrame(() => {
+        bootLoading.value = false;
+    });
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("scroll", handleScroll);
+    window.removeEventListener("auth-changed", handleAuthChanged);
+    window.removeEventListener("route-loading", handleRouteLoading);
+    if (routeLoadingTimer) {
+        window.clearTimeout(routeLoadingTimer);
+    }
+    if (scrollFrame !== null) {
+        window.cancelAnimationFrame(scrollFrame);
+    }
+});
+</script>

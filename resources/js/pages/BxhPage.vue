@@ -13,8 +13,8 @@
                     <h1 class="client-panel__title">Bảng xếp hạng</h1>
                 </div>
                 <p class="client-panel__desc">
-                    Theo dõi người chơi nổi bật theo nạp tiền, sức mạnh và nhiệm
-                    vụ.
+                    Theo dõi người chơi nổi bật theo top nạp tiền, sức mạnh và
+                    nhiệm vụ.
                 </p>
             </div>
 
@@ -55,7 +55,7 @@
                     <table v-if="topNap.length" class="ranking-table">
                         <thead>
                             <tr>
-                                <th width="80">#</th>
+                                <th width="80">Hạng</th>
                                 <th>Nhân vật</th>
                                 <th>Tổng nạp</th>
                             </tr>
@@ -63,12 +63,12 @@
                         <tbody>
                             <tr v-for="(item, i) in topNap" :key="i">
                                 <td class="rank-number">
-                                    <span
+                                    <img
                                         v-if="i < 3"
                                         class="rank-cup"
-                                        :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ i + 1 }}</span
-                                    >
+                                        :src="rankMedals[i]"
+                                        :alt="`Hạng ${i + 1}`"
+                                    />
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
                                 <td class="player-name">
@@ -102,12 +102,12 @@
                         <tbody>
                             <tr v-for="(item, i) in topPower" :key="i">
                                 <td class="rank-number">
-                                    <span
+                                    <img
                                         v-if="i < 3"
                                         class="rank-cup"
-                                        :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ i + 1 }}</span
-                                    >
+                                        :src="rankMedals[i]"
+                                        :alt="`Hạng ${i + 1}`"
+                                    />
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
                                 <td class="player-name">
@@ -140,12 +140,12 @@
                         <tbody>
                             <tr v-for="(item, i) in topTask" :key="i">
                                 <td class="rank-number">
-                                    <span
+                                    <img
                                         v-if="i < 3"
                                         class="rank-cup"
-                                        :class="['gold', 'silver', 'bronze'][i]"
-                                        >{{ i + 1 }}</span
-                                    >
+                                        :src="rankMedals[i]"
+                                        :alt="`Hạng ${i + 1}`"
+                                    />
                                     <span v-else>{{ i + 1 }}</span>
                                 </td>
                                 <td class="player-name">
@@ -169,6 +169,12 @@
 <script>
 import axios from "axios";
 
+const rankMedals = [
+    "/assets/pixel/rank-1.png",
+    "/assets/pixel/rank-2.png",
+    "/assets/pixel/rank-3.png",
+];
+
 export default {
     name: "BxhPage",
     data() {
@@ -178,6 +184,7 @@ export default {
             topTask: [],
             loading: true,
             activeTab: "nap",
+            rankMedals,
         };
     },
     async mounted() {

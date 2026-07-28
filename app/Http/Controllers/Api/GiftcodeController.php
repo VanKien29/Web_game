@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Game\ItemOptionTemplate;
-use App\Models\Game\ItemTemplate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -51,7 +49,20 @@ class GiftcodeController extends Controller
         // Lấy item_template
         $itemMap = [];
         if ($itemIds) {
-            $items = ItemTemplate::whereIn('id', $itemIds)->get();
+            $items = DB::connection('game')
+                ->table('item_template')
+                ->whereIn('id', $itemIds)
+                ->select([
+                    'id',
+                    'NAME as name',
+                    'description',
+                    'TYPE as type',
+                    'gender',
+                    'level',
+                    'power_require',
+                    'icon_id',
+                ])
+                ->get();
             foreach ($items as $item) {
                 $itemMap[$item->id] = $item;
             }
@@ -60,7 +71,11 @@ class GiftcodeController extends Controller
         // Lấy item_option_template
         $optionMap = [];
         if ($optionIds) {
-            $options = ItemOptionTemplate::whereIn('id', $optionIds)->get();
+            $options = DB::connection('game')
+                ->table('item_option_template')
+                ->whereIn('id', $optionIds)
+                ->select(['id', 'NAME as name'])
+                ->get();
             foreach ($options as $opt) {
                 $optionMap[$opt->id] = $opt->name;
             }
@@ -81,15 +96,17 @@ class GiftcodeController extends Controller
                     $opts = [];
                     if (!empty($d['options'])) {
                         foreach ($d['options'] as $op) {
-                            $rawName = $optionMap[$op['id']] ?? ('Chỉ số #' . $op['id']);
                             $value = (int) $op['param'];
-                            $display = str_replace('#', (string) $value, $rawName);
+                            $rawName = $optionMap[$op['id']] ?? null;
+                            $display = $rawName
+                                ? str_replace('#', (string) $value, $rawName)
+                                : 'Chỉ số #' . (int) $op['id'] . ': ' . $value;
 
                             $opts[] = [
                                 'id' => (int) $op['id'],
                                 'text' => $display,
                                 'param' => $value,
-                                'raw' => $rawName,
+                                'raw' => $rawName ?? '',
                             ];
                         }
                     }

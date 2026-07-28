@@ -5,42 +5,27 @@
             <span>›</span>
             <span>Đăng nhập</span>
         </div>
+
         <div class="client-auth-shell">
-            <section class="client-panel client-auth-card">
-                <div class="client-auth-art">
-                    <img
-                        src="/assets/frontend/home/v1/images/logo_horizon.png?v=2"
-                        alt="Ngọc Rồng Horizon"
-                        class="client-auth-logo"
-                    />
-                    <img
-                        src="/assets/frontend/home/v1/images/goku.png"
-                        alt=""
-                        class="client-auth-hero"
-                    />
-                </div>
-                <div class="client-panel__eyebrow">Tài khoản</div>
-                <h1 class="client-panel__title">Đăng nhập</h1>
-                <p class="client-panel__desc">
-                    Đăng nhập để nạp, nhận giftcode và theo dõi nhân vật.
-                </p>
-                <div class="client-auth-links">
-                    <router-link to="/giftcode">Giftcode</router-link>
-                    <router-link to="/bxh">Bảng xếp hạng</router-link>
-                    <router-link to="/nap-atm">Nạp tiền</router-link>
-                </div>
-            </section>
+            <AuthWelcomePanel
+                eyebrow="Tài khoản"
+                title="Đăng nhập"
+                description="Đăng nhập để nạp, nhận giftcode và theo dõi nhân vật."
+            />
+
             <section class="client-panel client-auth-form">
                 <div v-if="error" class="alert alert-error">{{ error }}</div>
                 <div v-if="success" class="alert alert-success">
                     {{ success }}
                 </div>
+
                 <form novalidate @submit.prevent="handleLogin">
                     <label class="client-field">
                         <span>Tên đăng nhập</span>
                         <input
                             v-model.trim="username"
                             type="text"
+                            autocomplete="username"
                             placeholder="Tên đăng nhập"
                             required
                         />
@@ -50,6 +35,7 @@
                         <input
                             v-model="password"
                             type="password"
+                            autocomplete="current-password"
                             placeholder="Mật khẩu"
                             required
                         />
@@ -63,6 +49,7 @@
                         {{ loading ? "Đang xử lý..." : "Đăng nhập" }}
                     </button>
                 </form>
+
                 <p class="client-auth-note">
                     Bạn chưa có tài khoản?
                     <router-link to="/register">Đăng ký ngay</router-link>
@@ -72,49 +59,60 @@
     </div>
 </template>
 
-<script>
-import axios from "axios";
+<script setup lang="ts">
+import axios, { AxiosError } from "axios";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import AuthWelcomePanel from "../components/auth/AuthWelcomePanel.vue";
 
-export default {
-    name: "LoginPage",
-    data() {
-        return {
-            username: "",
-            password: "",
-            error: "",
-            success: "",
-            loading: false,
-        };
-    },
-    methods: {
-        async handleLogin() {
-            this.error = "";
-            if (!this.username || !this.password) {
-                this.error = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu";
-                return;
-            }
+interface AuthResponse {
+    status: "success" | "error";
+    token?: string;
+    user?: unknown;
+    message?: string;
+}
 
-            this.loading = true;
-            try {
-                const { data } = await axios.post("/api/auth/login", {
-                    username: this.username,
-                    password: this.password,
-                });
-                if (data.status === "success") {
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("user", JSON.stringify(data.user));
-                    window.dispatchEvent(new Event("auth-changed"));
-                    this.$router.push("/");
-                } else {
-                    this.error = data.message || "Đăng nhập thất bại";
-                }
-            } catch (err) {
-                this.error =
-                    err.response?.data?.message || "Đăng nhập thất bại";
-            } finally {
-                this.loading = false;
-            }
-        },
-    },
-};
+interface ApiError {
+    message?: string;
+}
+
+const router = useRouter();
+const username = ref("");
+const password = ref("");
+const error = ref("");
+const success = ref("");
+const loading = ref(false);
+
+async function handleLogin(): Promise<void> {
+    error.value = "";
+    success.value = "";
+
+    if (!username.value || !password.value) {
+        error.value = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu";
+        return;
+    }
+
+    loading.value = true;
+    try {
+        const { data } = await axios.post<AuthResponse>("/api/auth/login", {
+            username: username.value,
+            password: password.value,
+        });
+
+        if (data.status === "success" && data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user || {}));
+            window.dispatchEvent(new Event("auth-changed"));
+            await router.push("/");
+        } else {
+            error.value = data.message || "Đăng nhập thất bại";
+        }
+    } catch (caughtError) {
+        const requestError = caughtError as AxiosError<ApiError>;
+        error.value =
+            requestError.response?.data?.message || "Đăng nhập thất bại";
+    } finally {
+        loading.value = false;
+    }
+}
 </script>

@@ -16,7 +16,7 @@ Thư mục này chứa các file `.md` ghi lại các quyết định đã đư�
 ---
 
 ## Quy tắc hiện tại:
-*(Chưa có — sẽ được bổ sung tự động)*
+- [`rules/client-pixel-ui.md`](rules/client-pixel-ui.md) — Quy chuẩn giao diện pixel cho toàn bộ client công khai.
 
 ---
 
