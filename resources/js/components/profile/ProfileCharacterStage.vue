@@ -138,7 +138,7 @@ function layerAlt(key: string): string {
     }
 
     .profile-character__sprite {
-        bottom: 18px;
+        bottom: 32px;
     }
 }
 </style>

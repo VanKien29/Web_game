@@ -683,7 +683,7 @@ async function logout(): Promise<void> {
     min-width: 0;
     min-height: 500px;
     place-items: center;
-    transform: translate(24px, 42px);
+    transform: translate(42px, 24px);
 }
 
 .profile-dossier {
@@ -1164,7 +1164,7 @@ async function logout(): Promise<void> {
         align-items: start;
         padding: 16px 12px;
         background-color: #b8e2c3;
-        background-position: 34% top;
+        background-position: 31% top;
         background-size: auto 520px;
     }
 
@@ -1205,7 +1205,7 @@ async function logout(): Promise<void> {
     }
 
     .profile-sanctuary {
-        background-position: 33% top;
+        background-position: 30% top;
         background-size: auto 500px;
     }
 
