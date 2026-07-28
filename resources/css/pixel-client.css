@@ -395,7 +395,7 @@ select:focus-visible {
 
 .pixel-brand__copy strong {
     color: var(--pixel-ink) !important;
-    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    font-size: clamp(1.28rem, 2vw, 1.58rem);
     letter-spacing: 0.01em;
     text-shadow: none !important;
 }
@@ -403,7 +403,7 @@ select:focus-visible {
 .pixel-brand__copy small {
     margin-top: 1px;
     color: var(--pixel-orange-dark) !important;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     letter-spacing: 0.15em;
     text-shadow: none !important;
 }
@@ -2649,11 +2649,11 @@ html
     }
 
     .game-header__logo .pixel-brand__copy strong {
-        font-size: 0.9rem;
+        font-size: 1.05rem;
     }
 
     .game-header__logo .pixel-brand__copy small {
-        font-size: 0.58rem;
+        font-size: 0.68rem;
     }
 
     .game-header__toggle {
