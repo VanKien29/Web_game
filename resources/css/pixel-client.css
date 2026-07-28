@@ -2280,7 +2280,6 @@ html
         .profile-no-character strong,
         .profile-resource__gem,
         .profile-resource strong,
-        .profile-button,
         .profile-page__error strong,
         .profile-hud__avatar > span
     ),
@@ -2296,12 +2295,9 @@ html
         .giftcode-hero__stats strong,
         .giftcode-guide > div > span,
         .giftcode-guide > i,
-        .giftcode-pagination > button span,
-        .giftcode-pagination__pages button,
         .giftcode-pagination__ellipsis,
         .giftcode-pass__identity strong,
         .giftcode-pass__stock strong,
-        .giftcode-copy,
         .giftcode-pass__rewards-head span,
         .giftcode-loading strong,
         .giftcode-state strong

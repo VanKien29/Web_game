@@ -10,7 +10,7 @@ Toàn bộ giao diện client công khai của Ngọc Rồng Horizon sử dụng
 - Ưu tiên tái sử dụng sprite và tài nguyên game NRO sẵn có trong dự án để giữ đúng nhận diện; artwork tạo mới phải bám sát tỉ lệ, mật độ chi tiết và bảng màu của hình ảnh trong game.
 - Icon điều hướng, icon ứng dụng, vật phẩm nhận diện và logo ngọc rồng phải dùng sprite pixel đồng bộ; không dùng icon font hiện đại hoặc ghép nhiều phong cách icon khác nhau cho các vị trí chính.
 - Được phép tổ chức lại bố cục và UX của từng trang nhưng phải giữ nguyên nghiệp vụ, dữ liệu và hợp đồng API trừ khi người dùng yêu cầu khác.
-- Dùng Handjet tự host làm font pixel dễ đọc ở các vị trí tạo điểm nhấn như logo chữ, tiêu đề ngắn, badge hoặc nút chính.
+- Dùng Handjet tự host làm font pixel ở các vị trí tạo điểm nhấn như logo chữ, tiêu đề ngắn, badge hoặc mã nổi bật; chữ trên nút và thông tin cần thao tác phải dùng font sans-serif tiếng Việt dễ đọc.
 - Nội dung dài, bài viết, tin tức, bảng dữ liệu và thông tin cần đọc rõ phải giữ font sans-serif tiếng Việt dễ đọc hiện tại.
 - Không dùng ảnh nền lớn với `background-attachment: fixed`; ảnh trang trí phải được nén sang WebP và tránh lặp lại nhiều lớp để giữ cuộn trang mượt.
 - Design token và theme dùng Tailwind CSS v4 theo hướng CSS-first; component Vue mới dùng Composition API với `<script setup lang="ts">`.
