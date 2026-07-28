@@ -1,7 +1,7 @@
 <template>
     <div class="profile-character" aria-label="Ngoại hình nhân vật">
         <div
-            v-if="appearance?.complete && visibleLayers.length"
+            v-if="visibleLayers.length"
             class="profile-character__sprite"
             :class="{
                 'profile-character__sprite--costume':
@@ -64,6 +64,10 @@ const visibleLayers = computed(() =>
 );
 
 const appearanceLabel = computed(() => {
+    if (props.appearance?.mode === "equipment-fallback") {
+        return "Trang bị hiện tại";
+    }
+
     if (props.appearance?.mode === "costume" && props.appearance.costume_name) {
         return props.appearance.costume_name;
     }

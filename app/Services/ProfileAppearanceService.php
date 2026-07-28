@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Game\Player;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -46,19 +47,38 @@ class ProfileAppearanceService
                 $this->defaultLegPart($player),
             );
             $usesCostume = $costume && (int) ($costume->type ?? -1) === 5;
-            $partIds = [
+            $fallbackPartIds = [
+                'head' => (int) ($player->head ?? 0),
+                'body' => $defaultBodyPart,
+                'leg' => $defaultLegPart,
+            ];
+            $requestedPartIds = [
                 'head' => $this->costumePart($costume, 'head', (int) ($player->head ?? 0)),
                 'body' => $this->costumePart($costume, 'body', $defaultBodyPart),
                 'leg' => $this->costumePart($costume, 'leg', $defaultLegPart),
             ];
 
-            $layers = $this->idleLayers($partIds);
+            $layers = $this->idleLayers($requestedPartIds, $fallbackPartIds);
+            $renderedPartIds = collect($layers)
+                ->pluck('part_id', 'key')
+                ->map(fn (mixed $partId) => (int) $partId)
+                ->all();
+            $usesEquipmentFallback = $usesCostume
+                && collect($requestedPartIds)->contains(
+                    fn (int $partId, string $key) => ($renderedPartIds[$key] ?? null) !== $partId,
+                );
 
             return [
-                'mode' => $usesCostume ? 'costume' : 'default',
+                'mode' => $usesCostume
+                    ? ($usesEquipmentFallback ? 'equipment-fallback' : 'costume')
+                    : 'default',
                 'costume_id' => $usesCostume ? (int) $costume->id : null,
                 'costume_name' => $usesCostume ? (string) $costume->name : null,
-                'parts' => $partIds,
+                'parts' => [
+                    'head' => $renderedPartIds['head'] ?? $requestedPartIds['head'],
+                    'body' => $renderedPartIds['body'] ?? $requestedPartIds['body'],
+                    'leg' => $renderedPartIds['leg'] ?? $requestedPartIds['leg'],
+                ],
                 'pose' => [
                     'key' => 'idle-right',
                     'zoom' => 4,
@@ -95,12 +115,18 @@ class ProfileAppearanceService
             ->all();
     }
 
-    private function idleLayers(array $partIds): array
+    private function idleLayers(array $partIds, array $fallbackPartIds = []): array
     {
         $parts = DB::connection('game')
             ->table('part')
             ->selectRaw('id, TYPE as type, DATA as data')
-            ->whereIn('id', array_values($partIds))
+            ->whereIn(
+                'id',
+                collect([...array_values($partIds), ...array_values($fallbackPartIds)])
+                    ->filter(fn (int $partId) => $partId >= 0)
+                    ->unique()
+                    ->values(),
+            )
             ->get()
             ->keyBy(fn (object $part) => (int) $part->id);
 
@@ -130,35 +156,68 @@ class ProfileAppearanceService
         ] as $definition) {
             $key = $definition['key'];
             $partId = $partIds[$key];
-            $part = $parts->get($partId);
-            $frame = $part
-                ? Arr::get(
-                    $this->decodeArray($part->data ?? null),
-                    $definition['frame'],
-                )
-                : null;
-            if (! is_array($frame) || (int) Arr::get($frame, 0, -1) < 0) {
-                continue;
+            $layer = $this->layerForPart($parts, $partId, $definition);
+
+            if (! $layer) {
+                $fallbackPartId = (int) ($fallbackPartIds[$key] ?? -1);
+                if ($fallbackPartId !== $partId) {
+                    $layer = $this->layerForPart($parts, $fallbackPartId, $definition);
+                }
             }
 
-            $iconId = (int) Arr::get($frame, 0);
-            $spritePath = "assets/frontend/home/v1/images/x4/{$iconId}.png";
-            if (! is_file(public_path($spritePath))) {
-                continue;
+            if ($layer) {
+                $layers[] = $layer;
             }
-
-            $layers[] = [
-                'key' => $key,
-                'part_id' => (int) $partId,
-                'icon_id' => $iconId,
-                'url' => "/{$spritePath}",
-                'x' => $definition['anchor_x'] + (int) Arr::get($frame, 1, 0),
-                'y' => $definition['anchor_y'] + (int) Arr::get($frame, 2, 0),
-                'z_index' => $definition['z_index'],
-            ];
         }
 
         return $layers;
+    }
+
+    private function layerForPart(
+        Collection $parts,
+        int $partId,
+        array $definition,
+    ): ?array {
+        $part = $parts->get($partId);
+        $frame = $part
+            ? Arr::get(
+                $this->decodeArray($part->data ?? null),
+                $definition['frame'],
+            )
+            : null;
+        if (! is_array($frame) || (int) Arr::get($frame, 0, -1) < 0) {
+            return null;
+        }
+
+        $iconId = (int) Arr::get($frame, 0);
+        $spriteUrl = $this->spriteUrl($iconId);
+        if (! $spriteUrl) {
+            return null;
+        }
+
+        return [
+            'key' => $definition['key'],
+            'part_id' => $partId,
+            'icon_id' => $iconId,
+            'url' => $spriteUrl,
+            'x' => $definition['anchor_x'] + (int) Arr::get($frame, 1, 0),
+            'y' => $definition['anchor_y'] + (int) Arr::get($frame, 2, 0),
+            'z_index' => $definition['z_index'],
+        ];
+    }
+
+    private function spriteUrl(int $iconId): ?string
+    {
+        foreach ([
+            "assets/game-icons/x4/{$iconId}.png",
+            "assets/frontend/home/v1/images/x4/{$iconId}.png",
+        ] as $spritePath) {
+            if (is_file(public_path($spritePath))) {
+                return "/{$spritePath}";
+            }
+        }
+
+        return null;
     }
 
     private function itemIdFromSlot(mixed $slot): int

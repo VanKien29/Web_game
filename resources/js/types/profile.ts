@@ -11,7 +11,7 @@ export interface CharacterLayer {
 }
 
 export interface CharacterAppearance {
-    mode: "costume" | "default";
+    mode: "costume" | "equipment-fallback" | "default";
     costume_id: number | null;
     costume_name: string | null;
     parts: {
