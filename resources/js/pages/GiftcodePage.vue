@@ -645,10 +645,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.client-page--giftcode {
-    font-family: var(--pixel-font) !important;
-}
-
 .client-page--giftcode button,
 .client-page--giftcode input,
 .client-page--giftcode select {

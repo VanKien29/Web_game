@@ -599,7 +599,6 @@ async function logout(): Promise<void> {
     width: min(1260px, calc(100% - 32px));
     padding-top: 0;
     padding-bottom: 64px;
-    font-family: var(--pixel-font) !important;
 }
 
 .profile-page button,

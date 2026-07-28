@@ -2265,10 +2265,48 @@ html
     font-family: var(--pixel-font) !important;
 }
 
-html body #app .client-page--profile,
-html body #app .client-page--profile *,
-html body #app .client-page--giftcode,
-html body #app .client-page--giftcode * {
+html
+    body
+    #app
+    .client-page--profile
+    :is(
+        .profile-page__loading,
+        .profile-kicker,
+        .profile-dossier h1,
+        .profile-section-head h2,
+        .profile-command h2,
+        .profile-status,
+        .profile-stat strong,
+        .profile-no-character strong,
+        .profile-resource__gem,
+        .profile-resource strong,
+        .profile-button,
+        .profile-page__error strong,
+        .profile-hud__bar strong,
+        .profile-hud__avatar > span
+    ),
+html
+    body
+    #app
+    .client-page--giftcode
+    :is(
+        .giftcode-kicker,
+        .giftcode-board__eyebrow,
+        .giftcode-hero h1,
+        .giftcode-board h2,
+        .giftcode-hero__stats strong,
+        .giftcode-guide > div > span,
+        .giftcode-guide > i,
+        .giftcode-pagination > button span,
+        .giftcode-pagination__pages button,
+        .giftcode-pagination__ellipsis,
+        .giftcode-pass__identity strong,
+        .giftcode-pass__stock strong,
+        .giftcode-copy,
+        .giftcode-pass__rewards-head span,
+        .giftcode-loading strong,
+        .giftcode-state strong
+    ) {
     font-family: var(--pixel-font) !important;
     font-style: normal !important;
 }
