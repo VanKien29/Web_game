@@ -1,6 +1,7 @@
 <template>
     <div class="pixel-app">
         <header
+            v-if="!isAuthPage"
             class="game-header"
             :class="{
                 'game-header--scrolled': scrolled,
@@ -117,8 +118,9 @@
 
         <main
             :class="{
-                'inner-page': !isHome,
+                'inner-page': !isHome && !isAuthPage,
                 'inner-page--forum': isForum,
+                'auth-page-host': isAuthPage,
             }"
         >
             <router-view v-slot="{ Component }">
@@ -146,7 +148,7 @@
             </div>
         </transition>
 
-        <footer class="game-footer">
+        <footer v-if="!isAuthPage" class="game-footer">
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <div class="pixel-brand pixel-brand--footer">
@@ -194,6 +196,7 @@
         </footer>
 
         <aside
+            v-if="!isAuthPage"
             class="pixel-quickbar hidden__mobile"
             :class="{ 'pixel-quickbar--open': sidebarOpen }"
             aria-label="Liên kết nhanh"
@@ -251,6 +254,7 @@ interface NavigationItem {
 
 interface StoredUser {
     username?: string;
+    player_name?: string | null;
 }
 
 const route = useRoute();
@@ -277,12 +281,15 @@ const isAppLoading = computed(() => bootLoading.value || routeLoading.value);
 const isLoggedIn = computed(() => loggedIn.value);
 const isHome = computed(() => route.path === "/");
 const isForum = computed(() => route.path.startsWith("/forum"));
+const isAuthPage = computed(
+    () => route.path === "/login" || route.path === "/register",
+);
 const username = computed(() => {
     try {
         const user = JSON.parse(
             localStorage.getItem("user") || "{}",
         ) as StoredUser;
-        return user.username || "Tài khoản";
+        return user.player_name || user.username || "Tài khoản";
     } catch {
         return "Tài khoản";
     }

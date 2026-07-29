@@ -593,7 +593,10 @@ export default {
         },
         requireLogin() {
             if (this.isLoggedIn) return true;
-            this.showMsg("Bạn cần đăng nhập để tương tác.");
+            this.$router.push({
+                path: "/login",
+                query: { redirect: this.$route.fullPath },
+            });
             return false;
         },
         async loadComments() {

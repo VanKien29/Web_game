@@ -13,24 +13,32 @@ class GameTokenAuth
     {
         $token = $request->bearerToken();
 
-        if (!$token) {
+        if (! $token) {
             return response()->json(['ok' => false, 'error' => 'unauthorized'], 401);
         }
 
-        $jwt = new JwtService();
+        $jwt = new JwtService;
         $payload = $jwt->decode($token);
 
-        if (!$payload || !isset($payload->sub)) {
+        if (! $payload || ! isset($payload->sub)) {
             return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
         }
 
         $account = Account::query()->where('id', $payload->sub)->first();
 
-        if (!$account) {
+        if (! $account) {
             return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
         }
 
-        $request->merge(['game_user' => $account]);
+        if ((int) $account->ban === 1) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'account_locked',
+                'message' => 'Tài khoản đã bị khóa.',
+            ], 403);
+        }
+
+        $request->attributes->set('game_user', $account);
 
         return $next($request);
     }

@@ -3,36 +3,39 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Game\Account;
+use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\Api\RegisterRequest;
+use App\Services\GameAuthService;
 use App\Services\JwtService;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function __construct(
+        private readonly GameAuthService $auth,
+        private readonly JwtService $jwt,
+    ) {}
+
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        $credentials = $request->validated();
+        $user = $this->auth->findForLogin($credentials['username']);
 
-        $username = trim($request->input('username'));
-        $password = trim($request->input('password'));
-
-        $user = Account::where('username', $username)
-            ->orWhere('email', $username)
-            ->first();
-
-        if (!$user || trim($password) !== trim($user->password)) {
+        if (
+            ! $user
+            || (int) $user->ban === 1
+            || ! hash_equals((string) $user->password, $credentials['password'])
+        ) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Sai tài khoản hoặc mật khẩu',
             ], 401);
         }
 
-        $jwt = new JwtService();
-        $token = $jwt->encode([
+        $player = $user->player()->first(['id', 'name']);
+        $token = $this->jwt->encode([
             'sub' => $user->id,
             'username' => $user->username,
             'is_admin' => (int) $user->is_admin,
@@ -49,38 +52,35 @@ class AuthController extends Controller
                 'id' => (int) $user->id,
                 'username' => $user->username,
                 'is_admin' => (int) $user->is_admin,
+                'has_character' => $player !== null,
+                'player_name' => $player?->name,
             ],
         ]);
     }
 
-    public function register(Request $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $request->validate([
-            'username' => 'required|string|min:3|max:32',
-            'password' => 'required|string|min:3',
-        ]);
+        $credentials = $request->validated();
 
-        $username = trim($request->input('username'));
-        $password = trim($request->input('password'));
-
-        if (Account::where('username', $username)->exists()) {
+        try {
+            $account = $this->auth->register(
+                $credentials['username'],
+                $credentials['password'],
+                (string) $request->ip(),
+            );
+        } catch (LockTimeoutException) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tài khoản đã tồn tại',
+                'message' => 'Đang có yêu cầu đăng ký trùng. Vui lòng thử lại.',
             ], 409);
         }
 
-        Account::create([
-            'username' => $username,
-            'password' => $password,
-            'active' => 0,
-            'is_admin' => 0,
-            'ban' => 0,
-            'cash' => 100000000,
-            'coin' => 0,
-            'danap' => 100000000,
-            'ip_address' => $request->ip(),
-        ]);
+        if (! $account) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tên đăng nhập đã tồn tại.',
+            ], 409);
+        }
 
         return response()->json([
             'status' => 'success',

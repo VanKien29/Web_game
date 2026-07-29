@@ -1067,10 +1067,9 @@ export default {
         },
         requireLogin() {
             if (this.isLoggedIn) return true;
-            this.showPopup("Bạn cần đăng nhập để dùng chức năng này.", {
-                title: "Cần đăng nhập",
-                tone: "warning",
-                confirmLabel: "Đã hiểu",
+            this.$router.push({
+                path: "/login",
+                query: { redirect: this.$route.fullPath },
             });
             return false;
         },
