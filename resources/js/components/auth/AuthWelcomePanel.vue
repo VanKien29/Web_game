@@ -16,17 +16,7 @@
                 {{ eyebrow }}
             </span>
             <h1>{{ title }}</h1>
-            <p>{{ description }}</p>
-            <div class="client-auth-scene__chips" aria-label="Điểm nổi bật">
-                <span>
-                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                    Bảo vệ tài khoản
-                </span>
-                <span>
-                    <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-                    Vào game nhanh
-                </span>
-            </div>
+            <!-- <p>{{ description }}</p> -->
         </div>
     </section>
 </template>
@@ -82,7 +72,12 @@ const imageUrl = computed(() =>
 .client-auth-scene__shade {
     z-index: 1;
     background:
-        linear-gradient(180deg, transparent 34%, rgb(15 43 48 / 18%) 58%, rgb(42 25 16 / 82%) 100%),
+        linear-gradient(
+            180deg,
+            transparent 34%,
+            rgb(15 43 48 / 18%) 58%,
+            rgb(42 25 16 / 82%) 100%
+        ),
         linear-gradient(90deg, transparent 56%, rgb(255 255 255 / 9%));
 }
 
@@ -104,9 +99,9 @@ const imageUrl = computed(() =>
 }
 
 .client-auth-scene__content h1 {
-    margin: 4px 0 5px;
+    margin: 10px 0 5px;
     font-family: var(--pixel-font);
-    font-size: clamp(2.15rem, 4vw, 3.5rem);
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
     font-weight: 850;
     line-height: 0.9;
     text-transform: uppercase;
