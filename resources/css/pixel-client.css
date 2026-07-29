@@ -90,11 +90,15 @@ a {
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
+input:is([type="checkbox"], [type="radio"]):focus-visible {
     outline: 4px solid var(--pixel-focus);
     outline-offset: 3px;
+}
+
+input:not([type="checkbox"], [type="radio"]):focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 0;
 }
 
 ::selection {
@@ -845,8 +849,8 @@ select:focus-visible {
 .forum-title-input:focus,
 .forum-composer textarea:focus,
 .post-comment-form textarea:focus {
-    border-color: var(--pixel-blue) !important;
-    outline: 3px solid rgb(54 189 232 / 22%) !important;
+    border-color: var(--pixel-orange-dark) !important;
+    outline: 0 !important;
 }
 
 .client-segment,
