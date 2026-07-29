@@ -17,23 +17,29 @@
                     <p>Dùng tài khoản game Ngọc Rồng Horizon của bạn.</p>
                 </header>
 
-                <div
-                    v-if="notice"
-                    class="client-auth-alert client-auth-alert--success"
-                >
-                    <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
-                    <span>{{ notice }}</span>
-                </div>
-                <div
-                    v-if="error"
-                    class="client-auth-alert client-auth-alert--error"
-                    role="alert"
-                >
-                    <i
-                        class="fa-solid fa-triangle-exclamation"
-                        aria-hidden="true"
-                    ></i>
-                    <span>{{ error }}</span>
+                <div class="client-auth-feedback" aria-live="polite">
+                    <div
+                        v-show="error"
+                        class="client-auth-alert client-auth-alert--error"
+                        role="alert"
+                    >
+                        <i
+                            class="fa-solid fa-triangle-exclamation"
+                            aria-hidden="true"
+                        ></i>
+                        <span>{{ error }}</span>
+                    </div>
+                    <div
+                        v-show="!error && notice"
+                        class="client-auth-alert client-auth-alert--success"
+                        role="status"
+                    >
+                        <i
+                            class="fa-solid fa-circle-dot"
+                            aria-hidden="true"
+                        ></i>
+                        <span>{{ notice }}</span>
+                    </div>
                 </div>
 
                 <form novalidate @submit.prevent="handleLogin">

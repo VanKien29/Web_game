@@ -15,16 +15,18 @@
                     <p>Thông tin này dùng trực tiếp để đăng nhập vào game.</p>
                 </header>
 
-                <div
-                    v-if="error"
-                    class="client-auth-alert client-auth-alert--error"
-                    role="alert"
-                >
-                    <i
-                        class="fa-solid fa-triangle-exclamation"
-                        aria-hidden="true"
-                    ></i>
-                    <span>{{ error }}</span>
+                <div class="client-auth-feedback" aria-live="polite">
+                    <div
+                        v-show="error"
+                        class="client-auth-alert client-auth-alert--error"
+                        role="alert"
+                    >
+                        <i
+                            class="fa-solid fa-triangle-exclamation"
+                            aria-hidden="true"
+                        ></i>
+                        <span>{{ error }}</span>
+                    </div>
                 </div>
 
                 <form novalidate @submit.prevent="handleRegister">

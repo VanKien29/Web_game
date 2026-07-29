@@ -1744,16 +1744,29 @@ html
     margin-top: 2px;
 }
 
+.client-auth-feedback {
+    width: 100%;
+    height: 54px;
+    min-height: 54px;
+}
+
 .client-auth-alert {
     display: flex;
-    min-height: 46px;
+    width: 100%;
+    height: 100%;
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
+    overflow-y: auto;
     border: 2px solid;
     font-size: 0.76rem;
     font-weight: 750;
     line-height: 1.45;
+}
+
+.client-auth-alert span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .client-auth-alert--error {
