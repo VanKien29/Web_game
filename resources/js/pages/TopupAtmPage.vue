@@ -83,7 +83,6 @@
                             <span v-if="isAmountTooLow" class="atm-qr__overlay">
                                 Tối thiểu 10.000đ
                             </span>
-                            <small>Quét bằng ứng dụng ngân hàng</small>
                         </div>
 
                         <div class="atm-transfer">
@@ -265,10 +264,10 @@ const qrCandidates = computed(() => {
         accountName: bankOwner.value,
     });
 
-    return bankIdentifiers.value.flatMap((bankId) => [
-        `https://img.vietqr.io/image/${bankId}-${bankAccount.value}-compact2.jpg?${query}`,
-        `https://img.vietqr.io/image/${bankId}-${bankAccount.value}-print.png?${query}`,
-    ]);
+    return bankIdentifiers.value.map(
+        (bankId) =>
+            `https://img.vietqr.io/image/${bankId}-${bankAccount.value}-qr_only.png?${query}`,
+    );
 });
 const qrUrl = computed(() => qrCandidates.value[qrAttemptIndex.value] || "");
 const historyEntries = computed<TopupHistoryEntry[]>(() =>
@@ -458,11 +457,6 @@ onBeforeUnmount(() => {
     width: min(100%, 260px);
     aspect-ratio: 1;
     object-fit: contain;
-}
-
-.atm-qr small {
-    color: var(--pixel-muted, #745b47);
-    font-size: 0.68rem;
 }
 
 .atm-qr--disabled img {
