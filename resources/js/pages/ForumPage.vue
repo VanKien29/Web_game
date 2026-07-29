@@ -6,60 +6,6 @@
             <span>Diễn đàn</span>
         </div>
 
-        <section class="forum-panel forum-hero">
-            <div class="forum-hero__copy">
-                <span class="forum-hero__kicker">
-                    <img
-                        src="/assets/pixel/forum-chat.png"
-                        alt=""
-                        aria-hidden="true"
-                    />
-                    Trạm liên lạc Horizon
-                </span>
-                <h1>Diễn đàn chiến binh</h1>
-                <p>
-                    Theo dõi tin máy chủ, chia sẻ kinh nghiệm và cùng góp ý để
-                    thế giới Ngọc Rồng ngày một hoàn thiện.
-                </p>
-
-                <div class="forum-hero__stats" aria-label="Thống kê diễn đàn">
-                    <div>
-                        <strong>{{ stats.all || 0 }}</strong>
-                        <span>Bài viết</span>
-                    </div>
-                    <div>
-                        <strong>{{ stats.announcements || 0 }}</strong>
-                        <span>Thông báo</span>
-                    </div>
-                    <div>
-                        <strong>{{ stats.unread || 0 }}</strong>
-                        <span>Chưa đọc</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="forum-hero__art" aria-hidden="true">
-                <span class="forum-hero__signal"></span>
-                <img src="/assets/pixel/forum-mail.png" alt="" />
-                <strong>KÊNH LIÊN LẠC</strong>
-                <small>Luôn mở cho mọi chiến binh</small>
-            </div>
-
-            <form
-                class="forum-search"
-                role="search"
-                @submit.prevent="loadFeed(true)"
-            >
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input
-                    v-model.trim="search"
-                    aria-label="Tìm kiếm trong diễn đàn"
-                    placeholder="Tìm bài viết hoặc tên người đăng..."
-                />
-                <button type="submit">Tìm kiếm</button>
-            </form>
-        </section>
-
         <div class="forum-layout">
             <aside class="forum-rail forum-rail--left">
                 <div class="forum-panel forum-profile">
@@ -72,7 +18,7 @@
                         <span v-else>{{ currentInitial }}</span>
                     </div>
                     <div>
-                        <strong>{{ currentUsername || "Người chơi" }}</strong>
+                        <strong>{{ currentDisplayName }}</strong>
                         <span>{{
                             isLoggedIn ? "Đang trực tuyến" : "Chưa đăng nhập"
                         }}</span>
@@ -88,11 +34,7 @@
 
                 <nav class="forum-panel forum-tabs">
                     <div class="forum-tabs__head">
-                        <img
-                            src="/assets/pixel/forum-filter.png"
-                            alt=""
-                            aria-hidden="true"
-                        />
+                        <ForumIcon name="sliders" />
                         <div>
                             <strong>Khu vực diễn đàn</strong>
                             <span>Chọn bảng tin muốn xem</span>
@@ -105,7 +47,7 @@
                         :class="{ active: filter === tab.key }"
                         @click="setFilter(tab.key)"
                     >
-                        <img :src="tab.asset" alt="" aria-hidden="true" />
+                        <ForumIcon :name="tab.icon" />
                         <span>{{ tab.label }}</span>
                         <em>{{ stats[tab.countKey] || 0 }}</em>
                     </button>
@@ -113,7 +55,7 @@
             </aside>
 
             <main class="forum-feed">
-                <header class="forum-feed-head forum-panel">
+                <!-- <header class="forum-feed-head forum-panel">
                     <div>
                         <span class="forum-feed-head__eyebrow"
                             >Đang hiển thị</span
@@ -129,20 +71,16 @@
                             :class="{ active: sort === option.key }"
                             @click="setSort(option.key)"
                         >
-                            <i :class="option.icon"></i>
+                            <ForumIcon :name="option.icon" />
                             {{ option.label }}
                         </button>
                     </div>
-                </header>
+                </header> -->
 
                 <section class="forum-panel forum-composer">
                     <template v-if="isLoggedIn">
                         <header class="forum-composer__heading">
-                            <img
-                                src="/assets/pixel/forum-mail.png"
-                                alt=""
-                                aria-hidden="true"
-                            />
+                            <ForumIcon name="envelope" />
                             <div>
                                 <strong>Gửi tin đến cộng đồng</strong>
                                 <span
@@ -191,9 +129,17 @@
                                 />
                                 <textarea
                                     v-model="composer.content"
-                                    rows="4"
+                                    :maxlength="postContentLimit"
+                                    rows="5"
+                                    wrap="soft"
                                     placeholder="Bạn đang nghĩ gì?"
+                                    @input="autoResizePostTextarea"
                                 ></textarea>
+                                <small class="forum-character-counter">
+                                    {{ composer.content.length }}/{{
+                                        postContentLimit
+                                    }}
+                                </small>
                             </div>
                         </div>
 
@@ -211,7 +157,7 @@
 
                         <div class="forum-composer__actions">
                             <label class="forum-tool">
-                                <i class="fa-regular fa-images"></i>
+                                <ForumIcon name="image" />
                                 <span>Ảnh</span>
                                 <input
                                     type="file"
@@ -223,13 +169,9 @@
                             <button
                                 type="button"
                                 class="forum-tool"
-                                @click="
-                                    composer.content += composer.content
-                                        ? '\n#hoi-dap '
-                                        : '#hoi-dap '
-                                "
+                                @click="appendComposerTopic"
                             >
-                                <i class="fa-solid fa-hashtag"></i>
+                                <ForumIcon name="tag" />
                                 <span>Chủ đề</span>
                             </button>
                             <button
@@ -238,17 +180,13 @@
                                 :disabled="posting || !composer.content.trim()"
                                 @click="submitPost"
                             >
-                                <i class="fa-solid fa-paper-plane"></i>
+                                <ForumIcon name="send" />
                                 {{ posting ? "Đang đăng..." : "Đăng" }}
                             </button>
                         </div>
                     </template>
                     <div v-else class="forum-login-prompt">
-                        <img
-                            src="/assets/pixel/forum-profile.png"
-                            alt=""
-                            aria-hidden="true"
-                        />
+                        <ForumIcon name="user" />
                         <div>
                             <strong>Tham gia cuộc trò chuyện</strong>
                             <span
@@ -260,18 +198,12 @@
                     </div>
                 </section>
 
-                <div v-if="message" class="forum-message">{{ message }}</div>
-
                 <div v-if="loading" class="forum-loading">
                     <div class="page-loading__spinner"></div>
                 </div>
 
                 <div v-else-if="!posts.length" class="client-empty forum-empty">
-                    <img
-                        src="/assets/pixel/forum-chat.png"
-                        alt=""
-                        aria-hidden="true"
-                    />
+                    <ForumIcon name="comments" />
                     <strong>Chưa có tín hiệu mới</strong>
                     <span>Hãy thử một khu vực khác hoặc thay đổi từ khóa.</span>
                 </div>
@@ -280,6 +212,7 @@
                     <article
                         v-for="post in posts"
                         :key="post.id"
+                        :id="`forum-post-${post.id}`"
                         :ref="(el) => observePostCard(el, post)"
                         class="forum-panel forum-post"
                         :class="[
@@ -291,11 +224,9 @@
                         ]"
                     >
                         <div class="forum-post__head">
-                            <img
+                            <ForumIcon
                                 class="forum-post__type-icon"
-                                :src="postTypeAsset(post.type)"
-                                alt=""
-                                aria-hidden="true"
+                                :name="postTypeIcon(post.type)"
                             />
                             <div class="forum-avatar forum-avatar--post">
                                 <img
@@ -317,14 +248,14 @@
                                         v-if="post.is_pinned"
                                         class="forum-badge forum-badge--pin"
                                     >
-                                        <i class="fa-solid fa-thumbtack"></i>
+                                        <ForumIcon name="pin" />
                                         Ghim
                                     </span>
                                     <span
                                         v-if="post.is_unread"
                                         class="forum-badge forum-badge--new"
                                     >
-                                        <i class="fa-solid fa-circle"></i>
+                                        <ForumIcon name="dot" />
                                         Mới
                                     </span>
                                     <span>{{
@@ -338,12 +269,17 @@
                             >
                                 <button
                                     type="button"
+                                    aria-label="Sửa bài viết"
                                     @click="startEditPost(post)"
                                 >
-                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <ForumIcon name="edit" />
                                 </button>
-                                <button type="button" @click="deletePost(post)">
-                                    <i class="fa-regular fa-trash-can"></i>
+                                <button
+                                    type="button"
+                                    aria-label="Xóa bài viết"
+                                    @click="deletePost(post)"
+                                >
+                                    <ForumIcon name="trash" />
                                 </button>
                             </div>
                         </div>
@@ -380,8 +316,16 @@
                             />
                             <textarea
                                 v-model="editPost.content"
+                                :maxlength="postContentLimit"
                                 rows="5"
+                                wrap="soft"
+                                @input="autoResizePostTextarea"
                             ></textarea>
+                            <small class="forum-character-counter">
+                                {{ editPost.content.length }}/{{
+                                    postContentLimit
+                                }}
+                            </small>
                             <div class="forum-edit-box__actions">
                                 <button
                                     type="button"
@@ -399,10 +343,21 @@
                             <div
                                 class="forum-post__content-wrap"
                                 :class="{
-                                    collapsed:
-                                        isLongPost(post) &&
-                                        !post.contentExpanded,
+                                    collapsed: isPostCollapsed(post),
+                                    expandable: isLongPost(post),
                                 }"
+                                :role="
+                                    isLongPost(post) ? 'button' : undefined
+                                "
+                                :tabindex="isLongPost(post) ? 0 : undefined"
+                                :aria-expanded="
+                                    isLongPost(post)
+                                        ? String(post.contentExpanded)
+                                        : undefined
+                                "
+                                @click="togglePostContent(post)"
+                                @keydown.enter.prevent="togglePostContent(post)"
+                                @keydown.space.prevent="togglePostContent(post)"
                             >
                                 <div
                                     v-if="post.type === 'announcement'"
@@ -412,26 +367,22 @@
                                 <p v-else class="forum-post__content">
                                     {{ post.content }}
                                 </p>
+                                <span
+                                    v-if="isLongPost(post)"
+                                    class="forum-post__expand-hint"
+                                    :class="{
+                                        'forum-post__expand-hint--collapse':
+                                            post.contentExpanded,
+                                    }"
+                                    aria-hidden="true"
+                                >
+                                    {{
+                                        isPostCollapsed(post)
+                                            ? "Xem thêm"
+                                            : "Thu gọn"
+                                    }}
+                                </span>
                             </div>
-                            <button
-                                v-if="isLongPost(post)"
-                                type="button"
-                                class="forum-read-more"
-                                @click="togglePostContent(post)"
-                            >
-                                {{
-                                    post.contentExpanded
-                                        ? "Thu gọn"
-                                        : "Xem thêm"
-                                }}
-                                <i
-                                    :class="
-                                        post.contentExpanded
-                                            ? 'fa-solid fa-chevron-up'
-                                            : 'fa-solid fa-chevron-down'
-                                    "
-                                ></i>
-                            </button>
                         </template>
 
                         <div
@@ -457,7 +408,7 @@
                                         v-for="reaction in topReactions(post)"
                                         :key="reaction"
                                     >
-                                        {{ reactionEmoji(reaction) }}
+                                        <ForumReactionIcon :type="reaction" />
                                     </span>
                                 </span>
                                 {{ post.reaction_count || 0 }}
@@ -483,29 +434,41 @@
                                             : toggleReactionPicker(post.id)
                                     "
                                 >
-                                    <span>{{
-                                        post.user_reaction
-                                            ? reactionEmoji(post.user_reaction)
-                                            : "👍"
-                                    }}</span>
+                                    <ForumReactionIcon
+                                        :type="post.user_reaction || 'like'"
+                                    />
                                     {{
                                         post.user_reaction
                                             ? reactionLabel(post.user_reaction)
                                             : "Cảm xúc"
                                     }}
                                 </button>
+                                <button
+                                    v-if="reactionPickerPostId === post.id"
+                                    type="button"
+                                    class="forum-reaction-backdrop"
+                                    aria-label="Đóng bảng cảm xúc"
+                                    @click="reactionPickerPostId = null"
+                                ></button>
                                 <div
                                     v-if="reactionPickerPostId === post.id"
                                     class="forum-reaction-picker"
+                                    role="menu"
+                                    aria-label="Chọn cảm xúc"
                                 >
                                     <button
                                         v-for="reaction in reactionOptions"
                                         :key="reaction.key"
                                         type="button"
                                         :title="reaction.label"
+                                        :aria-label="reaction.label"
+                                        role="menuitem"
                                         @click="reactToPost(post, reaction.key)"
                                     >
-                                        <span>{{ reaction.emoji }}</span>
+                                        <ForumReactionIcon
+                                            :type="reaction.key"
+                                        />
+                                        <span>{{ reaction.label }}</span>
                                     </button>
                                 </div>
                             </div>
@@ -514,7 +477,7 @@
                                 class="forum-action"
                                 @click="toggleComments(post)"
                             >
-                                <i class="fa-regular fa-comment"></i>
+                                <ForumIcon name="comment" />
                                 Bình luận
                             </button>
                             <button
@@ -522,7 +485,7 @@
                                 class="forum-action"
                                 @click="sharePost(post)"
                             >
-                                <i class="fa-solid fa-share"></i>
+                                <ForumIcon name="share" />
                                 Chia sẻ
                             </button>
                             <button
@@ -531,7 +494,7 @@
                                 :class="{ active: post.is_saved }"
                                 @click="toggleSave(post)"
                             >
-                                <i class="fa-regular fa-bookmark"></i>
+                                <ForumIcon name="bookmark" />
                                 {{ post.is_saved ? "Đã lưu" : "Lưu" }}
                             </button>
                         </div>
@@ -568,14 +531,14 @@
                                     type="submit"
                                     :disabled="!commentDraft(post).trim()"
                                 >
-                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <ForumIcon name="send" />
                                 </button>
                             </form>
                             <div
                                 v-else-if="post.is_locked"
                                 class="forum-locked"
                             >
-                                <i class="fa-solid fa-lock"></i>
+                                <ForumIcon name="lock" />
                                 Bài viết đã khóa bình luận.
                             </div>
 
@@ -634,6 +597,7 @@
                                                     )
                                                 "
                                             >
+                                                <ForumIcon name="heart" />
                                                 Thích
                                             </button>
                                             <button
@@ -642,6 +606,7 @@
                                                     startReply(post, comment)
                                                 "
                                             >
+                                                <ForumIcon name="reply" />
                                                 Phản hồi
                                             </button>
                                             <button
@@ -651,6 +616,7 @@
                                                     startEditComment(comment)
                                                 "
                                             >
+                                                <ForumIcon name="edit" />
                                                 Sửa
                                             </button>
                                             <button
@@ -660,6 +626,7 @@
                                                     deleteComment(post, comment)
                                                 "
                                             >
+                                                <ForumIcon name="trash" />
                                                 Xóa
                                             </button>
                                             <button
@@ -670,6 +637,7 @@
                                                 type="button"
                                                 @click="saveComment(comment)"
                                             >
+                                                <ForumIcon name="send" />
                                                 Lưu
                                             </button>
                                             <span>{{
@@ -744,6 +712,7 @@
                                                         )
                                                     "
                                                 >
+                                                    <ForumIcon name="heart" />
                                                     Thích
                                                 </button>
                                                 <button
@@ -752,6 +721,7 @@
                                                         startReply(post, reply)
                                                     "
                                                 >
+                                                    <ForumIcon name="reply" />
                                                     Phản hồi
                                                 </button>
                                                 <button
@@ -761,6 +731,7 @@
                                                         startEditComment(reply)
                                                     "
                                                 >
+                                                    <ForumIcon name="edit" />
                                                     Sửa
                                                 </button>
                                                 <button
@@ -773,6 +744,7 @@
                                                         )
                                                     "
                                                 >
+                                                    <ForumIcon name="trash" />
                                                     Xóa
                                                 </button>
                                                 <button
@@ -783,6 +755,7 @@
                                                     type="button"
                                                     @click="saveComment(reply)"
                                                 >
+                                                    <ForumIcon name="send" />
                                                     Lưu
                                                 </button>
                                                 <span>{{
@@ -852,11 +825,29 @@
                 </button>
             </main>
         </div>
+
+        <BasePixelDialog
+            :open="dialog.open"
+            :title="dialog.title"
+            :body="dialog.message"
+            :tone="dialog.tone"
+            :confirm-label="dialog.confirmLabel"
+            :cancel-label="dialog.cancelLabel"
+            :show-cancel="dialog.showCancel"
+            @confirm="resolveDialog(true)"
+            @cancel="resolveDialog(false)"
+        />
     </div>
 </template>
 
 <script>
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import axios from "axios";
+import BasePixelDialog from "../components/base/BasePixelDialog.vue";
+import ForumIcon from "../components/forum/ForumIcon.vue";
+import ForumReactionIcon from "../components/forum/ForumReactionIcon.vue";
+
+const POST_CONTENT_LIMIT = 500;
 
 const emptyComposer = () => ({
     type: "player_post",
@@ -868,6 +859,11 @@ const emptyComposer = () => ({
 
 export default {
     name: "ForumPage",
+    components: {
+        BasePixelDialog,
+        ForumIcon,
+        ForumReactionIcon,
+    },
     data() {
         return {
             posts: [],
@@ -880,9 +876,20 @@ export default {
             loading: true,
             loadingMore: false,
             posting: false,
-            message: "",
+            dialog: {
+                open: false,
+                title: "Thông báo",
+                message: "",
+                tone: "info",
+                confirmLabel: "Đồng ý",
+                cancelLabel: "Hủy",
+                showCancel: false,
+            },
+            dialogResolver: null,
+            postContentLimit: POST_CONTENT_LIMIT,
             composer: emptyComposer(),
             currentAvatarUrl: "",
+            currentPlayerName: "",
             commentDrafts: {},
             replyDrafts: {},
             replyingTo: {},
@@ -898,43 +905,43 @@ export default {
                 {
                     key: "all",
                     label: "Tất cả",
-                    asset: "/assets/pixel/forum-filter.png",
+                    icon: "grid",
                     countKey: "all",
                 },
                 {
                     key: "unread",
                     label: "Chưa đọc",
-                    asset: "/assets/pixel/forum-unread.png",
+                    icon: "exclamation",
                     countKey: "unread",
                 },
                 {
                     key: "announcements",
                     label: "Thông báo",
-                    asset: "/assets/pixel/forum-announcement.png",
+                    icon: "bullhorn",
                     countKey: "announcements",
                 },
                 {
                     key: "players",
                     label: "Người chơi",
-                    asset: "/assets/pixel/forum-players.png",
+                    icon: "users",
                     countKey: "players",
                 },
                 {
                     key: "feedback",
                     label: "Góp ý",
-                    asset: "/assets/pixel/forum-feedback.png",
+                    icon: "comments",
                     countKey: "feedback",
                 },
                 {
                     key: "mine",
                     label: "Bài của tôi",
-                    asset: "/assets/pixel/forum-profile.png",
+                    icon: "user-pen",
                     countKey: "mine",
                 },
                 {
                     key: "saved",
                     label: "Đã lưu",
-                    asset: "/assets/pixel/forum-saved.png",
+                    icon: "bookmark",
                     countKey: "saved",
                 },
             ],
@@ -942,22 +949,22 @@ export default {
                 {
                     key: "unread",
                     label: "Chưa đọc",
-                    icon: "fa-regular fa-circle-dot",
+                    icon: "dot",
                 },
                 {
                     key: "latest",
                     label: "Mới nhất",
-                    icon: "fa-regular fa-clock",
+                    icon: "clock",
                 },
-                { key: "hot", label: "Sôi nổi", icon: "fa-solid fa-fire" },
+                { key: "hot", label: "Sôi nổi", icon: "fire" },
             ],
             reactionOptions: [
-                { key: "like", label: "Thích", emoji: "👍" },
-                { key: "love", label: "Yêu thích", emoji: "❤️" },
-                { key: "haha", label: "Haha", emoji: "😆" },
-                { key: "wow", label: "Wow", emoji: "😮" },
-                { key: "sad", label: "Buồn", emoji: "😢" },
-                { key: "angry", label: "Phẫn nộ", emoji: "😡" },
+                { key: "like", label: "Thích" },
+                { key: "love", label: "Yêu thích" },
+                { key: "haha", label: "Haha" },
+                { key: "wow", label: "Wow" },
+                { key: "sad", label: "Buồn" },
+                { key: "angry", label: "Phẫn nộ" },
             ],
         };
     },
@@ -965,18 +972,11 @@ export default {
         isLoggedIn() {
             return !!localStorage.getItem("token");
         },
-        currentUsername() {
-            try {
-                return (
-                    JSON.parse(localStorage.getItem("user") || "{}").username ||
-                    ""
-                );
-            } catch {
-                return "";
-            }
+        currentDisplayName() {
+            return this.currentPlayerName || "Người chơi";
         },
         currentInitial() {
-            return this.initial(this.currentUsername || "U");
+            return this.initial(this.currentDisplayName);
         },
         activeFilterTab() {
             return (
@@ -1008,6 +1008,57 @@ export default {
         this.teardownReadObserver();
     },
     methods: {
+        showPopup(
+            message,
+            {
+                title = "Thông báo",
+                tone = "info",
+                confirmLabel = "Đồng ý",
+            } = {},
+        ) {
+            if (this.dialogResolver) {
+                this.dialogResolver(false);
+                this.dialogResolver = null;
+            }
+            this.dialog = {
+                open: true,
+                title,
+                message,
+                tone,
+                confirmLabel,
+                cancelLabel: "Hủy",
+                showCancel: false,
+            };
+        },
+        askConfirmation({
+            title = "Xác nhận",
+            message,
+            tone = "warning",
+            confirmLabel = "Xác nhận",
+            cancelLabel = "Hủy",
+        }) {
+            if (this.dialogResolver) {
+                this.dialogResolver(false);
+            }
+            this.dialog = {
+                open: true,
+                title,
+                message,
+                tone,
+                confirmLabel,
+                cancelLabel,
+                showCancel: true,
+            };
+            return new Promise((resolve) => {
+                this.dialogResolver = resolve;
+            });
+        },
+        resolveDialog(confirmed) {
+            const resolver = this.dialogResolver;
+            this.dialogResolver = null;
+            this.dialog.open = false;
+            resolver?.(confirmed);
+        },
         authHeaders() {
             const token = localStorage.getItem("token");
             return token
@@ -1016,7 +1067,10 @@ export default {
         },
         requireLogin() {
             if (this.isLoggedIn) return true;
-            this.message = "Bạn cần đăng nhập để dùng chức năng này.";
+            this.$router.push({
+                path: "/login",
+                query: { redirect: this.$route.fullPath },
+            });
             return false;
         },
         async loadCurrentProfileAvatar() {
@@ -1027,8 +1081,10 @@ export default {
                     this.authHeaders(),
                 );
                 this.currentAvatarUrl = data?.data?.player?.avatar_url || "";
+                this.currentPlayerName = data?.data?.player?.name || "";
             } catch {
                 this.currentAvatarUrl = "";
+                this.currentPlayerName = "";
             }
         },
         async loadFeed(reset = false) {
@@ -1036,7 +1092,6 @@ export default {
                 this.page = 1;
                 this.loading = true;
             }
-            this.message = "";
             try {
                 const params = new URLSearchParams({
                     page: String(this.page),
@@ -1066,9 +1121,14 @@ export default {
                 this.stats = data.stats || {};
                 this.page = data.page || this.page;
                 this.totalPages = data.total_pages || 1;
+                if (reset) {
+                    this.focusSharedPost();
+                }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể tải diễn đàn.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể tải diễn đàn.",
+                    { title: "Lỗi tải dữ liệu", tone: "danger" },
+                );
             } finally {
                 this.loading = false;
                 this.loadingMore = false;
@@ -1109,10 +1169,35 @@ export default {
                 URL.createObjectURL(file),
             );
         },
+        appendComposerTopic() {
+            const suffix = this.composer.content ? "\n#hoi-dap " : "#hoi-dap ";
+            this.composer.content = `${this.composer.content}${suffix}`.slice(
+                0,
+                this.postContentLimit,
+            );
+        },
+        autoResizePostTextarea(event) {
+            const textarea = event?.target;
+            if (!(textarea instanceof HTMLTextAreaElement)) return;
+
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.min(
+                Math.max(textarea.scrollHeight, 104),
+                320,
+            )}px`;
+            textarea.style.overflowY =
+                textarea.scrollHeight > 320 ? "auto" : "hidden";
+        },
         async submitPost() {
             if (!this.requireLogin() || !this.composer.content.trim()) return;
+            if (this.composer.content.length > this.postContentLimit) {
+                this.showPopup(
+                    `Nội dung bài viết tối đa ${this.postContentLimit} ký tự.`,
+                    { title: "Nội dung quá dài", tone: "warning" },
+                );
+                return;
+            }
             this.posting = true;
-            this.message = "";
             try {
                 const form = new FormData();
                 form.append("type", this.composer.type);
@@ -1126,12 +1211,17 @@ export default {
                     URL.revokeObjectURL(url),
                 );
                 this.composer = emptyComposer();
-                this.message = "Đã đăng bài lên diễn đàn.";
                 await this.loadFeed(true);
+                this.showPopup("Đã đăng bài lên diễn đàn.", {
+                    title: "Đăng bài thành công",
+                    tone: "success",
+                });
             } catch (err) {
-                this.message =
+                this.showPopup(
                     err.response?.data?.message ||
-                    "Không thể đăng bài lúc này.";
+                        "Không thể đăng bài lúc này.",
+                    { title: "Chưa thể đăng bài", tone: "danger" },
+                );
             } finally {
                 this.posting = false;
             }
@@ -1150,6 +1240,13 @@ export default {
         },
         async savePost(post) {
             if (!this.editPost.content.trim()) return;
+            if (this.editPost.content.length > this.postContentLimit) {
+                this.showPopup(
+                    `Nội dung bài viết tối đa ${this.postContentLimit} ký tự.`,
+                    { title: "Nội dung quá dài", tone: "warning" },
+                );
+                return;
+            }
             try {
                 const { data } = await axios.put(
                     `/api/forum/posts/${post.id}`,
@@ -1161,22 +1258,36 @@ export default {
                     this.cancelEditPost();
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể lưu bài viết.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể lưu bài viết.",
+                    { title: "Chưa thể lưu bài", tone: "danger" },
+                );
             }
         },
         async deletePost(post) {
-            if (!confirm("Xóa bài viết này khỏi diễn đàn?")) return;
+            const confirmed = await this.askConfirmation({
+                title: "Xóa bài viết",
+                message:
+                    "Bài viết, bình luận và các tương tác liên quan sẽ bị xóa vĩnh viễn. Bạn có chắc muốn tiếp tục?",
+                tone: "danger",
+                confirmLabel: "Xóa vĩnh viễn",
+            });
+            if (!confirmed) return;
             try {
                 await axios.delete(
                     `/api/forum/posts/${post.id}`,
                     this.authHeaders(),
                 );
                 this.posts = this.posts.filter((item) => item.id !== post.id);
-                this.message = "Đã xóa bài viết.";
+                this.showPopup("Đã xóa bài viết khỏi diễn đàn.", {
+                    title: "Đã xóa",
+                    tone: "success",
+                });
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể xóa bài viết.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể xóa bài viết.",
+                    { title: "Chưa thể xóa", tone: "danger" },
+                );
             }
         },
         toggleReactionPicker(postId) {
@@ -1199,8 +1310,10 @@ export default {
                     this.markPostRead(post, { silent: true });
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể thả cảm xúc.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể thả cảm xúc.",
+                    { title: "Chưa thể cập nhật", tone: "danger" },
+                );
             }
         },
         async toggleSave(post) {
@@ -1216,29 +1329,85 @@ export default {
                     this.markPostRead(post, { silent: true });
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể lưu bài viết.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể lưu bài viết.",
+                    { title: "Chưa thể lưu", tone: "danger" },
+                );
             }
         },
         async sharePost(post) {
+            const url = new URL("/forum", window.location.origin);
+            url.searchParams.set("post", String(post.id));
+            let action = "copied";
+
             try {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: post.title || "Bài viết diễn đàn",
+                            text: post.title || "Xem bài viết trên diễn đàn",
+                            url: url.toString(),
+                        });
+                        action = "shared";
+                    } catch (error) {
+                        if (error?.name === "AbortError") return;
+                        if (!(await this.copyToClipboard(url.toString()))) {
+                            throw error;
+                        }
+                    }
+                } else if (!(await this.copyToClipboard(url.toString()))) {
+                    throw new Error("Clipboard is unavailable");
+                }
+
                 const { data } = await axios.post(
                     `/api/forum/posts/${post.id}/share`,
                 );
-                post.share_count = data.share_count;
-                const url = `${window.location.origin}/forum?post=${post.id}`;
-                if (navigator.share) {
-                    await navigator.share({
-                        title: post.title || "Bài viết diễn đàn",
-                        url,
-                    });
-                } else {
-                    await navigator.clipboard.writeText(url);
-                    this.message = "Đã sao chép liên kết bài viết.";
+                if (data.ok) {
+                    post.share_count = data.share_count;
                 }
-            } catch {
-                this.message = "Không thể chia sẻ lúc này.";
+                this.showPopup(
+                    action === "shared"
+                        ? "Bài viết đã được gửi qua bảng chia sẻ."
+                        : "Đã sao chép liên kết bài viết vào bộ nhớ tạm.",
+                    { title: "Chia sẻ thành công", tone: "success" },
+                );
+            } catch (error) {
+                this.showPopup("Không thể chia sẻ bài viết lúc này.", {
+                    title: "Chia sẻ thất bại",
+                    tone: "danger",
+                });
             }
+        },
+        async copyToClipboard(value) {
+            if (navigator.clipboard?.writeText) {
+                try {
+                    await navigator.clipboard.writeText(value);
+                    return true;
+                } catch {
+                    // Fall through for non-secure and restricted browsers.
+                }
+            }
+
+            const input = document.createElement("textarea");
+            input.value = value;
+            input.setAttribute("readonly", "");
+            input.style.position = "fixed";
+            input.style.opacity = "0";
+            input.style.pointerEvents = "none";
+            document.body.appendChild(input);
+            input.select();
+            const copied = document.execCommand("copy");
+            input.remove();
+            return copied;
+        },
+        focusSharedPost() {
+            const postId = Number(this.$route.query.post);
+            if (!postId) return;
+            this.$nextTick(() => {
+                document
+                    .getElementById(`forum-post-${postId}`)
+                    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
         },
         async toggleComments(post) {
             post.commentsOpen = !post.commentsOpen;
@@ -1259,8 +1428,10 @@ export default {
                 post.comments = data.data || [];
                 post.commentsLoaded = true;
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể tải bình luận.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể tải bình luận.",
+                    { title: "Lỗi bình luận", tone: "danger" },
+                );
             } finally {
                 post.commentsLoading = false;
             }
@@ -1300,8 +1471,10 @@ export default {
                     await this.loadComments(post);
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể gửi bình luận.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể gửi bình luận.",
+                    { title: "Chưa thể bình luận", tone: "danger" },
+                );
             }
         },
         startReply(post, comment) {
@@ -1359,8 +1532,11 @@ export default {
                     comment.likes = data.likes;
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể thích bình luận.";
+                this.showPopup(
+                    err.response?.data?.message ||
+                        "Không thể thích bình luận.",
+                    { title: "Chưa thể cập nhật", tone: "danger" },
+                );
             }
         },
         startEditComment(comment) {
@@ -1381,12 +1557,21 @@ export default {
                     this.editCommentContent = "";
                 }
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể sửa bình luận.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể sửa bình luận.",
+                    { title: "Chưa thể sửa", tone: "danger" },
+                );
             }
         },
         async deleteComment(post, comment) {
-            if (!confirm("Xóa bình luận này?")) return;
+            const confirmed = await this.askConfirmation({
+                title: "Xóa bình luận",
+                message:
+                    "Bình luận và các phản hồi trực tiếp bên dưới sẽ bị xóa. Bạn có muốn tiếp tục?",
+                tone: "danger",
+                confirmLabel: "Xóa bình luận",
+            });
+            if (!confirmed) return;
             try {
                 await axios.delete(
                     `/api/forum/comments/${comment.id}`,
@@ -1394,9 +1579,15 @@ export default {
                 );
                 await this.loadComments(post);
                 post.comment_count = Math.max(0, (post.comment_count || 1) - 1);
+                this.showPopup("Đã xóa bình luận.", {
+                    title: "Đã xóa",
+                    tone: "success",
+                });
             } catch (err) {
-                this.message =
-                    err.response?.data?.message || "Không thể xóa bình luận.";
+                this.showPopup(
+                    err.response?.data?.message || "Không thể xóa bình luận.",
+                    { title: "Chưa thể xóa", tone: "danger" },
+                );
             }
         },
         isLongPost(post) {
@@ -1404,9 +1595,13 @@ export default {
                 /<[^>]+>/g,
                 " ",
             );
-            return content.length > 420 || content.split(/\r?\n/).length > 6;
+            return content.length > 280 || content.split(/\r?\n/).length > 5;
+        },
+        isPostCollapsed(post) {
+            return this.isLongPost(post) && !post.contentExpanded;
         },
         togglePostContent(post) {
+            if (!this.isLongPost(post)) return;
             post.contentExpanded = !post.contentExpanded;
             if (post.contentExpanded) {
                 this.markPostRead(post, { silent: true });
@@ -1486,9 +1681,11 @@ export default {
                 post.is_unread = true;
                 this.stats.unread = (this.stats.unread || 0) + 1;
                 if (!silent) {
-                    this.message =
+                    this.showPopup(
                         err.response?.data?.message ||
-                        "Không thể đánh dấu đã đọc.";
+                            "Không thể đánh dấu đã đọc.",
+                        { title: "Chưa thể cập nhật", tone: "danger" },
+                    );
                 }
             }
         },
@@ -1505,24 +1702,23 @@ export default {
                         post.is_unread = false;
                     });
                     this.stats.unread = 0;
-                    this.message = data.marked
-                        ? `Đã đánh dấu ${data.marked} bài là đã đọc.`
-                        : "Không còn bài chưa đọc.";
+                    this.showPopup(
+                        data.marked
+                            ? `Đã đánh dấu ${data.marked} bài là đã đọc.`
+                            : "Không còn bài chưa đọc.",
+                        { title: "Đã cập nhật", tone: "success" },
+                    );
                     if (this.filter === "unread") {
                         await this.loadFeed(true);
                     }
                 }
             } catch (err) {
-                this.message =
+                this.showPopup(
                     err.response?.data?.message ||
-                    "Không thể đánh dấu tất cả đã đọc.";
+                        "Không thể đánh dấu tất cả đã đọc.",
+                    { title: "Chưa thể cập nhật", tone: "danger" },
+                );
             }
-        },
-        reactionEmoji(key) {
-            return (
-                this.reactionOptions.find((item) => item.key === key)?.emoji ||
-                "👍"
-            );
         },
         reactionLabel(key) {
             return (
@@ -1530,14 +1726,14 @@ export default {
                 "Thích"
             );
         },
-        postTypeAsset(type) {
+        postTypeIcon(type) {
             if (type === "announcement") {
-                return "/assets/pixel/forum-announcement.png";
+                return "bullhorn";
             }
             if (type === "feedback") {
-                return "/assets/pixel/forum-feedback.png";
+                return "comments";
             }
-            return "/assets/pixel/forum-players.png";
+            return "user-pen";
         },
         topReactions(post) {
             return Object.entries(post.reaction_counts || {})
@@ -1691,7 +1887,7 @@ export default {
     gap: 12px;
     min-width: 0;
     align-self: start;
-    margin-top: -67px;
+    margin-top: -68px !important;
 }
 
 .forum-head {
@@ -2065,7 +2261,8 @@ export default {
     color: #3e2b1d;
     line-height: 1.62;
     margin: 12px 0 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
 }
 
 .forum-post__content--rich {
@@ -2095,19 +2292,6 @@ export default {
 .forum-post__content--rich :deep(a) {
     color: #a65316;
     font-weight: 800;
-}
-
-.forum-read-more {
-    border: 0;
-    background: transparent;
-    color: #a65316;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 0;
-    margin-top: 2px;
-    cursor: pointer;
 }
 
 .forum-edit-box {
@@ -2754,11 +2938,10 @@ export default {
     border-bottom: 2px solid var(--forum-line);
 }
 
-.forum-tabs__head img {
+.forum-tabs__head > .forum-fa-icon {
     width: 44px;
-    height: 40px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-orange-dark);
+    font-size: 25px;
 }
 
 .forum-tabs__head strong {
@@ -2795,11 +2978,10 @@ export default {
     text-align: left;
 }
 
-.forum-tabs button img {
+.forum-tabs button > .forum-fa-icon {
     width: 32px;
-    height: 32px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-orange-dark);
+    font-size: 19px;
 }
 
 .forum-tabs button:hover {
@@ -2916,11 +3098,10 @@ export default {
     border-bottom: 2px solid var(--forum-line);
 }
 
-.forum-composer__heading img {
+.forum-composer__heading > .forum-fa-icon {
     width: 46px;
-    height: 38px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-blue-dark);
+    font-size: 25px;
 }
 
 .forum-composer__heading strong {
@@ -3025,6 +3206,17 @@ export default {
     padding: 10px 11px !important;
     resize: vertical;
     line-height: 1.55;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: pre-wrap;
+}
+
+.forum-character-counter {
+    justify-self: end;
+    margin-top: -4px;
+    color: var(--forum-muted);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .forum-title-input:focus,
@@ -3135,11 +3327,10 @@ export default {
     background: linear-gradient(90deg, #fff5d7, #f7e0aa) !important;
 }
 
-.forum-login-prompt > img {
+.forum-login-prompt > .forum-fa-icon {
     width: 42px;
-    height: 42px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-orange-dark);
+    font-size: 30px;
 }
 
 .forum-login-prompt strong {
@@ -3202,11 +3393,10 @@ export default {
     text-align: center;
 }
 
-.forum-empty img {
+.forum-empty > .forum-fa-icon {
     width: 60px;
-    height: 60px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-blue-dark);
+    font-size: 40px;
 }
 
 .forum-empty strong {
@@ -3269,8 +3459,8 @@ export default {
 .forum-post__type-icon {
     width: 32px;
     height: 32px;
-    object-fit: contain;
-    image-rendering: pixelated;
+    color: var(--forum-blue-dark);
+    font-size: 20px;
 }
 
 .forum-post__meta {
@@ -3365,6 +3555,15 @@ export default {
     overflow: hidden;
 }
 
+.forum-post__content-wrap.expandable {
+    cursor: pointer;
+}
+
+.forum-post__content-wrap.expandable:focus-visible {
+    outline: 2px solid var(--forum-orange);
+    outline-offset: -2px;
+}
+
 .forum-post__content-wrap.collapsed::after {
     position: absolute;
     right: 0;
@@ -3374,6 +3573,7 @@ export default {
     content: "";
     background: linear-gradient(transparent, var(--forum-paper-soft));
     pointer-events: none;
+    z-index: 1;
 }
 
 .forum-post__content {
@@ -3382,8 +3582,35 @@ export default {
     font-family: var(--font-sans);
     font-size: 0.86rem;
     line-height: 1.72;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
     white-space: pre-wrap;
+}
+
+.forum-post__expand-hint {
+    position: absolute;
+    right: 18px;
+    bottom: 5px;
+    z-index: 2;
+    padding-left: 24px;
+    color: var(--forum-orange-dark);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--forum-paper-soft) 22%
+    );
+    font-size: 0.72rem;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.forum-post__expand-hint--collapse {
+    position: static;
+    display: block;
+    margin-top: 6px;
+    padding-left: 0;
+    text-align: right;
+    background: none;
 }
 
 .forum-post__content--rich {
@@ -3406,21 +3633,6 @@ export default {
 
 .forum-post__content--rich :deep(a) {
     color: var(--forum-blue-dark) !important;
-    font-weight: 800;
-}
-
-.forum-read-more {
-    display: inline-flex;
-    min-height: 30px;
-    align-items: center;
-    gap: 6px;
-    margin: 3px 18px 12px;
-    padding: 4px 9px;
-    cursor: pointer;
-    color: var(--forum-orange-dark);
-    background: #ffedbd;
-    border: 1px solid var(--forum-line-soft);
-    font-size: 0.7rem;
     font-weight: 800;
 }
 
@@ -3499,11 +3711,18 @@ export default {
 
 .forum-reaction-stack {
     display: inline-flex;
+    align-items: center;
     margin-right: 3px;
 }
 
 .forum-reaction-stack span + span {
-    margin-left: -4px;
+    margin-left: -7px;
+}
+
+.forum-reaction-stack :deep(.forum-reaction-icon) {
+    width: 21px;
+    height: 21px;
+    font-size: 10px;
 }
 
 .forum-actions {
@@ -3532,33 +3751,62 @@ export default {
     position: relative;
 }
 
+.forum-reaction-backdrop {
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 0 !important;
+    cursor: default;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
 .forum-reaction-picker {
     position: absolute;
-    z-index: 10;
+    z-index: 41;
     bottom: calc(100% + 7px);
     left: 0;
-    display: flex;
-    gap: 3px;
-    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(6, 54px);
+    gap: 2px;
+    width: max-content;
+    padding: 7px;
     background: var(--forum-paper);
     border: 2px solid var(--forum-line);
     box-shadow: 3px 3px 0 var(--forum-shadow);
 }
 
 .forum-reaction-picker button {
-    display: grid;
-    width: 38px;
-    height: 38px;
+    display: flex;
+    width: 54px !important;
+    height: 51px !important;
+    padding: 3px 1px !important;
     cursor: pointer;
+    flex-direction: column;
+    gap: 2px;
     place-items: center;
-    background: transparent;
-    border: 0;
-    font-size: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--forum-ink) !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font: 700 10px/1.05 Arial, sans-serif !important;
     transition: transform 100ms steps(2, end);
 }
 
 .forum-reaction-picker button:hover {
+    background: #ffebbb !important;
     transform: translateY(-3px) scale(1.08);
+}
+
+.forum-action :deep(.forum-reaction-icon) {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
 }
 
 .forum-comments {
@@ -3659,6 +3907,9 @@ export default {
 }
 
 .forum-comment__actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
     padding: 0;
     cursor: pointer;
     color: inherit;
@@ -3722,9 +3973,9 @@ export default {
         padding-inline: 6px !important;
     }
 
-    .forum-tabs button img {
+    .forum-tabs button > .forum-fa-icon {
         width: 29px;
-        height: 29px;
+        font-size: 18px;
     }
 }
 
@@ -3936,9 +4187,9 @@ export default {
         padding-inline: 11px;
     }
 
-    .forum-composer__heading img {
+    .forum-composer__heading > .forum-fa-icon {
         width: 40px;
-        height: 34px;
+        font-size: 23px;
     }
 
     .forum-composer__actions {
@@ -3957,9 +4208,9 @@ export default {
         padding: 12px;
     }
 
-    .forum-login-prompt > img {
+    .forum-login-prompt > .forum-fa-icon {
         width: 36px;
-        height: 36px;
+        font-size: 27px;
     }
 
     .forum-login-prompt a {
@@ -4022,10 +4273,16 @@ export default {
 
     .forum-reaction-picker {
         position: fixed;
-        right: 8px;
-        bottom: 12px;
-        left: 8px;
-        justify-content: space-around;
+        right: auto;
+        bottom: 14px;
+        left: 50%;
+        grid-template-columns: repeat(6, minmax(43px, 1fr));
+        width: min(354px, calc(100vw - 16px));
+        transform: translateX(-50%);
+    }
+
+    .forum-reaction-picker button {
+        width: 100% !important;
     }
 
     .forum-comments {

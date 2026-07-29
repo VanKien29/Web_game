@@ -15,6 +15,7 @@ Toàn bộ giao diện client công khai của Ngọc Rồng Horizon sử dụng
 - Không dùng ảnh nền lớn với `background-attachment: fixed`; ảnh trang trí phải được nén sang WebP và tránh lặp lại nhiều lớp để giữ cuộn trang mượt.
 - Design token và theme dùng Tailwind CSS v4 theo hướng CSS-first; component Vue mới dùng Composition API với `<script setup lang="ts">`.
 - Thiết kế phải responsive và nhất quán trên desktop lẫn mobile.
+- Các input, textarea và select phía client không dùng border hoặc outline xanh khi focus; dùng viền cam/nâu của theme và không tạo vòng focus làm lệch box. Link, button, checkbox và radio vẫn phải có dấu hiệu focus bàn phím rõ ràng.
 - Trang Home đã được người dùng chốt; không thay đổi `HomePage.vue` hoặc CSS riêng của Home nếu chưa có yêu cầu mới nói rõ cần sửa lại trang này.
 
 ## Ví dụ

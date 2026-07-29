@@ -65,16 +65,19 @@ const routes = [
         path: "/profile",
         name: "profile",
         component: () => loadPage("profile"),
+        meta: { requiresAuth: true },
     },
     {
         path: "/nap-atm",
         name: "topup-atm",
         component: () => loadPage("topupAtm"),
+        meta: { requiresAuth: true },
     },
     {
         path: "/nap-card",
         name: "topup-card",
         component: () => loadPage("topupCard"),
+        meta: { requiresAuth: true },
     },
     {
         path: "/post/:slug",
@@ -102,9 +105,21 @@ function emitRouteLoading(loading) {
 }
 
 router.beforeEach((to, from) => {
+    if (
+        to.meta.requiresAuth &&
+        (typeof window === "undefined" || !localStorage.getItem("token"))
+    ) {
+        return {
+            path: "/login",
+            query: { redirect: to.fullPath },
+        };
+    }
+
     if (to.fullPath !== from.fullPath) {
         emitRouteLoading(true);
     }
+
+    return true;
 });
 
 router.afterEach(() => {

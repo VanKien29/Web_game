@@ -100,6 +100,7 @@ class PostInteractionController extends Controller
         }
 
         $account = $request->get('game_user');
+        $player = $request->get('game_player');
         $content = trim((string) $request->input('content', ''));
         $parentId = $request->input('parent_comment_id');
 
@@ -125,7 +126,7 @@ class PostInteractionController extends Controller
             'post_id' => $post->id,
             'parent_comment_id' => $parentId,
             'nro_account_id' => $account->id,
-            'username' => (string) $account->username,
+            'username' => trim((string) $player->name),
             'avatar_url' => $this->avatarUrlForAccount($account),
             'content' => $content,
             'likes' => 0,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Game\Account;
 use App\Models\Game\TopupTransaction;
 use App\Models\Setting;
+use App\Services\TopupPaymentCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class TopupController extends Controller
 {
+    public function __construct(
+        private readonly TopupPaymentCodeService $paymentCodes,
+    ) {}
+
     /**
      * GET /api/topup/atm-config
      */
@@ -43,6 +48,17 @@ class TopupController extends Controller
         ]);
     }
 
+    public function atmPaymentCode(Request $request): JsonResponse
+    {
+        $account = $request->get('game_user');
+        $code = $this->paymentCodes->issueForAccountId((int) $account->id);
+
+        return response()->json([
+            'ok' => true,
+            'transfer_content' => $code,
+        ]);
+    }
+
     /**
      * POST /api/topup/credit — Called by SePay / internal system
      * Protected by topup.secret middleware
@@ -58,24 +74,28 @@ class TopupController extends Controller
 
         if ($username === '' || $transId === '' || $amount <= 0) {
             $this->logSepay($transId, $username, $amount, 'invalid', $request->all());
+
             return response()->json(['ok' => false, 'error' => 'invalid_payload'], 422);
         }
 
-        if (!in_array($currency, ['cash', 'danap'], true)) {
+        if (! in_array($currency, ['cash', 'danap'], true)) {
             $this->logSepay($transId, $username, $amount, 'invalid', $request->all());
+
             return response()->json(['ok' => false, 'error' => 'invalid_currency'], 422);
         }
 
         // Chống cộng trùng
         if (TopupTransaction::where('trans_id', $transId)->exists()) {
             $this->logSepay($transId, $username, $amount, 'duplicate', $request->all());
+
             return response()->json(['ok' => true, 'status' => 'duplicate']);
         }
 
         // Tìm user
         $account = Account::where('username', $username)->first();
-        if (!$account) {
+        if (! $account) {
             $this->logSepay($transId, $username, $amount, 'user_not_found', $request->all());
+
             return response()->json(['ok' => false, 'error' => 'user_not_found'], 404);
         }
 
@@ -101,8 +121,9 @@ class TopupController extends Controller
                 }
             });
         } catch (\Throwable $e) {
-            Log::error('Topup credit error: ' . $e->getMessage());
+            Log::error('Topup credit error: '.$e->getMessage());
             $this->logSepay($transId, $username, $amount, 'server_error', $request->all());
+
             return response()->json(['ok' => false, 'error' => 'server_error'], 500);
         }
 
@@ -155,7 +176,7 @@ class TopupController extends Controller
                 'raw_json' => json_encode($raw, JSON_UNESCAPED_UNICODE),
             ]);
         } catch (\Throwable $e) {
-            Log::warning('SePay log failed: ' . $e->getMessage());
+            Log::warning('SePay log failed: '.$e->getMessage());
         }
     }
 }

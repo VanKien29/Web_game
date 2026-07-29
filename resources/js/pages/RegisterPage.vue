@@ -1,68 +1,139 @@
 <template>
     <div class="client-page client-page--auth">
-        <div class="breadcrumb client-breadcrumb">
-            <router-link to="/">Trang chủ</router-link>
-            <span>›</span>
-            <span>Đăng ký</span>
-        </div>
-
-        <div class="client-auth-shell">
+        <div class="client-auth-shell client-auth-shell--register">
             <AuthWelcomePanel
-                eyebrow="Người chơi mới"
+                variant="register"
+                eyebrow="Khởi đầu hành trình"
                 title="Tạo chiến binh"
-                description="Tạo tài khoản để bắt đầu hành trình tại Horizon."
+                description="Tạo tài khoản an toàn, vào game dựng nhân vật và bắt đầu khám phá Horizon."
             />
 
             <section class="client-panel client-auth-form">
-                <div v-if="error" class="alert alert-error">{{ error }}</div>
-                <div v-if="success" class="alert alert-success">
-                    {{ success }}
+                <header class="client-auth-form__head">
+                    <span class="client-panel__eyebrow">Tài khoản mới</span>
+                    <h2>Đăng ký</h2>
+                    <p>Thông tin này dùng trực tiếp để đăng nhập vào game.</p>
+                </header>
+
+                <div class="client-auth-feedback" aria-live="polite">
+                    <div
+                        v-show="error"
+                        class="client-auth-alert client-auth-alert--error"
+                        role="alert"
+                    >
+                        <i
+                            class="fa-solid fa-triangle-exclamation"
+                            aria-hidden="true"
+                        ></i>
+                        <span>{{ error }}</span>
+                    </div>
                 </div>
 
                 <form novalidate @submit.prevent="handleRegister">
                     <label class="client-field">
                         <span>Tên đăng nhập</span>
-                        <input
-                            v-model.trim="username"
-                            type="text"
-                            autocomplete="username"
-                            placeholder="Tên đăng nhập"
-                            required
-                        />
+                        <span class="client-auth-input">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i>
+                            <input
+                                v-model.trim="username"
+                                type="text"
+                                autocomplete="username"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                minlength="6"
+                                maxlength="18"
+                                placeholder="6–18 chữ hoặc số"
+                                required
+                            />
+                        </span>
                     </label>
+
                     <label class="client-field">
                         <span>Mật khẩu</span>
-                        <input
-                            v-model="password"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Mật khẩu"
-                            required
-                        />
+                        <span class="client-auth-input">
+                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                            <input
+                                v-model="password"
+                                :type="showPassword ? 'text' : 'password'"
+                                autocomplete="new-password"
+                                minlength="6"
+                                maxlength="18"
+                                placeholder="6–18 ký tự"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="client-auth-password-toggle"
+                                :aria-label="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
+                                :aria-pressed="showPassword"
+                                :title="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
+                                @click="showPassword = !showPassword"
+                            >
+                                <i
+                                    class="fa-solid"
+                                    :class="
+                                        showPassword ? 'fa-eye-slash' : 'fa-eye'
+                                    "
+                                    aria-hidden="true"
+                                ></i>
+                            </button>
+                        </span>
                     </label>
+
                     <label class="client-field">
                         <span>Nhập lại mật khẩu</span>
-                        <input
-                            v-model="confirmPassword"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Nhập lại mật khẩu"
-                            required
-                        />
+                        <span class="client-auth-input">
+                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                            <input
+                                v-model="confirmPassword"
+                                :type="showPassword ? 'text' : 'password'"
+                                autocomplete="new-password"
+                                maxlength="18"
+                                placeholder="Nhập lại mật khẩu"
+                                required
+                            />
+                        </span>
+                        <small
+                            v-if="confirmPassword"
+                            class="client-auth-field-hint"
+                            :class="{ valid: passwordsMatch }"
+                        >
+                            {{
+                                passwordsMatch
+                                    ? "Mật khẩu đã khớp."
+                                    : "Mật khẩu chưa khớp."
+                            }}
+                        </small>
                     </label>
+
                     <button
                         type="submit"
-                        class="client-btn client-btn--primary"
+                        class="client-btn client-btn--primary client-auth-submit"
                         :disabled="loading"
                     >
                         <span v-if="loading" class="btn-loading-dot"></span>
-                        {{ loading ? "Đang xử lý..." : "Tạo tài khoản" }}
+                        <i
+                            v-else
+                            class="fa-solid fa-user-plus"
+                            aria-hidden="true"
+                        ></i>
+                        {{
+                            loading ? "Đang tạo tài khoản..." : "Tạo tài khoản"
+                        }}
                     </button>
                 </form>
 
                 <p class="client-auth-note">
                     Đã có tài khoản?
-                    <router-link to="/login">Đăng nhập</router-link>
+                    <router-link :to="loginRoute">Đăng nhập ngay</router-link>
                 </p>
             </section>
         </div>
@@ -71,8 +142,8 @@
 
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
-import { onBeforeUnmount, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import AuthWelcomePanel from "../components/auth/AuthWelcomePanel.vue";
 
 interface RegisterResponse {
@@ -82,28 +153,70 @@ interface RegisterResponse {
 
 interface ApiError {
     message?: string;
+    errors?: Record<string, string[]>;
 }
 
+const route = useRoute();
 const router = useRouter();
 const username = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const error = ref("");
-const success = ref("");
 const loading = ref(false);
-let redirectTimer: ReturnType<typeof window.setTimeout> | null = null;
+const showPassword = ref(false);
+
+const usernameValid = computed(() =>
+    /^[A-Za-z0-9]{6,18}$/.test(username.value),
+);
+const passwordChecks = computed(() => ({
+    length: password.value.length >= 6 && password.value.length <= 18,
+    letter: /[A-Za-z]/.test(password.value),
+    number: /\d/.test(password.value),
+    allowed: /^[\x21-\x7E]+$/.test(password.value),
+}));
+const passwordValid = computed(() =>
+    Object.values(passwordChecks.value).every(Boolean),
+);
+const passwordsMatch = computed(
+    () => !!confirmPassword.value && password.value === confirmPassword.value,
+);
+const loginRoute = computed(() => ({
+    path: "/login",
+    query:
+        typeof route.query.redirect === "string"
+            ? { redirect: route.query.redirect }
+            : {},
+}));
+
+function apiErrorMessage(caughtError: unknown): string {
+    const requestError = caughtError as AxiosError<ApiError>;
+    const validationMessage = Object.values(
+        requestError.response?.data?.errors || {},
+    ).flat()[0];
+
+    return (
+        validationMessage ||
+        requestError.response?.data?.message ||
+        "Không thể tạo tài khoản lúc này."
+    );
+}
 
 async function handleRegister(): Promise<void> {
     error.value = "";
-    success.value = "";
 
-    if (!username.value || !password.value || !confirmPassword.value) {
-        error.value = "Vui lòng nhập đầy đủ thông tin đăng ký";
+    if (!usernameValid.value) {
+        error.value = "Tên đăng nhập phải có 6–18 ký tự, chỉ gồm chữ và số.";
         return;
     }
 
-    if (password.value !== confirmPassword.value) {
-        error.value = "Mật khẩu không khớp";
+    if (!passwordValid.value) {
+        error.value =
+            "Mật khẩu cần 6–18 ký tự, có ít nhất một chữ và một số; ký tự đặc biệt không bắt buộc.";
+        return;
+    }
+
+    if (!passwordsMatch.value) {
+        error.value = "Mật khẩu nhập lại chưa khớp.";
         return;
     }
 
@@ -114,30 +227,28 @@ async function handleRegister(): Promise<void> {
             {
                 username: username.value,
                 password: password.value,
+                password_confirmation: confirmPassword.value,
             },
         );
 
-        if (data.status === "success") {
-            success.value =
-                "Đăng ký thành công! Đang chuyển đến trang đăng nhập...";
-            redirectTimer = window.setTimeout(() => {
-                void router.push("/login");
-            }, 1600);
-        } else {
-            error.value = data.message || "Đăng ký thất bại";
+        if (data.status !== "success") {
+            error.value = data.message || "Đăng ký thất bại.";
+            return;
         }
+
+        const query: Record<string, string> = {
+            registered: "1",
+            username: username.value.toLowerCase(),
+        };
+        if (typeof route.query.redirect === "string") {
+            query.redirect = route.query.redirect;
+        }
+
+        await router.push({ path: "/login", query });
     } catch (caughtError) {
-        const requestError = caughtError as AxiosError<ApiError>;
-        error.value =
-            requestError.response?.data?.message || "Đăng ký thất bại";
+        error.value = apiErrorMessage(caughtError);
     } finally {
         loading.value = false;
     }
 }
-
-onBeforeUnmount(() => {
-    if (redirectTimer) {
-        window.clearTimeout(redirectTimer);
-    }
-});
 </script>

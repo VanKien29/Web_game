@@ -29,8 +29,10 @@ Route::prefix('api')->group(function () {
     Route::get('/posts/{slug}/engagement', [PostInteractionController::class, 'engagement']);
     Route::get('/posts/{slug}/comments', [PostInteractionController::class, 'comments']);
 
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::post('/auth/login', [AuthController::class, 'login'])
+        ->middleware('throttle:client-login');
+    Route::post('/auth/register', [AuthController::class, 'register'])
+        ->middleware('throttle:client-register');
     Route::get('/topup/atm-config', [TopupController::class, 'atmConfig']);
 
     Route::middleware('game.auth')->group(function () {
@@ -39,24 +41,28 @@ Route::prefix('api')->group(function () {
         Route::post('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/activate', [AuthController::class, 'activate']);
         Route::get('/profile', [ProfileController::class, 'profile']);
+        Route::get('/topup/atm-payment-code', [TopupController::class, 'atmPaymentCode']);
         Route::get('/topup/history', [TopupController::class, 'history']);
         Route::post('/topup/card', [TopupCardController::class, 'submit']);
         Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);
         Route::post('/posts/{slug}/like', [PostInteractionController::class, 'togglePostLike']);
-        Route::post('/posts/{slug}/comments', [PostInteractionController::class, 'storeComment']);
         Route::post('/comments/{comment}/like', [PostInteractionController::class, 'toggleCommentLike'])->whereNumber('comment');
 
-        Route::post('/forum/posts', [ForumController::class, 'store']);
         Route::put('/forum/posts/{post}', [ForumController::class, 'update'])->whereNumber('post');
         Route::delete('/forum/posts/{post}', [ForumController::class, 'destroy'])->whereNumber('post');
         Route::post('/forum/posts/read-all', [ForumController::class, 'markAllRead']);
         Route::post('/forum/posts/{post}/read', [ForumController::class, 'markRead'])->whereNumber('post');
         Route::post('/forum/posts/{post}/reaction', [ForumController::class, 'toggleReaction'])->whereNumber('post');
         Route::post('/forum/posts/{post}/save', [ForumController::class, 'toggleSave'])->whereNumber('post');
-        Route::post('/forum/posts/{post}/comments', [ForumController::class, 'storeComment'])->whereNumber('post');
         Route::put('/forum/comments/{comment}', [ForumController::class, 'updateComment'])->whereNumber('comment');
         Route::delete('/forum/comments/{comment}', [ForumController::class, 'destroyComment'])->whereNumber('comment');
         Route::post('/forum/comments/{comment}/reaction', [ForumController::class, 'toggleCommentReaction'])->whereNumber('comment');
+
+        Route::middleware('game.player')->group(function () {
+            Route::post('/posts/{slug}/comments', [PostInteractionController::class, 'storeComment']);
+            Route::post('/forum/posts', [ForumController::class, 'store']);
+            Route::post('/forum/posts/{post}/comments', [ForumController::class, 'storeComment'])->whereNumber('post');
+        });
     });
 
     Route::post('/sepay/webhook', [SePayController::class, 'webhook']);
