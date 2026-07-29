@@ -1,23 +1,5 @@
 <template>
     <div class="client-page client-page--auth">
-        <div class="client-auth-standalone-head">
-            <router-link
-                to="/"
-                class="pixel-brand"
-                aria-label="Ngọc Rồng Horizon - Trang chủ"
-            >
-                <span class="pixel-orb" aria-hidden="true"></span>
-                <span class="pixel-brand__copy">
-                    <strong>Ngọc Rồng</strong>
-                    <small>Horizon</small>
-                </span>
-            </router-link>
-            <router-link to="/" class="client-auth-back">
-                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                Về trang chủ
-            </router-link>
-        </div>
-
         <div class="client-auth-shell client-auth-shell--register">
             <AuthWelcomePanel
                 variant="register"

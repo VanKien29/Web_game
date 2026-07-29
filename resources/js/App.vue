@@ -1,7 +1,6 @@
 <template>
     <div class="pixel-app">
         <header
-            v-if="!isAuthPage"
             class="game-header"
             :class="{
                 'game-header--scrolled': scrolled,
@@ -118,7 +117,7 @@
 
         <main
             :class="{
-                'inner-page': !isHome && !isAuthPage,
+                'inner-page': !isHome,
                 'inner-page--forum': isForum,
                 'auth-page-host': isAuthPage,
             }"
@@ -148,7 +147,7 @@
             </div>
         </transition>
 
-        <footer v-if="!isAuthPage" class="game-footer">
+        <footer class="game-footer">
             <div class="game-footer__inner">
                 <div class="game-footer__left">
                     <div class="pixel-brand pixel-brand--footer">
