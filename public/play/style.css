@@ -192,6 +192,25 @@ textarea.webgl-input {
   -webkit-user-select: text;
 }
 
+#nro-mobile-input {
+  position: fixed;
+  display: none;
+  box-sizing: border-box;
+  min-width: 36px;
+  min-height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  opacity: 0.02;
+  font-size: 16px;
+  transform: none;
+}
+
 #portrait-lock {
   position: absolute;
   z-index: 30;
@@ -226,8 +245,8 @@ textarea.webgl-input {
   }
 }
 
-@media (orientation: portrait) and (pointer: coarse) {
-  #portrait-lock {
+@media (orientation: portrait) {
+  html.mobile #portrait-lock {
     display: flex;
   }
 }
