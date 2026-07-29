@@ -25,7 +25,7 @@
             <section class="client-panel topup-box">
                 <form @submit.prevent="submitCard">
                     <label class="client-field form-group">
-                        <span>Tên nhân vật</span>
+                        <span>Tài khoản nhận</span>
                         <input type="text" :value="username" readonly />
                     </label>
                     <label class="client-field form-group">
@@ -95,59 +95,26 @@
                     <p>Nạp sai loại/mệnh giá sẽ không được hoàn tiền</p>
                     <p>Sau 5 phút chưa được cộng, liên hệ Admin</p>
                 </div>
-
-                <div class="history">
-                    <h3>Lịch sử nạp</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Loại Thẻ</th>
-                                <th>Seri</th>
-                                <th>Mã Thẻ</th>
-                                <th>Mệnh Giá</th>
-                                <th>Thời Gian</th>
-                                <th>Trạng Thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="!cardHistory.length">
-                                <td colspan="7">
-                                    Chưa có giao dịch nào
-                                </td>
-                            </tr>
-                            <tr v-for="(tx, i) in cardHistory" :key="tx.id">
-                                <td>{{ i + 1 }}</td>
-                                <td>{{ tx.card_type }}</td>
-                                <td>{{ tx.serial }}</td>
-                                <td>{{ tx.pin }}</td>
-                                <td>
-                                    {{ Number(tx.amount).toLocaleString() }}đ
-                                </td>
-                                <td>{{ formatDate(tx.created_at) }}</td>
-                                <td>
-                                    {{
-                                        tx.status === 1
-                                            ? "Thành công"
-                                            : tx.status === 2
-                                              ? "Thất bại"
-                                              : "Chờ"
-                                    }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </section>
+
+            <TopupHistoryPanel
+                :entries="historyEntries"
+                title="Lịch sử nạp thẻ"
+                :page-size="5"
+            />
         </div>
     </div>
 </template>
 
 <script>
 import axios from "axios";
+import TopupHistoryPanel from "../components/topup/TopupHistoryPanel.vue";
 
 export default {
     name: "TopupCardPage",
+    components: {
+        TopupHistoryPanel,
+    },
     data() {
         return {
             cardType: "",
@@ -172,10 +139,28 @@ export default {
                 return "";
             }
         },
+        historyEntries() {
+            return this.cardHistory.map((transaction) => ({
+                id: transaction.id,
+                createdAt: transaction.created_at || "",
+                channel: transaction.card_type || "Thẻ cào",
+                amount: Number(transaction.amount) || 0,
+                reference: this.maskReference(transaction.serial),
+                status:
+                    transaction.status === 1
+                        ? "success"
+                        : transaction.status === 2
+                          ? "failed"
+                          : "pending",
+            }));
+        },
     },
     methods: {
-        formatDate(d) {
-            return d ? new Date(d).toLocaleString("vi-VN") : "";
+        maskReference(value) {
+            const reference = String(value || "");
+            if (!reference) return "—";
+            if (reference.length <= 4) return reference;
+            return `•••• ${reference.slice(-4)}`;
         },
         getAuthHeaders() {
             return {
