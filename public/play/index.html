@@ -75,8 +75,18 @@
         };
       }
 
+      function isIgnorableBrowserError(message) {
+        var text = String(message || '');
+        var firstLine = text.trim().split(/\r?\n/, 1)[0];
+        return mobileBrowser &&
+          /^(TypeError:\s*)?Permissions check failed\.?$/i.test(firstLine);
+      }
+
       function setRuntimeError(message) {
         var text = String(message || 'Lỗi không xác định');
+        if (isIgnorableBrowserError(text)) {
+          return;
+        }
         runtimeError.textContent = text.split('\n').slice(0, 20).join('\n');
         runtimeError.classList.remove('is-hidden');
       }
@@ -209,30 +219,49 @@
         shell.style.height = height + 'px';
       }
 
-      if (mobileBrowser) {
-        window.addEventListener('pointerup', function () {
-          enableMobileBackgroundAudio();
-          enterMobileImmersiveMode();
-          focusGame();
-        }, {
-          once: true,
-          passive: true
-        });
+      function isMobileInputTarget(target) {
+        var inputLayer = document.querySelector('#webgl-input-layer');
+        return !!(inputLayer && target && inputLayer.contains(target));
       }
 
+      function handleMobileGesture(event) {
+        if (isMobileInputTarget(event.target)) {
+          return;
+        }
+
+        enableMobileBackgroundAudio();
+        enterMobileImmersiveMode();
+        focusGame();
+      }
+
+      function restoreMobileMode() {
+        if (!mobileBrowser) {
+          return;
+        }
+
+        window.scrollTo(0, 0);
+        syncMobileViewport();
+        resumeWebAudio();
+        lockLandscape();
+      }
+
+      if (mobileBrowser) {
+        window.addEventListener('pointerup', handleMobileGesture, { passive: true });
+      }
+
+      window.addEventListener('pageshow', restoreMobileMode);
+      document.addEventListener('fullscreenchange', restoreMobileMode);
+      document.addEventListener('webkitfullscreenchange', restoreMobileMode);
       window.addEventListener('orientationchange', function () {
         window.setTimeout(function () {
-          window.scrollTo(0, 0);
-          syncMobileViewport();
-          lockLandscape();
+          restoreMobileMode();
         }, 150);
       });
       window.addEventListener('resize', syncMobileViewport);
       window.addEventListener('focus', resumeWebAudio);
       document.addEventListener('visibilitychange', function () {
         if (!document.hidden) {
-          resumeWebAudio();
-          syncMobileViewport();
+          restoreMobileMode();
         }
       });
       if (window.visualViewport) {
