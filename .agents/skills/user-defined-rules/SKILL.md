@@ -20,6 +20,7 @@ Thư mục này chứa các file `.md` ghi lại các quyết định đã đư�
 - [`rules/fixed-topup-payment-code.md`](rules/fixed-topup-payment-code.md) — Mã nạp ATM cố định và không lộ danh tính tài khoản.
 - [`rules/client-password-validation.md`](rules/client-password-validation.md) — Quy tắc mật khẩu đăng ký client và nút hiện/ẩn mật khẩu.
 - [`rules/client-auth-layout.md`](rules/client-auth-layout.md) — Header, footer và trạng thái focus của trang đăng nhập/đăng ký.
+- [`rules/webgl-websocket-transport.md`](rules/webgl-websocket-transport.md) — Kiến trúc kết nối cho Unity WebGL và client native.
 
 ---
 
