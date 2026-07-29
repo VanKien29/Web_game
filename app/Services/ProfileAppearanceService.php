@@ -98,6 +98,99 @@ class ProfileAppearanceService
         }
     }
 
+    /**
+     * Resolve the current head avatar for multiple game accounts with a fixed
+     * number of queries, including the head supplied by an equipped costume.
+     *
+     * @param  array<int, int|string>  $accountIds
+     * @return array<int, string>
+     */
+    public function headAvatarUrlsForAccounts(array $accountIds): array
+    {
+        $ids = collect($accountIds)
+            ->map(fn (mixed $accountId) => (int) $accountId)
+            ->filter(fn (int $accountId) => $accountId > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $players = Player::query()
+            ->whereIn('account_id', $ids)
+            ->get(['account_id', 'head', 'items_body']);
+
+        if ($players->isEmpty()) {
+            return [];
+        }
+
+        $costumeIds = [];
+        $headsByAccount = [];
+        foreach ($players as $player) {
+            $equippedItems = $this->decodeArray($player->items_body ?? null);
+            $costumeId = $this->itemIdFromSlot(
+                Arr::get($equippedItems, self::COSTUME_SLOT),
+            );
+            $accountId = (int) $player->account_id;
+            $costumeIds[$accountId] = $costumeId;
+            $headsByAccount[$accountId] = [
+                'preferred' => (int) ($player->head ?? -1),
+                'fallback' => (int) ($player->head ?? -1),
+            ];
+        }
+
+        $costumes = DB::connection('game')
+            ->table('item_template')
+            ->selectRaw('id, TYPE as type, head')
+            ->whereIn(
+                'id',
+                collect($costumeIds)
+                    ->filter(fn (int $itemId) => $itemId >= 0)
+                    ->unique()
+                    ->values(),
+            )
+            ->get()
+            ->keyBy(fn (object $item) => (int) $item->id);
+
+        foreach ($costumeIds as $accountId => $costumeId) {
+            $costume = $costumes->get($costumeId);
+            $costumeHead = (int) ($costume->head ?? -1);
+            if ($costume && (int) ($costume->type ?? -1) === 5 && $costumeHead >= 0) {
+                $headsByAccount[$accountId]['preferred'] = $costumeHead;
+            }
+        }
+
+        $headAvatars = DB::connection('game')
+            ->table('head_avatar')
+            ->select(['head_id', 'avatar_id'])
+            ->whereIn(
+                'head_id',
+                collect($headsByAccount)
+                    ->flatMap(fn (array $heads) => array_values($heads))
+                    ->filter(fn (int $headId) => $headId >= 0)
+                    ->unique()
+                    ->values(),
+            )
+            ->orderBy('avatar_id')
+            ->get()
+            ->groupBy(fn (object $row) => (int) $row->head_id);
+
+        $urls = [];
+        foreach ($headsByAccount as $accountId => $heads) {
+            foreach (array_unique([$heads['preferred'], $heads['fallback']]) as $headId) {
+                $avatarId = (int) ($headAvatars->get($headId)?->first()?->avatar_id ?? -1);
+                $url = $this->spriteUrl($avatarId);
+                if ($url) {
+                    $urls[$accountId] = $url;
+                    break;
+                }
+            }
+        }
+
+        return $urls;
+    }
+
     private function itemTemplates(array $itemIds): array
     {
         $ids = collect($itemIds)

@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ForumComment;
 use App\Models\ForumPost;
-use App\Models\ForumPostRead;
 use App\Models\ForumPostReaction;
+use App\Models\ForumPostRead;
 use App\Models\ForumPostSave;
 use App\Models\Game\Account;
-use App\Models\Game\HeadAvatar;
 use App\Services\JwtService;
+use App\Services\ProfileAppearanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -22,8 +22,14 @@ use Illuminate\Support\Str;
 class ForumController extends Controller
 {
     private const POST_TYPES = ['announcement', 'player_post', 'feedback'];
+
     private const PLAYER_POST_TYPES = ['player_post', 'feedback'];
+
     private const REACTION_TYPES = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+
+    public function __construct(
+        private readonly ProfileAppearanceService $profileAppearance,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -33,7 +39,7 @@ class ForumController extends Controller
         $filter = (string) $request->query('filter', 'all');
         $sort = (string) $request->query('sort', $account ? 'unread' : 'latest');
         $search = trim((string) $request->query('search', ''));
-        if (!in_array($sort, ['unread', 'latest', 'hot'], true)) {
+        if (! in_array($sort, ['unread', 'latest', 'hot'], true)) {
             $sort = $account ? 'unread' : 'latest';
         }
 
@@ -47,17 +53,17 @@ class ForumController extends Controller
         } elseif ($filter === 'feedback') {
             $query->where('type', 'feedback');
         } elseif ($filter === 'unread') {
-            if (!$account) {
+            if (! $account) {
                 return $this->emptyFeedResponse($page, $perPage, $account);
             }
             $this->applyUnreadFilter($query, $account);
         } elseif ($filter === 'mine') {
-            if (!$account) {
+            if (! $account) {
                 return $this->emptyFeedResponse($page, $perPage, $account);
             }
             $query->where('nro_account_id', $account->id);
         } elseif ($filter === 'saved') {
-            if (!$account) {
+            if (! $account) {
                 return $this->emptyFeedResponse($page, $perPage, $account);
             }
             $savedIds = ForumPostSave::query()
@@ -92,7 +98,7 @@ class ForumController extends Controller
     public function show(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -150,7 +156,7 @@ class ForumController extends Controller
     public function update(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -199,7 +205,7 @@ class ForumController extends Controller
     public function destroy(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -216,12 +222,12 @@ class ForumController extends Controller
     public function toggleReaction(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
         $type = (string) $request->input('type', 'like');
-        if (!in_array($type, self::REACTION_TYPES, true)) {
+        if (! in_array($type, self::REACTION_TYPES, true)) {
             return response()->json(['ok' => false, 'message' => 'Cảm xúc không hợp lệ.'], 422);
         }
 
@@ -260,7 +266,7 @@ class ForumController extends Controller
     public function toggleSave(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -272,6 +278,7 @@ class ForumController extends Controller
 
         if ($save) {
             $save->delete();
+
             return response()->json(['ok' => true, 'saved' => false]);
         }
 
@@ -287,7 +294,7 @@ class ForumController extends Controller
     public function share(int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -302,7 +309,7 @@ class ForumController extends Controller
     public function comments(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -318,7 +325,7 @@ class ForumController extends Controller
     public function markRead(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -365,7 +372,7 @@ class ForumController extends Controller
     public function storeComment(Request $request, int $post): JsonResponse
     {
         $forumPost = $this->findPublicPost($post);
-        if (!$forumPost) {
+        if (! $forumPost) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại.'], 404);
         }
 
@@ -388,7 +395,7 @@ class ForumController extends Controller
                 ->where('id', $parentId)
                 ->first();
 
-            if (!$parent) {
+            if (! $parent) {
                 return response()->json(['ok' => false, 'message' => 'Bình luận gốc không tồn tại.'], 404);
             }
 
@@ -418,7 +425,7 @@ class ForumController extends Controller
     public function updateComment(Request $request, int $comment): JsonResponse
     {
         $row = ForumComment::query()->visible()->find($comment);
-        if (!$row) {
+        if (! $row) {
             return response()->json(['ok' => false, 'message' => 'Bình luận không tồn tại.'], 404);
         }
 
@@ -444,7 +451,7 @@ class ForumController extends Controller
     public function destroyComment(Request $request, int $comment): JsonResponse
     {
         $row = ForumComment::query()->visible()->find($comment);
-        if (!$row) {
+        if (! $row) {
             return response()->json(['ok' => false, 'message' => 'Bình luận không tồn tại.'], 404);
         }
 
@@ -476,7 +483,7 @@ class ForumController extends Controller
     public function toggleCommentReaction(Request $request, int $comment): JsonResponse
     {
         $row = ForumComment::query()->visible()->find($comment);
-        if (!$row) {
+        if (! $row) {
             return response()->json(['ok' => false, 'message' => 'Bình luận không tồn tại.'], 404);
         }
 
@@ -493,6 +500,7 @@ class ForumController extends Controller
                     ->where('nro_account_id', $account->id)
                     ->delete();
                 ForumComment::query()->where('id', $row->id)->where('likes', '>', 0)->decrement('likes');
+
                 return false;
             }
 
@@ -502,6 +510,7 @@ class ForumController extends Controller
                 'created_at' => now(),
             ]);
             ForumComment::query()->where('id', $row->id)->increment('likes');
+
             return true;
         });
 
@@ -531,8 +540,8 @@ class ForumController extends Controller
 
     private function hydratePosts(Collection $posts, ?Account $account): array
     {
-        $postIds = $posts->pluck('id')->map(fn($id) => (int) $id)->all();
-        if (!$postIds) {
+        $postIds = $posts->pluck('id')->map(fn ($id) => (int) $id)->all();
+        if (! $postIds) {
             return [];
         }
 
@@ -560,14 +569,14 @@ class ForumController extends Controller
                 ->where('nro_account_id', $account->id)
                 ->whereIn('forum_post_id', $postIds)
                 ->pluck('forum_post_id')
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->all();
 
             $readIds = ForumPostRead::query()
                 ->where('nro_account_id', $account->id)
                 ->whereIn('forum_post_id', $postIds)
                 ->pluck('forum_post_id')
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->all();
         }
 
@@ -578,7 +587,7 @@ class ForumController extends Controller
             $isOwn = $account
                 && $post->type !== 'announcement'
                 && (int) $post->nro_account_id === (int) $account->id;
-            $isUnread = $account && !$isOwn && !isset($readLookup[(int) $post->id]);
+            $isUnread = $account && ! $isOwn && ! isset($readLookup[(int) $post->id]);
 
             return [
                 'id' => (int) $post->id,
@@ -623,13 +632,21 @@ class ForumController extends Controller
                 ->where('nro_account_id', $account->id)
                 ->whereIn('forum_comment_id', $comments->pluck('id')->all())
                 ->pluck('forum_comment_id')
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->all();
         }
 
         $likedLookup = array_flip($likedIds);
+        $avatarByAccount = $this->profileAppearance->headAvatarUrlsForAccounts(
+            $comments->pluck('nro_account_id')->all(),
+        );
         $rows = $comments
-            ->map(fn(ForumComment $comment) => $this->commentRow($comment, $account, $likedLookup))
+            ->map(fn (ForumComment $comment) => $this->commentRow(
+                $comment,
+                $account,
+                $likedLookup,
+                $avatarByAccount,
+            ))
             ->all();
 
         $topLevel = [];
@@ -637,6 +654,7 @@ class ForumController extends Controller
         foreach ($rows as $row) {
             if ($row['parent_comment_id']) {
                 $repliesByParent[$row['parent_comment_id']][] = $row;
+
                 continue;
             }
             $topLevel[$row['id']] = $row;
@@ -651,14 +669,19 @@ class ForumController extends Controller
         return array_values($topLevel);
     }
 
-    private function commentRow(ForumComment $comment, ?Account $account, array $likedLookup): array
-    {
+    private function commentRow(
+        ForumComment $comment,
+        ?Account $account,
+        array $likedLookup,
+        array $avatarByAccount = [],
+    ): array {
         return [
             'id' => (int) $comment->id,
             'forum_post_id' => (int) $comment->forum_post_id,
             'parent_comment_id' => $comment->parent_comment_id ? (int) $comment->parent_comment_id : null,
             'username' => (string) $comment->username,
-            'avatar_url' => $comment->avatar_url ?: $this->defaultAvatarUrl(),
+            'avatar_url' => $avatarByAccount[(int) $comment->nro_account_id]
+                ?? ($comment->avatar_url ?: $this->defaultAvatarUrl()),
             'content' => (string) $comment->content,
             'likes' => (int) $comment->likes,
             'liked' => isset($likedLookup[(int) $comment->id]),
@@ -713,10 +736,10 @@ class ForumController extends Controller
     private function storeUploadedImages(Request $request): array
     {
         $files = $request->file('images', []);
-        if (!$files) {
+        if (! $files) {
             return [];
         }
-        if (!is_array($files)) {
+        if (! is_array($files)) {
             $files = [$files];
         }
 
@@ -725,13 +748,13 @@ class ForumController extends Controller
 
         $paths = [];
         foreach ($files as $file) {
-            if (!$file || !$file->isValid()) {
+            if (! $file || ! $file->isValid()) {
                 continue;
             }
 
-            $name = now()->format('YmdHis') . '-' . Str::random(14) . '.' . $file->getClientOriginalExtension();
+            $name = now()->format('YmdHis').'-'.Str::random(14).'.'.$file->getClientOriginalExtension();
             $file->move($directory, $name);
-            $paths[] = '/assets/forum/uploads/' . $name;
+            $paths[] = '/assets/forum/uploads/'.$name;
         }
 
         return $paths;
@@ -742,13 +765,13 @@ class ForumController extends Controller
         if (is_string($value)) {
             $value = preg_split('/[\r\n,]+/', $value) ?: [];
         }
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return [];
         }
 
         return collect($value)
-            ->map(fn($url) => trim((string) $url))
-            ->filter(fn($url) => $url !== '' && (str_starts_with($url, '/') || str_starts_with($url, 'http://') || str_starts_with($url, 'https://')))
+            ->map(fn ($url) => trim((string) $url))
+            ->filter(fn ($url) => $url !== '' && (str_starts_with($url, '/') || str_starts_with($url, 'http://') || str_starts_with($url, 'https://')))
             ->take(8)
             ->values()
             ->all();
@@ -757,6 +780,7 @@ class ForumController extends Controller
     private function cleanTitle($value): ?string
     {
         $title = trim(strip_tags((string) $value));
+
         return $title !== '' ? Str::limit($title, 160, '') : null;
     }
 
@@ -822,7 +846,7 @@ class ForumController extends Controller
 
     private function markPostRead(ForumPost $post, ?Account $account): void
     {
-        if (!$account) {
+        if (! $account) {
             return;
         }
 
@@ -861,7 +885,7 @@ class ForumController extends Controller
             ->where('forum_post_id', $postId)
             ->groupBy('type')
             ->pluck('total', 'type')
-            ->map(fn($total) => (int) $total)
+            ->map(fn ($total) => (int) $total)
             ->all();
     }
 
@@ -877,12 +901,12 @@ class ForumController extends Controller
     private function optionalAccount(Request $request): ?Account
     {
         $token = $request->bearerToken();
-        if (!$token) {
+        if (! $token) {
             return null;
         }
 
-        $payload = (new JwtService())->decode($token);
-        if (!$payload || !isset($payload->sub)) {
+        $payload = (new JwtService)->decode($token);
+        if (! $payload || ! isset($payload->sub)) {
             return null;
         }
 
@@ -894,39 +918,15 @@ class ForumController extends Controller
         try {
             $account->loadMissing('player');
 
-            return $this->avatarUrlFromHead($account->player?->head);
+            if (! $account->player) {
+                return $this->defaultAvatarUrl();
+            }
+
+            return $this->profileAppearance->resolve($account->player)['head_avatar_url']
+                ?? $this->defaultAvatarUrl();
         } catch (\Throwable) {
             return $this->defaultAvatarUrl();
         }
-    }
-
-    private function avatarUrlFromHead($head): string
-    {
-        if ($head === null || $head === '') {
-            return $this->defaultAvatarUrl();
-        }
-
-        try {
-            $headAvatar = HeadAvatar::query()->where('head_id', $head)->first();
-        } catch (\Throwable) {
-            return $this->defaultAvatarUrl();
-        }
-
-        if (!$headAvatar) {
-            return $this->defaultAvatarUrl();
-        }
-
-        $avatarId = data_get($headAvatar, 'avatar_id');
-        if (!empty($avatarId)) {
-            return '/assets/frontend/home/v1/images/x4/' . $avatarId . '.png';
-        }
-
-        $avatarUrl = data_get($headAvatar, 'avatar_url');
-        if (!empty($avatarUrl)) {
-            return (string) $avatarUrl;
-        }
-
-        return $this->defaultAvatarUrl();
     }
 
     private function defaultAvatarUrl(): string
