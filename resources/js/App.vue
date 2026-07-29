@@ -82,7 +82,7 @@
                                 class="fa-solid fa-user-plus"
                                 aria-hidden="true"
                             ></i>
-                            <span>Tạo tài khoản</span>
+                            <span>Đăng ký</span>
                         </router-link>
                     </template>
                 </nav>

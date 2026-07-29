@@ -1,0 +1,14 @@
+{
+  "name": "nro-webgl-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Same-origin WebSocket-to-TCP gateway for the NRO Unity WebGL client.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

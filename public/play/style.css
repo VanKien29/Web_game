@@ -1,0 +1,233 @@
+:root {
+  color-scheme: dark;
+  background: #000;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  --accent: #ff9b38;
+  --accent-soft: #ffdf99;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#game-shell {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1024px;
+  height: 600px;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  background: #000;
+}
+
+html.mobile #game-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  transform: none;
+  padding:
+    env(safe-area-inset-top)
+    env(safe-area-inset-right)
+    env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+#unity-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: #1F1F20;
+}
+
+#loading {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  background: radial-gradient(circle at center, #1a0f00 0%, #000 72%);
+}
+
+.loading-content {
+  position: relative;
+  z-index: 2;
+  width: min(360px, 72vw);
+}
+
+.loading-glow {
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 155 56 / 55%), transparent 70%);
+  filter: blur(20px);
+  animation: loading-pulse 2.5s ease-in-out infinite;
+}
+
+.loading-title {
+  margin-bottom: 32px;
+  font-size: clamp(22px, 5vw, 42px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--accent-soft);
+  text-shadow: 0 4px 20px rgb(255 155 56 / 55%);
+}
+
+.progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: rgb(255 255 255 / 6%);
+}
+
+#progress-value {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff5e00, #ffb800);
+  box-shadow: 0 0 14px rgb(255 155 56 / 85%);
+  transition: width 180ms ease;
+}
+
+#loading-label {
+  margin-top: 12px;
+  color: #cfcfcf;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+#unity-warning {
+  position: absolute;
+  z-index: 40;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  display: none;
+  width: min(720px, calc(100% - 24px));
+  transform: translateX(-50%);
+}
+
+.warning {
+  margin-bottom: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #111;
+  background: #ffe95c;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 35%);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.warning.error {
+  color: #fff;
+  background: #b51f2e;
+}
+
+#runtime-error {
+  position: absolute;
+  z-index: 50;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-height: min(46%, 320px);
+  overflow: auto;
+  padding: 14px 16px;
+  border: 1px solid rgb(255 123 114 / 35%);
+  border-radius: 12px;
+  color: #ffd6d2;
+  background: rgb(71 20 16 / 96%);
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#runtime-error.is-hidden {
+  display: none;
+}
+
+#webgl-input-layer {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#webgl-input-layer input,
+#webgl-input-layer textarea,
+input.webgl-input,
+textarea.webgl-input {
+  z-index: 10000 !important;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#portrait-lock {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 30px;
+  text-align: center;
+  color: #fff;
+  background: #080808;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+#portrait-lock .phone {
+  font-size: 52px;
+  line-height: 1;
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.16);
+  }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  #portrait-lock {
+    display: flex;
+  }
+}

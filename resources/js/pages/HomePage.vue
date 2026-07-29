@@ -44,6 +44,13 @@
             </div>
 
             <div class="pixel-action-grid">
+                <a href="/play/" class="pixel-action-card">
+                    <span class="pixel-action-card__icon">
+                        <i class="fa-solid fa-gamepad" aria-hidden="true"></i>
+                    </span>
+                    <strong>Chơi trên Web</strong>
+                    <small>Chơi ngay trên trình duyệt</small>
+                </a>
                 <a
                     :href="settings.ios_download_url || '#'"
                     class="pixel-action-card"

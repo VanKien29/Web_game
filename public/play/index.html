@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    >
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NRO HORIZON">
+    <title>NRO HORIZON</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="app-icon.png">
+    <link rel="stylesheet" href="style.css?v=4">
+  </head>
+  <body>
+    <main id="game-shell">
+      <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+      <section id="loading" aria-live="polite">
+        <div class="loading-glow"></div>
+        <div class="loading-content">
+          <div class="loading-title">NRO HORIZON</div>
+          <div class="progress-track">
+            <div id="progress-value"></div>
+          </div>
+          <div id="loading-label">Đang tải dữ liệu…</div>
+        </div>
+      </section>
+
+      <section id="unity-warning" aria-live="assertive"></section>
+      <section id="runtime-error" class="is-hidden" role="alert"></section>
+
+      <section id="portrait-lock">
+        <div class="phone">↻</div>
+        <div>Hãy xoay ngang điện thoại để chơi</div>
+      </section>
+    </main>
+    <div id="webgl-input-layer"></div>
+
+    <script>
+      var shell = document.querySelector('#game-shell');
+      var canvas = document.querySelector('#unity-canvas');
+      var loading = document.querySelector('#loading');
+      var progressValue = document.querySelector('#progress-value');
+      var loadingLabel = document.querySelector('#loading-label');
+      var warningBanner = document.querySelector('#unity-warning');
+      var runtimeError = document.querySelector('#runtime-error');
+      var mobileBrowser =
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var unityInstance = null;
+      var backgroundAudioContext = null;
+      var backgroundAudioOscillator = null;
+      document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
+
+      if (typeof window.caches === 'undefined') {
+        window.caches = {
+          open: function () {
+            return Promise.resolve({
+              match: function () { return Promise.resolve(undefined); },
+              put: function () { return Promise.resolve(); },
+              delete: function () { return Promise.resolve(false); },
+              keys: function () { return Promise.resolve([]); }
+            });
+          },
+          has: function () { return Promise.resolve(false); },
+          delete: function () { return Promise.resolve(false); },
+          keys: function () { return Promise.resolve([]); },
+          match: function () { return Promise.resolve(undefined); }
+        };
+      }
+
+      function setRuntimeError(message) {
+        var text = String(message || 'Lỗi không xác định');
+        runtimeError.textContent = text.split('\n').slice(0, 20).join('\n');
+        runtimeError.classList.remove('is-hidden');
+      }
+
+      function unityShowBanner(message, type) {
+        if (type === 'error') {
+          setRuntimeError(message);
+        }
+
+        var item = document.createElement('div');
+        item.className = 'warning ' + (type || 'warning');
+        item.textContent = message;
+        warningBanner.appendChild(item);
+        warningBanner.style.display = 'block';
+
+        if (type !== 'error') {
+          setTimeout(function () {
+            item.remove();
+            if (!warningBanner.children.length) {
+              warningBanner.style.display = 'none';
+            }
+          }, 5000);
+        }
+      }
+
+      function resumeWebAudio() {
+        var contexts = [];
+        if (backgroundAudioContext) {
+          contexts.push(backgroundAudioContext);
+        }
+        contexts.forEach(function (context) {
+          if (context && context.state === 'suspended') {
+            context.resume().catch(function () {});
+          }
+        });
+      }
+
+      function enableMobileBackgroundAudio() {
+        if (!mobileBrowser || backgroundAudioContext) {
+          resumeWebAudio();
+          return;
+        }
+
+        try {
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) {
+            return;
+          }
+          backgroundAudioContext = new AudioContextClass();
+          backgroundAudioOscillator = backgroundAudioContext.createOscillator();
+          var gain = backgroundAudioContext.createGain();
+          gain.gain.value = 0;
+          backgroundAudioOscillator.connect(gain);
+          gain.connect(backgroundAudioContext.destination);
+          backgroundAudioOscillator.start();
+          resumeWebAudio();
+        } catch (error) {
+          backgroundAudioContext = null;
+          backgroundAudioOscillator = null;
+        }
+      }
+
+      function lockLandscape() {
+        if (!mobileBrowser || !screen.orientation || !screen.orientation.lock) {
+          return;
+        }
+
+        var lock = screen.orientation.lock('landscape');
+        if (lock && lock.catch) {
+          lock.catch(function () {});
+        }
+      }
+
+      function enterMobileImmersiveMode() {
+        if (!mobileBrowser) {
+          return;
+        }
+
+        var standalone =
+          window.navigator.standalone === true ||
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.matchMedia('(display-mode: fullscreen)').matches;
+
+        if (standalone || document.fullscreenElement) {
+          lockLandscape();
+          return;
+        }
+
+        var requestFullscreen =
+          document.documentElement.requestFullscreen ||
+          document.documentElement.webkitRequestFullscreen;
+
+        if (!requestFullscreen) {
+          lockLandscape();
+          return;
+        }
+
+        try {
+          var request = requestFullscreen.call(document.documentElement);
+          if (request && request.then) {
+            request.then(lockLandscape).catch(function () {
+              lockLandscape();
+            });
+          } else {
+            lockLandscape();
+          }
+        } catch (error) {
+          lockLandscape();
+        }
+      }
+
+      function focusGame() {
+        try {
+          window.focus();
+          canvas.focus({ preventScroll: true });
+        } catch (error) {
+          canvas.focus();
+        }
+      }
+
+      function syncMobileViewport() {
+        if (!mobileBrowser) {
+          return;
+        }
+
+        var viewport = window.visualViewport;
+        var width = Math.max(1, Math.floor(viewport ? viewport.width : window.innerWidth));
+        var height = Math.max(1, Math.floor(viewport ? viewport.height : window.innerHeight));
+        shell.style.width = width + 'px';
+        shell.style.height = height + 'px';
+      }
+
+      if (mobileBrowser) {
+        window.addEventListener('pointerup', function () {
+          enableMobileBackgroundAudio();
+          enterMobileImmersiveMode();
+          focusGame();
+        }, {
+          once: true,
+          passive: true
+        });
+      }
+
+      window.addEventListener('orientationchange', function () {
+        window.setTimeout(function () {
+          window.scrollTo(0, 0);
+          syncMobileViewport();
+          lockLandscape();
+        }, 150);
+      });
+      window.addEventListener('resize', syncMobileViewport);
+      window.addEventListener('focus', resumeWebAudio);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          resumeWebAudio();
+          syncMobileViewport();
+        }
+      });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncMobileViewport);
+        window.visualViewport.addEventListener('scroll', syncMobileViewport);
+      }
+
+      var buildUrl = 'Build';
+      var loaderUrl = buildUrl + '/WebGLBuild.loader.js';
+      var config = {
+        dataUrl: buildUrl + '/WebGLBuild.data',
+        frameworkUrl: buildUrl + '/WebGLBuild.framework.js',
+        codeUrl: buildUrl + '/WebGLBuild.wasm',
+        streamingAssetsUrl: 'StreamingAssets',
+        companyName: "CngHownPro",
+        productName: "NRO HORIZON",
+        productVersion: "1.0",
+        autoSyncPersistentDataPath: true,
+        matchWebGLToCanvasSize: true,
+        devicePixelRatio: mobileBrowser
+          ? Math.min(window.devicePixelRatio || 1, 2)
+          : 1,
+        cacheControl: function () {
+          return 'no-store';
+        },
+        showBanner: unityShowBanner
+      };
+
+
+      var loader = document.createElement('script');
+      loader.src = loaderUrl;
+      loader.onload = function () {
+        createUnityInstance(canvas, config, function (progress) {
+          var percent = Math.round(progress * 100);
+          progressValue.style.width = percent + '%';
+          loadingLabel.textContent = 'Đang tải dữ liệu… ' + percent + '%';
+        }).then(function (instance) {
+          unityInstance = instance;
+          window.unityInstance = instance;
+          loading.remove();
+          syncMobileViewport();
+          enterMobileImmersiveMode();
+          lockLandscape();
+          focusGame();
+        }).catch(function (message) {
+          loadingLabel.textContent = 'Không thể tải game';
+          setRuntimeError('Không thể khởi động game:\n' + String(message));
+        });
+      };
+      loader.onerror = function () {
+        loadingLabel.textContent = 'Không thể tải trình khởi động game';
+      };
+      document.body.appendChild(loader);
+
+      var originalConsoleError = console.error;
+      console.error = function () {
+        originalConsoleError.apply(console, arguments);
+        var text = Array.prototype.map.call(arguments, function (value) {
+          if (value && value.stack) {
+            return value.stack;
+          }
+          return String(value);
+        }).join(' ');
+        if (/memory access out of bounds|RuntimeError|Exception/i.test(text)) {
+          setRuntimeError(text);
+        }
+      };
+
+      window.addEventListener('error', function (event) {
+        if (event.error || event.message) {
+          setRuntimeError(event.error && event.error.stack
+            ? event.error.stack
+            : event.message);
+        }
+      });
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event.reason;
+        if (reason) {
+          setRuntimeError(reason.stack || reason);
+        }
+      });
+
+      canvas.addEventListener('pointerdown', focusGame);
+      canvas.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (document.activeElement !== canvas) {
+          return;
+        }
+        if (['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ',
+             'PageUp', 'PageDown', 'Home', 'End'].indexOf(event.key) !== -1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+
+      syncMobileViewport();
+
+      if ('serviceWorker' in navigator &&
+          (location.protocol === 'https:' || location.hostname === 'localhost' ||
+           location.hostname === '127.0.0.1')) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('./service-worker.js').catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>
