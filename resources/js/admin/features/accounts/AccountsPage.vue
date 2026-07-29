@@ -15,10 +15,10 @@
             <router-link
                 :to="{ name: 'admin.accounts.create' }"
                 class="btn btn-primary admin-fab"
-                title="Tạo tài khoản"
+                title="Đăng ký"
             >
                 <span class="mi">person_add</span>
-                <span>Tạo tài khoản</span>
+                <span>Đăng ký</span>
             </router-link>
         </div>
 
@@ -607,4 +607,3 @@ th:last-child {
     padding: 6px 8px !important;
 }
 </style>
-
