@@ -31,6 +31,30 @@
                 <button type="button" @click="loadData">Thử lại</button>
             </div>
 
+            <section
+                v-else-if="loginRequired"
+                class="client-panel atm-login-required"
+            >
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <div>
+                    <span class="client-panel__eyebrow">Xác thực chiến binh</span>
+                    <h2>Đăng nhập để nạp tiền</h2>
+                    <p>
+                        Tài khoản cần được xác nhận để hệ thống tạo đúng nội
+                        dung chuyển khoản và tự động cộng tiền.
+                    </p>
+                </div>
+                <router-link
+                    :to="{
+                        path: '/login',
+                        query: { redirect: '/nap-atm' },
+                    }"
+                    class="client-btn client-btn--primary"
+                >
+                    Đăng nhập
+                </router-link>
+            </section>
+
             <div v-else class="atm-payment-layout">
                 <section class="client-panel atm-payment-panel">
                     <header class="atm-section-heading">
@@ -148,7 +172,6 @@
 <script setup lang="ts">
 import axios from "axios";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
 import TopupHistoryPanel, {
     type TopupHistoryEntry,
 } from "../components/topup/TopupHistoryPanel.vue";
@@ -168,7 +191,6 @@ interface AtmTransaction {
     status?: number;
 }
 
-const router = useRouter();
 const requestController = new AbortController();
 const amount = ref(10000);
 const bankName = ref("");
@@ -178,6 +200,7 @@ const transferPrefix = ref("naptien");
 const history = ref<AtmTransaction[]>([]);
 const loading = ref(true);
 const loadError = ref("");
+const loginRequired = ref(false);
 const qrAttemptIndex = ref(0);
 const copied = ref(false);
 let copyTimer: ReturnType<typeof window.setTimeout> | null = null;
@@ -291,32 +314,39 @@ async function loadAtmConfig(): Promise<AtmSettings> {
 }
 
 async function loadData(): Promise<void> {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        await router.push("/login");
-        return;
-    }
-
     loading.value = true;
     loadError.value = "";
+    loginRequired.value = false;
     try {
-        const [settings, historyResponse] = await Promise.all([
-            loadAtmConfig(),
-            axios.get("/api/topup/history", authHeaders()),
-        ]);
+        const settings = await loadAtmConfig();
 
         bankName.value = settings.bank_name || "MB";
         bankAccount.value = settings.bank_account || "";
         bankOwner.value = settings.bank_owner || "";
         transferPrefix.value = settings.transfer_prefix || "naptien";
+
+        const token = localStorage.getItem("token");
+        if (!token || !currentUsername.value) {
+            history.value = [];
+            loginRequired.value = true;
+            return;
+        }
+
+        const historyResponse = await axios.get(
+            "/api/topup/history",
+            authHeaders(),
+        );
         history.value = historyResponse.data?.ok
             ? historyResponse.data.data || []
             : [];
-
     } catch (error) {
         if (axios.isCancel(error)) return;
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-            await router.push("/login");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.dispatchEvent(new Event("auth-changed"));
+            history.value = [];
+            loginRequired.value = true;
             return;
         }
         loadError.value =
@@ -615,6 +645,44 @@ onBeforeUnmount(() => {
     border: 1px solid var(--pixel-orange-dark, #a7440d);
 }
 
+.atm-login-required {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+}
+
+.atm-login-required > i {
+    display: grid;
+    width: 52px;
+    aspect-ratio: 1;
+    place-items: center;
+    color: #fff;
+    background: var(--pixel-orange, #ec7424);
+    border: 2px solid var(--pixel-line, #7a4829);
+    box-shadow: 3px 3px 0 rgb(63 41 28 / 18%);
+    font-size: 1.2rem;
+}
+
+.atm-login-required h2 {
+    margin: 2px 0 5px;
+    color: var(--pixel-ink, #36251d);
+    font-family: var(--font-sans);
+    font-size: 1.15rem;
+}
+
+.atm-login-required p {
+    margin: 0;
+    color: var(--pixel-muted, #745b47);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.atm-login-required .client-btn {
+    min-width: 126px;
+}
+
 @media (max-width: 860px) {
     .atm-payment-layout,
     .atm-payment-panel__content {
@@ -667,6 +735,15 @@ onBeforeUnmount(() => {
     .atm-error {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .atm-login-required {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .atm-login-required .client-btn {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 }
 </style>

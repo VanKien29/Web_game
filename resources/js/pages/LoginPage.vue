@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import AuthWelcomePanel from "../components/auth/AuthWelcomePanel.vue";
 
 interface AuthResponse {
@@ -76,12 +76,25 @@ interface ApiError {
     message?: string;
 }
 
+const route = useRoute();
 const router = useRouter();
 const username = ref("");
 const password = ref("");
 const error = ref("");
 const success = ref("");
 const loading = ref(false);
+
+function intendedRoute(): string {
+    const queryRedirect = Array.isArray(route.query.redirect)
+        ? route.query.redirect[0]
+        : route.query.redirect;
+
+    return typeof queryRedirect === "string" &&
+        queryRedirect.startsWith("/") &&
+        !queryRedirect.startsWith("//")
+        ? queryRedirect
+        : "/";
+}
 
 async function handleLogin(): Promise<void> {
     error.value = "";
@@ -103,7 +116,7 @@ async function handleLogin(): Promise<void> {
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user || {}));
             window.dispatchEvent(new Event("auth-changed"));
-            await router.push("/");
+            await router.push(intendedRoute());
         } else {
             error.value = data.message || "Đăng nhập thất bại";
         }
