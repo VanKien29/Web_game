@@ -6,35 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\Setting;
 use App\Models\Slide;
+use App\Services\LegacyPostForumSyncService;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private readonly LegacyPostForumSyncService $forumSync,
+    ) {}
+
     public function index()
     {
         $slides = Slide::active()
             ->orderBy('sort_order')
             ->get();
 
-        $tinTuc = Post::published()
-            ->whereHas('category', fn($q) => $q->where('slug', 'tin-tuc'))
-            ->with('category:id,name')
-            ->orderByDesc('published_at')
-            ->limit(5)
-            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
-
-        $suKien = Post::published()
-            ->whereHas('category', fn($q) => $q->where('slug', 'su-kien'))
-            ->with('category:id,name')
-            ->orderByDesc('published_at')
-            ->limit(5)
-            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
-
-        $huongDan = Post::published()
-            ->whereHas('category', fn($q) => $q->where('slug', 'huong-dan'))
-            ->with('category:id,name')
-            ->orderByDesc('published_at')
-            ->limit(5)
-            ->get(['id', 'title', 'slug', 'created_at', 'category_id']);
+        $tinTuc = $this->forumLinkedPosts('tin-tuc');
+        $suKien = $this->forumLinkedPosts('su-kien');
+        $huongDan = $this->forumLinkedPosts('huong-dan');
 
         $keys = [
             'site_name', 'site_description', 'site_keywords',
@@ -62,19 +50,38 @@ class HomeController extends Controller
         ]);
     }
 
-    public function postDetail(string $slug)
+    private function forumLinkedPosts(string $categorySlug)
     {
-        $post = Post::published()
+        $posts = Post::published()
+            ->whereHas('category', fn($q) => $q->where('slug', $categorySlug))
             ->with('category:id,name')
-            ->where('slug', $slug)
-            ->first();
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'content',
+                'featured_image',
+                'category_id',
+                'nro_account_id',
+                'author_username',
+                'author_avatar',
+                'status',
+                'views',
+                'created_at',
+                'updated_at',
+                'published_at',
+            ]);
 
-        if (!$post) {
-            return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại'], 404);
-        }
+        $forumPostIds = $this->forumSync->syncMany($posts);
 
-        $post->increment('views');
-
-        return response()->json(['ok' => true, 'data' => $post]);
+        return $posts->map(fn(Post $post) => [
+            'id' => (int) $post->id,
+            'forum_post_id' => $forumPostIds[(int) $post->id] ?? null,
+            'title' => (string) $post->title,
+            'slug' => (string) $post->slug,
+            'created_at' => optional($post->created_at)->toISOString(),
+        ])->values();
     }
 }

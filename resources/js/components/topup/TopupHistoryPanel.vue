@@ -63,18 +63,37 @@
             v-if="totalPages > 1"
             class="topup-history-panel__pagination"
         >
+            <span class="topup-history-panel__range">
+                {{ rangeLabel }}
+            </span>
             <button
                 type="button"
+                aria-label="Trang trước"
                 :disabled="currentPage === 1"
-                @click="currentPage--"
+                @click="goToPage(currentPage - 1)"
             >
                 Trang trước
             </button>
-            <span>Trang {{ currentPage }}/{{ totalPages }}</span>
+            <div
+                class="topup-history-panel__pages"
+                aria-label="Chọn trang lịch sử nạp"
+            >
+                <button
+                    v-for="page in pageNumbers"
+                    :key="page"
+                    type="button"
+                    :class="{ 'is-active': page === currentPage }"
+                    :aria-current="page === currentPage ? 'page' : undefined"
+                    @click="goToPage(page)"
+                >
+                    {{ page }}
+                </button>
+            </div>
             <button
                 type="button"
+                aria-label="Trang sau"
                 :disabled="currentPage === totalPages"
-                @click="currentPage++"
+                @click="goToPage(currentPage + 1)"
             >
                 Trang sau
             </button>
@@ -109,20 +128,43 @@ const props = withDefaults(
 );
 
 const currentPage = ref(1);
+const safePageSize = computed(() => {
+    const size = Number(props.pageSize);
+
+    return Number.isFinite(size) && size > 0 ? Math.floor(size) : 5;
+});
 const totalPages = computed(() =>
-    Math.max(1, Math.ceil(props.entries.length / props.pageSize)),
+    Math.max(1, Math.ceil(props.entries.length / safePageSize.value)),
 );
 const paginatedEntries = computed(() => {
-    const start = (currentPage.value - 1) * props.pageSize;
-    return props.entries.slice(start, start + props.pageSize);
+    const start = (currentPage.value - 1) * safePageSize.value;
+    return props.entries.slice(start, start + safePageSize.value);
+});
+const pageNumbers = computed(() =>
+    Array.from({ length: totalPages.value }, (_, index) => index + 1),
+);
+const rangeLabel = computed(() => {
+    if (!props.entries.length) return "";
+
+    const start = (currentPage.value - 1) * safePageSize.value + 1;
+    const end = Math.min(
+        props.entries.length,
+        currentPage.value * safePageSize.value,
+    );
+
+    return `${start}-${end}/${props.entries.length} giao dịch`;
 });
 
 watch(
-    () => props.entries.length,
+    () => [props.entries.length, safePageSize.value],
     () => {
-        currentPage.value = Math.min(currentPage.value, totalPages.value);
+        currentPage.value = 1;
     },
 );
+
+function goToPage(page: number): void {
+    currentPage.value = Math.min(Math.max(1, page), totalPages.value);
+}
 
 const moneyFormatter = new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
@@ -311,7 +353,7 @@ function statusLabel(status: TopupHistoryStatus): string {
 
 .topup-history-panel__pagination {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(130px, 1fr) auto minmax(0, auto) auto;
     align-items: center;
     gap: 12px;
     padding: 12px 20px;
@@ -331,12 +373,24 @@ function statusLabel(status: TopupHistoryStatus): string {
     cursor: pointer;
 }
 
-.topup-history-panel__pagination button:first-child {
-    justify-self: end;
+.topup-history-panel__pages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
 }
 
-.topup-history-panel__pagination button:last-child {
-    justify-self: start;
+.topup-history-panel__pages button {
+    width: 36px;
+    min-height: 36px;
+    padding: 6px;
+}
+
+.topup-history-panel__pagination button.is-active {
+    color: #fff;
+    background: var(--pixel-orange, #ec7424);
+    border-color: var(--pixel-orange-dark, #a7440d);
+    cursor: default;
 }
 
 .topup-history-panel__pagination button:disabled {
@@ -349,6 +403,10 @@ function statusLabel(status: TopupHistoryStatus): string {
     font-size: 0.7rem;
     font-weight: 700;
     white-space: nowrap;
+}
+
+.topup-history-panel__range {
+    justify-self: start;
 }
 
 @media (max-width: 700px) {
@@ -440,17 +498,35 @@ function statusLabel(status: TopupHistoryStatus): string {
         padding: 11px 10px;
     }
 
-    .topup-history-panel__pagination span {
+    .topup-history-panel__range {
         grid-column: 1 / -1;
         grid-row: 1;
         text-align: center;
+        justify-self: center;
     }
 
-    .topup-history-panel__pagination button,
-    .topup-history-panel__pagination button:first-child,
-    .topup-history-panel__pagination button:last-child {
+    .topup-history-panel__pages {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-content: center;
+    }
+
+    .topup-history-panel__pagination > button {
+        grid-row: 3;
         width: 100%;
         justify-self: stretch;
+    }
+
+    .topup-history-panel__pagination > button:first-of-type {
+        grid-column: 1;
+    }
+
+    .topup-history-panel__pagination > button:last-of-type {
+        grid-column: 2;
+    }
+
+    .topup-history-panel__pages button {
+        width: 34px;
     }
 }
 </style>

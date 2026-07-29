@@ -998,6 +998,10 @@ export default {
             return descriptions[this.filter] || descriptions.all;
         },
     },
+    watch: {
+        "$route.params.postId": "handleLinkedPostRoute",
+        "$route.query.post": "handleLinkedPostRoute",
+    },
     async mounted() {
         await Promise.all([
             this.loadFeed(true),
@@ -1106,14 +1110,9 @@ export default {
                     `/api/forum/posts?${params}`,
                     this.authHeaders(),
                 );
-                const rows = (data.data || []).map((post) => ({
-                    ...post,
-                    contentExpanded: !this.isLongPost(post),
-                    commentsOpen: false,
-                    commentsLoaded: false,
-                    commentsLoading: false,
-                    comments: [],
-                }));
+                const rows = (data.data || []).map((post) =>
+                    this.normalizePost(post),
+                );
                 if (reset) {
                     this.resetReadObserver();
                 }
@@ -1122,6 +1121,8 @@ export default {
                 this.page = data.page || this.page;
                 this.totalPages = data.total_pages || 1;
                 if (reset) {
+                    await this.ensureLinkedPostVisible();
+                    this.expandLinkedPost();
                     this.focusSharedPost();
                 }
             } catch (err) {
@@ -1336,8 +1337,7 @@ export default {
             }
         },
         async sharePost(post) {
-            const url = new URL("/forum", window.location.origin);
-            url.searchParams.set("post", String(post.id));
+            const url = new URL(`/forum/${post.id}`, window.location.origin);
             let action = "copied";
 
             try {
@@ -1400,14 +1400,62 @@ export default {
             input.remove();
             return copied;
         },
+        linkedPostId() {
+            return Number(this.$route.params.postId || this.$route.query.post);
+        },
+        normalizePost(post) {
+            return {
+                ...post,
+                contentExpanded: !this.isLongPost(post),
+                commentsOpen: false,
+                commentsLoaded: false,
+                commentsLoading: false,
+                comments: [],
+            };
+        },
+        async handleLinkedPostRoute() {
+            await this.ensureLinkedPostVisible();
+            this.expandLinkedPost();
+            this.focusSharedPost();
+        },
+        async ensureLinkedPostVisible() {
+            const postId = this.linkedPostId();
+            if (!postId || this.posts.some((post) => Number(post.id) === postId)) {
+                return;
+            }
+
+            try {
+                const { data } = await axios.get(
+                    `/api/forum/posts/${postId}`,
+                    this.authHeaders(),
+                );
+                if (!data.ok || !data.data) return;
+
+                this.posts = [this.normalizePost(data.data), ...this.posts];
+            } catch (err) {
+                this.showPopup(
+                    err.response?.data?.message || "Không thể mở bài viết diễn đàn.",
+                    { title: "Bài viết không tồn tại", tone: "warning" },
+                );
+            }
+        },
         focusSharedPost() {
-            const postId = Number(this.$route.query.post);
+            const postId = this.linkedPostId();
             if (!postId) return;
             this.$nextTick(() => {
                 document
                     .getElementById(`forum-post-${postId}`)
                     ?.scrollIntoView({ behavior: "smooth", block: "center" });
             });
+        },
+        expandLinkedPost() {
+            const postId = this.linkedPostId();
+            if (!postId) return;
+
+            const post = this.posts.find((row) => Number(row.id) === postId);
+            if (post && this.isLongPost(post)) {
+                post.contentExpanded = true;
+            }
         },
         async toggleComments(post) {
             post.commentsOpen = !post.commentsOpen;
@@ -3617,23 +3665,65 @@ export default {
     white-space: normal;
 }
 
+.forum-post--announcement h2 {
+    font-family: var(--font-sans);
+    font-size: clamp(1.22rem, 2.4vw, 1.7rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.forum-post__content--rich :deep(*) {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 .forum-post__content--rich :deep(p),
 .forum-post__content--rich :deep(ul),
 .forum-post__content--rich :deep(ol),
 .forum-post__content--rich :deep(blockquote),
-.forum-post__content--rich :deep(h3) {
+.forum-post__content--rich :deep(h1),
+.forum-post__content--rich :deep(h2),
+.forum-post__content--rich :deep(h3),
+.forum-post__content--rich :deep(h4) {
     color: inherit !important;
     font-family: var(--font-sans) !important;
+    overflow-wrap: anywhere;
 }
 
 .forum-post__content--rich :deep(img) {
+    display: block;
+    width: auto;
     max-width: 100%;
+    height: auto;
+    margin: 10px auto;
+    object-fit: contain;
+}
+
+.forum-post__content--rich :deep(table),
+.forum-post__content--rich :deep(pre) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forum-post__content--rich :deep(code) {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.forum-post__content--rich :deep(iframe),
+.forum-post__content--rich :deep(video) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
     height: auto;
 }
 
 .forum-post__content--rich :deep(a) {
     color: var(--forum-blue-dark) !important;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .forum-edit-box {
@@ -4239,36 +4329,96 @@ export default {
         justify-content: flex-end;
     }
 
+    .forum-post {
+        overflow: hidden;
+    }
+
     .forum-post h2 {
         margin-inline: 13px;
-        font-size: 1.45rem;
+        font-size: 1.28rem;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .forum-post--announcement h2 {
+        font-size: 1.18rem;
+        line-height: 1.32;
     }
 
     .forum-post__content-wrap {
+        max-width: 100%;
         padding-inline: 13px;
     }
 
     .forum-post__content {
-        font-size: 0.81rem;
+        font-size: 0.88rem;
+        line-height: 1.65;
+    }
+
+    .forum-post__content--rich :deep(h1),
+    .forum-post__content--rich :deep(h2),
+    .forum-post__content--rich :deep(h3) {
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+
+    .forum-post__content--rich :deep(p),
+    .forum-post__content--rich :deep(li),
+    .forum-post__content--rich :deep(blockquote) {
+        font-size: 0.88rem;
+        line-height: 1.65;
+    }
+
+    .forum-post__content--rich :deep(ul),
+    .forum-post__content--rich :deep(ol) {
+        padding-left: 18px;
+    }
+
+    .forum-post__content--rich :deep(img) {
+        width: 100%;
+        max-height: none;
+        margin-block: 8px;
+        border-radius: 4px;
     }
 
     .forum-post__images {
+        grid-template-columns: 1fr;
         margin-inline: 13px;
     }
 
     .forum-post__images img {
         min-height: 120px;
+        max-height: none;
     }
 
     .forum-post__summary {
-        flex-wrap: wrap;
-        gap: 7px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
         padding-inline: 13px;
+        text-align: center;
+    }
+
+    .forum-post__summary button,
+    .forum-post__summary span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .forum-post__summary button:first-child {
+        margin-right: 0;
     }
 
     .forum-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         padding-inline: 9px;
+    }
+
+    .forum-action {
+        min-width: 0;
+        padding-inline: 6px !important;
     }
 
     .forum-reaction-picker {

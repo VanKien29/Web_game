@@ -144,8 +144,12 @@
                             Nhập số tiền từ <strong>10.000đ</strong> trở lên.
                         </li>
                         <li>
-                            Giữ nguyên nội dung
-                            <strong>{{ transferContent }}</strong>.
+                            Chuyển khoản đúng <strong>số tiền</strong> và
+                            <strong>nội dung</strong> được cung cấp.
+                        </li>
+                        <li>
+                            Chuyển khoản sai <strong>nội dung</strong> hoặc
+                            <strong>số tiền</strong> admin không chịu trách nhiệm.
                         </li>
                         <li>
                             Tiền được cộng tự động trong khoảng

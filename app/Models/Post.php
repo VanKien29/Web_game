@@ -21,6 +21,11 @@ class Post extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function forumPost()
+    {
+        return $this->hasOne(ForumPost::class, 'legacy_post_id');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published');

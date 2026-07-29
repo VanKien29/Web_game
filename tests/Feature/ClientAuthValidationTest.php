@@ -84,7 +84,6 @@ class ClientAuthValidationTest extends TestCase
         $protectedRoutes = [
             ['api/forum/posts', 'POST'],
             ['api/forum/posts/{post}/comments', 'POST'],
-            ['api/posts/{slug}/comments', 'POST'],
         ];
 
         foreach ($protectedRoutes as [$uri, $method]) {

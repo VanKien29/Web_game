@@ -12,7 +12,7 @@
                 </nav>
             </div>
             <div class="page-top-actions">
-                <a v-if="post?.slug" :href="`/post/${post.slug}`" target="_blank" class="btn btn-outline">
+                <a v-if="post" :href="forumPostHref" target="_blank" class="btn btn-outline">
                     <span class="mi" style="font-size: 16px">open_in_new</span>
                     Xem bài
                 </a>
@@ -136,6 +136,11 @@ export default {
         };
     },
     computed: {
+        forumPostHref() {
+            return this.post?.forum_post_id
+                ? `/forum/${this.post.forum_post_id}`
+                : "/forum";
+        },
         rows() {
             const byParent = new Map();
             const roots = [];

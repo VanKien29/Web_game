@@ -752,8 +752,10 @@ async function logout(): Promise<void> {
     color: #8a351e;
     background: #ffd6b7;
     border: 2px solid #9e492e;
-    font-size: 0.68rem;
+    font-family: var(--font-sans);
+    font-size: 0.76rem;
     font-weight: 800;
+    line-height: 1.2;
 }
 
 .profile-status--active {

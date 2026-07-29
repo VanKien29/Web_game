@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActionLog;
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\LegacyPostForumSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,10 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    public function __construct(
+        private readonly LegacyPostForumSyncService $forumSync,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $page = max(1, (int) $request->query('page', 1));
@@ -48,9 +53,11 @@ class PostController extends Controller
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
         $posts = $paginator->getCollection();
         $commentCounts = $this->commentCounts($posts->pluck('id')->all());
+        $forumPostIds = $this->forumSync->syncMany($posts);
 
-        $posts->transform(function (Post $post) use ($commentCounts) {
+        $posts->transform(function (Post $post) use ($commentCounts, $forumPostIds) {
             $post->setAttribute('comments_count', (int) ($commentCounts[$post->id] ?? 0));
+            $post->setAttribute('forum_post_id', $forumPostIds[(int) $post->id] ?? null);
             return $post;
         });
 
@@ -80,6 +87,7 @@ class PostController extends Controller
         }
 
         $post->setAttribute('comments_count', (int) DB::table('comments')->where('post_id', $post->id)->count());
+        $post->setAttribute('forum_post_id', $this->forumSync->sync($post)?->id);
 
         return response()->json([
             'ok' => true,
@@ -101,6 +109,8 @@ class PostController extends Controller
 
         $data = $this->postPayload($request);
         $post = Post::query()->create($data);
+        $forumPost = $this->forumSync->sync($post);
+        $post->setAttribute('forum_post_id', $forumPost?->id);
 
         $this->logAdminAction('create', 'post', $post->id, 'Tạo bài viết ' . $post->title, null, $this->logState($post));
 
@@ -131,13 +141,16 @@ class PostController extends Controller
         $before = $this->logState($post);
         $post->fill($this->postPayload($request, $post));
         $post->save();
+        $forumPost = $this->forumSync->sync($post);
+        $freshPost = $post->fresh('category:id,name,slug');
+        $freshPost?->setAttribute('forum_post_id', $forumPost?->id);
 
         $this->logAdminAction('update', 'post', $post->id, 'Cập nhật bài viết ' . $post->title, $before, $this->logState($post));
 
         return response()->json([
             'ok' => true,
             'message' => 'Đã cập nhật bài viết.',
-            'data' => $post->fresh('category:id,name,slug'),
+            'data' => $freshPost,
         ]);
     }
 
@@ -159,6 +172,7 @@ class PostController extends Controller
             DB::table('post_likes')->where('post_id', $post->id)->delete();
             $post->delete();
         });
+        $this->forumSync->hide($post);
 
         $this->logAdminAction('delete', 'post', $id, 'Xóa bài viết ' . ($before['title'] ?? $id), $before, null);
 
@@ -171,6 +185,7 @@ class PostController extends Controller
         if (!$post) {
             return response()->json(['ok' => false, 'message' => 'Bài viết không tồn tại'], 404);
         }
+        $forumPost = $this->forumSync->sync($post);
 
         $comments = DB::table('comments')
             ->where('post_id', $post->id)
@@ -193,6 +208,7 @@ class PostController extends Controller
             'ok' => true,
             'post' => [
                 'id' => (int) $post->id,
+                'forum_post_id' => $forumPost?->id,
                 'title' => $post->title,
                 'slug' => $post->slug,
             ],

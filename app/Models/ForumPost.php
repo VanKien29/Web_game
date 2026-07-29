@@ -8,6 +8,7 @@ class ForumPost extends Model
 {
     protected $fillable = [
         'type',
+        'legacy_post_id',
         'nro_account_id',
         'author_username',
         'author_avatar',

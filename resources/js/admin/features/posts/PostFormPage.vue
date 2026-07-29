@@ -15,8 +15,8 @@
             </div>
             <div class="page-top-actions">
                 <a
-                    v-if="isEdit && form.slug"
-                    :href="`/post/${form.slug}`"
+                    v-if="isEdit"
+                    :href="forumPostHref"
                     target="_blank"
                     class="btn btn-outline"
                 >
@@ -166,6 +166,7 @@ import { readJsonResponse } from "../../shared/api";
 
 const emptyForm = () => ({
     title: "",
+    forum_post_id: null,
     slug: "",
     content: "",
     excerpt: "",
@@ -191,6 +192,11 @@ export default {
     computed: {
         isEdit() {
             return !!this.$route.params.id;
+        },
+        forumPostHref() {
+            return this.form.forum_post_id
+                ? `/forum/${this.form.forum_post_id}`
+                : "/forum";
         },
     },
     created() {
@@ -226,6 +232,7 @@ export default {
         toForm(post) {
             return {
                 title: post.title || "",
+                forum_post_id: post.forum_post_id || null,
                 slug: post.slug || "",
                 content: post.content || "",
                 excerpt: post.excerpt || "",

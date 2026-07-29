@@ -88,13 +88,29 @@
                 </form>
             </section>
 
-            <section class="client-panel side-box">
-                <div class="note">
-                    <strong>Lưu ý quan trọng:</strong>
-                    <p>Kiểm tra kỹ thông tin trước khi nạp</p>
-                    <p>Nạp sai loại/mệnh giá sẽ không được hoàn tiền</p>
-                    <p>Sau 5 phút chưa được cộng, liên hệ Admin</p>
-                </div>
+            <section class="client-panel topup-card-guide-panel">
+                <header class="topup-card-section-heading">
+                    <div>
+                        <span>Lưu ý</span>
+                        <h2>Lưu ý quan trọng</h2>
+                    </div>
+                </header>
+                <ol>
+                    <li>
+                        Vui lòng kiểm tra kỹ thông tin trước khi gửi thẻ.
+                    </li>
+                    <li>
+                        Yêu cầu nhập đúng số serial và mã thẻ.
+                    </li>
+                    <li>
+                        Thẻ cào đã sử dụng hoặc hết hạn sẽ không được chấp
+                        nhận.
+                    </li>
+                </ol>
+                <p>
+                    Nạp sai loại thẻ hoặc mệnh giá sẽ không được hoàn tiền.
+                    Nếu sau 5 phút chưa được cộng, hãy liên hệ Admin.
+                </p>
             </section>
 
             <TopupHistoryPanel
@@ -236,3 +252,70 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.topup-card-guide-panel {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.topup-card-section-heading {
+    display: flex;
+    min-height: 74px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--pixel-paper, #fff0c7);
+    border-bottom: 2px solid var(--pixel-line, #7a4829);
+}
+
+.topup-card-section-heading span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--pixel-orange-dark, #a7440d);
+    font-family: var(--pixel-font);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.topup-card-section-heading h2 {
+    margin: 0;
+    color: var(--pixel-ink, #36251d);
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+}
+
+.topup-card-guide-panel ol {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 18px 18px 14px 46px;
+}
+
+.topup-card-guide-panel li {
+    padding-left: 3px;
+    color: var(--pixel-ink, #36251d);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.topup-card-guide-panel p {
+    margin: 0 16px 16px;
+    padding: 11px;
+    color: #8a3b22;
+    background: #ffedbd;
+    border: 1px dashed #c7782a;
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .topup-card-section-heading {
+        min-height: 0;
+        align-items: flex-start;
+        padding: 12px;
+    }
+}
+</style>

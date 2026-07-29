@@ -146,7 +146,7 @@
                         <router-link
                             v-for="post in activePosts.slice(0, 5)"
                             :key="post.id"
-                            :to="`/post/${post.slug}`"
+                            :to="forumPostPath(post)"
                             class="pixel-news-item"
                         >
                             <span class="pixel-news-item__marker">
@@ -233,6 +233,7 @@ import { computed, onMounted, ref } from "vue";
 
 interface PostSummary {
     id: number | string;
+    forum_post_id?: number | string | null;
     slug: string;
     title: string;
     created_at?: string;
@@ -313,6 +314,10 @@ function formatDate(dateString?: string): string {
         month: "2-digit",
         year: "numeric",
     }).format(new Date(dateString));
+}
+
+function forumPostPath(post: PostSummary): string {
+    return post.forum_post_id ? `/forum/${post.forum_post_id}` : "/forum";
 }
 
 async function loadData(): Promise<void> {

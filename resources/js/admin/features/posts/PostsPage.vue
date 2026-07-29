@@ -101,7 +101,7 @@
                             <td class="action-cell">
                                 <div class="row-actions">
                                     <a
-                                        :href="`/post/${post.slug}`"
+                                        :href="post.forum_post_id ? `/forum/${post.forum_post_id}` : '/forum'"
                                         target="_blank"
                                         class="btn btn-outline btn-sm"
                                         title="Xem ngoài web"

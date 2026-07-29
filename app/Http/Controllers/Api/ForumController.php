@@ -629,9 +629,9 @@ class ForumController extends Controller
                 'title' => $post->title,
                 'content' => (string) $post->content,
                 'images' => array_values(array_filter($post->images ?: [])),
-                'author_username' => $post->nro_account_id
-                    ? ($playerNamesByAccount[(int) $post->nro_account_id] ?? 'Chiến binh')
-                    : (string) $post->author_username,
+                'author_username' => $post->type === 'announcement' || ! $post->nro_account_id
+                    ? (string) $post->author_username
+                    : ($playerNamesByAccount[(int) $post->nro_account_id] ?? 'Chiến binh'),
                 'author_avatar' => $post->author_avatar ?: $this->defaultAvatarUrl(),
                 'status' => (string) $post->status,
                 'is_pinned' => (bool) $post->is_pinned,

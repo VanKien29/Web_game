@@ -10,7 +10,6 @@ const pageLoaders = {
     profile: () => import("../pages/ProfilePage.vue"),
     topupAtm: () => import("../pages/TopupAtmPage.vue"),
     topupCard: () => import("../pages/TopupCardPage.vue"),
-    postDetail: () => import("../pages/PostDetailPage.vue"),
 };
 
 const loadedPages = new Map();
@@ -52,6 +51,11 @@ const routes = [
         component: () => loadPage("forum"),
     },
     {
+        path: "/forum/:postId(\\d+)",
+        name: "forum-post",
+        component: () => loadPage("forum"),
+    },
+    {
         path: "/login",
         name: "login",
         component: () => loadPage("login"),
@@ -80,9 +84,12 @@ const routes = [
         meta: { requiresAuth: true },
     },
     {
+        path: "/post",
+        redirect: "/forum",
+    },
+    {
         path: "/post/:slug",
-        name: "post-detail",
-        component: () => loadPage("postDetail"),
+        redirect: "/forum",
     },
 ];
 

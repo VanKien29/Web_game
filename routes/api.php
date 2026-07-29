@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\BxhController;
 use App\Http\Controllers\Api\ForumController;
 use App\Http\Controllers\Api\GiftcodeController;
 use App\Http\Controllers\Api\HomeController;
-use App\Http\Controllers\Api\PostInteractionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SePayController;
 use App\Http\Controllers\Api\TopupCardController;
@@ -25,10 +24,6 @@ Route::prefix('api')->group(function () {
     Route::get('/forum/posts/{post}', [ForumController::class, 'show'])->whereNumber('post');
     Route::get('/forum/posts/{post}/comments', [ForumController::class, 'comments'])->whereNumber('post');
     Route::post('/forum/posts/{post}/share', [ForumController::class, 'share'])->whereNumber('post');
-    Route::get('/posts/{slug}', [HomeController::class, 'postDetail']);
-    Route::get('/posts/{slug}/engagement', [PostInteractionController::class, 'engagement']);
-    Route::get('/posts/{slug}/comments', [PostInteractionController::class, 'comments']);
-
     Route::post('/auth/login', [AuthController::class, 'login'])
         ->middleware('throttle:client-login');
     Route::post('/auth/register', [AuthController::class, 'register'])
@@ -45,9 +40,6 @@ Route::prefix('api')->group(function () {
         Route::get('/topup/history', [TopupController::class, 'history']);
         Route::post('/topup/card', [TopupCardController::class, 'submit']);
         Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);
-        Route::post('/posts/{slug}/like', [PostInteractionController::class, 'togglePostLike']);
-        Route::post('/comments/{comment}/like', [PostInteractionController::class, 'toggleCommentLike'])->whereNumber('comment');
-
         Route::put('/forum/posts/{post}', [ForumController::class, 'update'])->whereNumber('post');
         Route::delete('/forum/posts/{post}', [ForumController::class, 'destroy'])->whereNumber('post');
         Route::post('/forum/posts/read-all', [ForumController::class, 'markAllRead']);
@@ -59,7 +51,6 @@ Route::prefix('api')->group(function () {
         Route::post('/forum/comments/{comment}/reaction', [ForumController::class, 'toggleCommentReaction'])->whereNumber('comment');
 
         Route::middleware('game.player')->group(function () {
-            Route::post('/posts/{slug}/comments', [PostInteractionController::class, 'storeComment']);
             Route::post('/forum/posts', [ForumController::class, 'store']);
             Route::post('/forum/posts/{post}/comments', [ForumController::class, 'storeComment'])->whereNumber('post');
         });
