@@ -18,7 +18,7 @@
                         <span v-else>{{ currentInitial }}</span>
                     </div>
                     <div>
-                        <strong>{{ currentUsername || "Người chơi" }}</strong>
+                        <strong>{{ currentDisplayName }}</strong>
                         <span>{{
                             isLoggedIn ? "Đang trực tuyến" : "Chưa đăng nhập"
                         }}</span>
@@ -129,9 +129,17 @@
                                 />
                                 <textarea
                                     v-model="composer.content"
-                                    rows="4"
+                                    :maxlength="postContentLimit"
+                                    rows="5"
+                                    wrap="soft"
                                     placeholder="Bạn đang nghĩ gì?"
+                                    @input="autoResizePostTextarea"
                                 ></textarea>
+                                <small class="forum-character-counter">
+                                    {{ composer.content.length }}/{{
+                                        postContentLimit
+                                    }}
+                                </small>
                             </div>
                         </div>
 
@@ -161,11 +169,7 @@
                             <button
                                 type="button"
                                 class="forum-tool"
-                                @click="
-                                    composer.content += composer.content
-                                        ? '\n#hoi-dap '
-                                        : '#hoi-dap '
-                                "
+                                @click="appendComposerTopic"
                             >
                                 <ForumIcon name="tag" />
                                 <span>Chủ đề</span>
@@ -312,8 +316,16 @@
                             />
                             <textarea
                                 v-model="editPost.content"
+                                :maxlength="postContentLimit"
                                 rows="5"
+                                wrap="soft"
+                                @input="autoResizePostTextarea"
                             ></textarea>
+                            <small class="forum-character-counter">
+                                {{ editPost.content.length }}/{{
+                                    postContentLimit
+                                }}
+                            </small>
                             <div class="forum-edit-box__actions">
                                 <button
                                     type="button"
@@ -331,10 +343,21 @@
                             <div
                                 class="forum-post__content-wrap"
                                 :class="{
-                                    collapsed:
-                                        isLongPost(post) &&
-                                        !post.contentExpanded,
+                                    collapsed: isPostCollapsed(post),
+                                    expandable: isPostCollapsed(post),
                                 }"
+                                :role="
+                                    isPostCollapsed(post) ? 'button' : undefined
+                                "
+                                :tabindex="isPostCollapsed(post) ? 0 : undefined"
+                                :aria-expanded="
+                                    isLongPost(post)
+                                        ? String(post.contentExpanded)
+                                        : undefined
+                                "
+                                @click="expandPostContent(post)"
+                                @keydown.enter.prevent="expandPostContent(post)"
+                                @keydown.space.prevent="expandPostContent(post)"
                             >
                                 <div
                                     v-if="post.type === 'announcement'"
@@ -344,26 +367,14 @@
                                 <p v-else class="forum-post__content">
                                     {{ post.content }}
                                 </p>
+                                <span
+                                    v-if="isPostCollapsed(post)"
+                                    class="forum-post__expand-hint"
+                                    aria-hidden="true"
+                                >
+                                    Xem thêm
+                                </span>
                             </div>
-                            <button
-                                v-if="isLongPost(post)"
-                                type="button"
-                                class="forum-read-more"
-                                @click="togglePostContent(post)"
-                            >
-                                {{
-                                    post.contentExpanded
-                                        ? "Thu gọn"
-                                        : "Xem thêm"
-                                }}
-                                <ForumIcon
-                                    :name="
-                                        post.contentExpanded
-                                            ? 'chevron-up'
-                                            : 'chevron-down'
-                                    "
-                                />
-                            </button>
                         </template>
 
                         <div
@@ -828,6 +839,8 @@ import BasePixelDialog from "../components/base/BasePixelDialog.vue";
 import ForumIcon from "../components/forum/ForumIcon.vue";
 import ForumReactionIcon from "../components/forum/ForumReactionIcon.vue";
 
+const POST_CONTENT_LIMIT = 500;
+
 const emptyComposer = () => ({
     type: "player_post",
     title: "",
@@ -865,8 +878,10 @@ export default {
                 showCancel: false,
             },
             dialogResolver: null,
+            postContentLimit: POST_CONTENT_LIMIT,
             composer: emptyComposer(),
             currentAvatarUrl: "",
+            currentPlayerName: "",
             commentDrafts: {},
             replyDrafts: {},
             replyingTo: {},
@@ -949,18 +964,11 @@ export default {
         isLoggedIn() {
             return !!localStorage.getItem("token");
         },
-        currentUsername() {
-            try {
-                return (
-                    JSON.parse(localStorage.getItem("user") || "{}").username ||
-                    ""
-                );
-            } catch {
-                return "";
-            }
+        currentDisplayName() {
+            return this.currentPlayerName || "Người chơi";
         },
         currentInitial() {
-            return this.initial(this.currentUsername || "U");
+            return this.initial(this.currentDisplayName);
         },
         activeFilterTab() {
             return (
@@ -1066,8 +1074,10 @@ export default {
                     this.authHeaders(),
                 );
                 this.currentAvatarUrl = data?.data?.player?.avatar_url || "";
+                this.currentPlayerName = data?.data?.player?.name || "";
             } catch {
                 this.currentAvatarUrl = "";
+                this.currentPlayerName = "";
             }
         },
         async loadFeed(reset = false) {
@@ -1152,8 +1162,34 @@ export default {
                 URL.createObjectURL(file),
             );
         },
+        appendComposerTopic() {
+            const suffix = this.composer.content ? "\n#hoi-dap " : "#hoi-dap ";
+            this.composer.content = `${this.composer.content}${suffix}`.slice(
+                0,
+                this.postContentLimit,
+            );
+        },
+        autoResizePostTextarea(event) {
+            const textarea = event?.target;
+            if (!(textarea instanceof HTMLTextAreaElement)) return;
+
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.min(
+                Math.max(textarea.scrollHeight, 104),
+                320,
+            )}px`;
+            textarea.style.overflowY =
+                textarea.scrollHeight > 320 ? "auto" : "hidden";
+        },
         async submitPost() {
             if (!this.requireLogin() || !this.composer.content.trim()) return;
+            if (this.composer.content.length > this.postContentLimit) {
+                this.showPopup(
+                    `Nội dung bài viết tối đa ${this.postContentLimit} ký tự.`,
+                    { title: "Nội dung quá dài", tone: "warning" },
+                );
+                return;
+            }
             this.posting = true;
             try {
                 const form = new FormData();
@@ -1197,6 +1233,13 @@ export default {
         },
         async savePost(post) {
             if (!this.editPost.content.trim()) return;
+            if (this.editPost.content.length > this.postContentLimit) {
+                this.showPopup(
+                    `Nội dung bài viết tối đa ${this.postContentLimit} ký tự.`,
+                    { title: "Nội dung quá dài", tone: "warning" },
+                );
+                return;
+            }
             try {
                 const { data } = await axios.put(
                     `/api/forum/posts/${post.id}`,
@@ -1218,9 +1261,9 @@ export default {
             const confirmed = await this.askConfirmation({
                 title: "Xóa bài viết",
                 message:
-                    "Bài viết và các bình luận bên trong sẽ không còn hiển thị. Bạn có chắc muốn xóa?",
+                    "Bài viết, bình luận và các tương tác liên quan sẽ bị xóa vĩnh viễn. Bạn có chắc muốn tiếp tục?",
                 tone: "danger",
-                confirmLabel: "Xóa bài",
+                confirmLabel: "Xóa vĩnh viễn",
             });
             if (!confirmed) return;
             try {
@@ -1545,13 +1588,15 @@ export default {
                 /<[^>]+>/g,
                 " ",
             );
-            return content.length > 420 || content.split(/\r?\n/).length > 6;
+            return content.length > 280 || content.split(/\r?\n/).length > 5;
         },
-        togglePostContent(post) {
-            post.contentExpanded = !post.contentExpanded;
-            if (post.contentExpanded) {
-                this.markPostRead(post, { silent: true });
-            }
+        isPostCollapsed(post) {
+            return this.isLongPost(post) && !post.contentExpanded;
+        },
+        expandPostContent(post) {
+            if (!this.isPostCollapsed(post)) return;
+            post.contentExpanded = true;
+            this.markPostRead(post, { silent: true });
         },
         observePostCard(el, post) {
             if (!el || !post?.id || !this.isLoggedIn || !post.is_unread) return;
@@ -2207,7 +2252,8 @@ export default {
     color: #3e2b1d;
     line-height: 1.62;
     margin: 12px 0 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
 }
 
 .forum-post__content--rich {
@@ -2237,19 +2283,6 @@ export default {
 .forum-post__content--rich :deep(a) {
     color: #a65316;
     font-weight: 800;
-}
-
-.forum-read-more {
-    border: 0;
-    background: transparent;
-    color: #a65316;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 0;
-    margin-top: 2px;
-    cursor: pointer;
 }
 
 .forum-edit-box {
@@ -3164,6 +3197,17 @@ export default {
     padding: 10px 11px !important;
     resize: vertical;
     line-height: 1.55;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: pre-wrap;
+}
+
+.forum-character-counter {
+    justify-self: end;
+    margin-top: -4px;
+    color: var(--forum-muted);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .forum-title-input:focus,
@@ -3502,6 +3546,15 @@ export default {
     overflow: hidden;
 }
 
+.forum-post__content-wrap.expandable {
+    cursor: pointer;
+}
+
+.forum-post__content-wrap.expandable:focus-visible {
+    outline: 2px solid var(--forum-orange);
+    outline-offset: -2px;
+}
+
 .forum-post__content-wrap.collapsed::after {
     position: absolute;
     right: 0;
@@ -3511,6 +3564,7 @@ export default {
     content: "";
     background: linear-gradient(transparent, var(--forum-paper-soft));
     pointer-events: none;
+    z-index: 1;
 }
 
 .forum-post__content {
@@ -3519,8 +3573,26 @@ export default {
     font-family: var(--font-sans);
     font-size: 0.86rem;
     line-height: 1.72;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
     white-space: pre-wrap;
+}
+
+.forum-post__expand-hint {
+    position: absolute;
+    right: 18px;
+    bottom: 5px;
+    z-index: 2;
+    padding-left: 24px;
+    color: var(--forum-orange-dark);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--forum-paper-soft) 22%
+    );
+    font-size: 0.72rem;
+    font-weight: 800;
+    pointer-events: none;
 }
 
 .forum-post__content--rich {
@@ -3543,21 +3615,6 @@ export default {
 
 .forum-post__content--rich :deep(a) {
     color: var(--forum-blue-dark) !important;
-    font-weight: 800;
-}
-
-.forum-read-more {
-    display: inline-flex;
-    min-height: 30px;
-    align-items: center;
-    gap: 6px;
-    margin: 3px 18px 12px;
-    padding: 4px 9px;
-    cursor: pointer;
-    color: var(--forum-orange-dark);
-    background: #ffedbd;
-    border: 1px solid var(--forum-line-soft);
-    font-size: 0.7rem;
     font-weight: 800;
 }
 

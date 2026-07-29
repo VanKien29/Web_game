@@ -9,6 +9,7 @@ use App\Models\ForumPostReaction;
 use App\Models\ForumPostRead;
 use App\Models\ForumPostSave;
 use App\Models\Game\Account;
+use App\Models\Game\Player;
 use App\Services\JwtService;
 use App\Services\ProfileAppearanceService;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,8 @@ class ForumController extends Controller
     private const PLAYER_POST_TYPES = ['player_post', 'feedback'];
 
     private const REACTION_TYPES = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+
+    private const POST_CONTENT_MAX_LENGTH = 500;
 
     public function __construct(
         private readonly ProfileAppearanceService $profileAppearance,
@@ -74,10 +77,25 @@ class ForumController extends Controller
         }
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
+            $matchingPlayerAccountIds = Player::query()
+                ->where('name', 'like', "%{$search}%")
+                ->limit(100)
+                ->pluck('account_id')
+                ->all();
+
+            $query->where(function ($q) use ($matchingPlayerAccountIds, $search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%")
-                    ->orWhere('author_username', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
+
+                if ($matchingPlayerAccountIds) {
+                    $q->orWhereIn('nro_account_id', $matchingPlayerAccountIds);
+                }
+
+                $q->orWhere(function ($announcementQuery) use ($search) {
+                    $announcementQuery
+                        ->whereNull('nro_account_id')
+                        ->where('author_username', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -115,14 +133,20 @@ class ForumController extends Controller
     public function store(Request $request): JsonResponse
     {
         $account = $request->get('game_user');
-        $validator = Validator::make($request->all(), [
-            'type' => ['nullable', 'in:player_post,feedback'],
-            'title' => ['nullable', 'string', 'max:160'],
-            'content' => ['required', 'string', 'min:1', 'max:6000'],
-            'images' => ['nullable', 'array', 'max:8'],
-            'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
-            'image_urls' => ['nullable'],
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'type' => ['nullable', 'in:player_post,feedback'],
+                'title' => ['nullable', 'string', 'max:160'],
+                'content' => ['required', 'string', 'min:1', 'max:'.self::POST_CONTENT_MAX_LENGTH],
+                'images' => ['nullable', 'array', 'max:8'],
+                'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
+                'image_urls' => ['nullable'],
+            ],
+            [
+                'content.max' => 'Nội dung bài viết tối đa '.self::POST_CONTENT_MAX_LENGTH.' ký tự.',
+            ],
+        );
 
         if ($validator->fails()) {
             return response()->json([
@@ -137,7 +161,7 @@ class ForumController extends Controller
                 ? $request->input('type')
                 : 'player_post',
             'nro_account_id' => $account->id,
-            'author_username' => (string) $account->username,
+            'author_username' => $this->displayNameForAccount($account),
             'author_avatar' => $this->avatarUrlForAccount($account),
             'title' => $this->cleanTitle($request->input('title')),
             'content' => $this->cleanContent($request->input('content')),
@@ -165,16 +189,22 @@ class ForumController extends Controller
             return response()->json(['ok' => false, 'message' => 'Bạn không có quyền sửa bài này.'], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'type' => ['nullable', 'in:player_post,feedback'],
-            'title' => ['nullable', 'string', 'max:160'],
-            'content' => ['required', 'string', 'min:1', 'max:6000'],
-            'images' => ['nullable', 'array', 'max:8'],
-            'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
-            'keep_images' => ['nullable', 'array'],
-            'keep_images.*' => ['nullable', 'string', 'max:500'],
-            'image_urls' => ['nullable'],
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'type' => ['nullable', 'in:player_post,feedback'],
+                'title' => ['nullable', 'string', 'max:160'],
+                'content' => ['required', 'string', 'min:1', 'max:'.self::POST_CONTENT_MAX_LENGTH],
+                'images' => ['nullable', 'array', 'max:8'],
+                'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
+                'keep_images' => ['nullable', 'array'],
+                'keep_images.*' => ['nullable', 'string', 'max:500'],
+                'image_urls' => ['nullable'],
+            ],
+            [
+                'content.max' => 'Nội dung bài viết tối đa '.self::POST_CONTENT_MAX_LENGTH.' ký tự.',
+            ],
+        );
 
         if ($validator->fails()) {
             return response()->json([
@@ -214,7 +244,7 @@ class ForumController extends Controller
             return response()->json(['ok' => false, 'message' => 'Bạn không có quyền xóa bài này.'], 403);
         }
 
-        $forumPost->update(['status' => 'deleted']);
+        $forumPost->delete();
 
         return response()->json(['ok' => true, 'message' => 'Đã xóa bài viết.']);
     }
@@ -406,7 +436,7 @@ class ForumController extends Controller
             'forum_post_id' => $forumPost->id,
             'parent_comment_id' => $parentId,
             'nro_account_id' => $account->id,
-            'username' => (string) $account->username,
+            'username' => $this->displayNameForAccount($account),
             'avatar_url' => $this->avatarUrlForAccount($account),
             'content' => $content,
             'status' => 'visible',
@@ -582,8 +612,11 @@ class ForumController extends Controller
 
         $savedLookup = array_flip($savedIds);
         $readLookup = array_flip($readIds);
+        $playerNamesByAccount = $this->playerNamesForAccounts(
+            $posts->pluck('nro_account_id')->all(),
+        );
 
-        return $posts->map(function (ForumPost $post) use ($account, $reactionCounts, $userReactions, $savedLookup, $readLookup) {
+        return $posts->map(function (ForumPost $post) use ($account, $playerNamesByAccount, $reactionCounts, $userReactions, $savedLookup, $readLookup) {
             $isOwn = $account
                 && $post->type !== 'announcement'
                 && (int) $post->nro_account_id === (int) $account->id;
@@ -596,7 +629,9 @@ class ForumController extends Controller
                 'title' => $post->title,
                 'content' => (string) $post->content,
                 'images' => array_values(array_filter($post->images ?: [])),
-                'author_username' => (string) $post->author_username,
+                'author_username' => $post->nro_account_id
+                    ? ($playerNamesByAccount[(int) $post->nro_account_id] ?? 'Chiến binh')
+                    : (string) $post->author_username,
                 'author_avatar' => $post->author_avatar ?: $this->defaultAvatarUrl(),
                 'status' => (string) $post->status,
                 'is_pinned' => (bool) $post->is_pinned,
@@ -640,12 +675,16 @@ class ForumController extends Controller
         $avatarByAccount = $this->profileAppearance->headAvatarUrlsForAccounts(
             $comments->pluck('nro_account_id')->all(),
         );
+        $playerNamesByAccount = $this->playerNamesForAccounts(
+            $comments->pluck('nro_account_id')->all(),
+        );
         $rows = $comments
             ->map(fn (ForumComment $comment) => $this->commentRow(
                 $comment,
                 $account,
                 $likedLookup,
                 $avatarByAccount,
+                $playerNamesByAccount,
             ))
             ->all();
 
@@ -674,12 +713,14 @@ class ForumController extends Controller
         ?Account $account,
         array $likedLookup,
         array $avatarByAccount = [],
+        array $playerNamesByAccount = [],
     ): array {
         return [
             'id' => (int) $comment->id,
             'forum_post_id' => (int) $comment->forum_post_id,
             'parent_comment_id' => $comment->parent_comment_id ? (int) $comment->parent_comment_id : null,
-            'username' => (string) $comment->username,
+            'username' => $playerNamesByAccount[(int) $comment->nro_account_id]
+                ?? 'Chiến binh',
             'avatar_url' => $avatarByAccount[(int) $comment->nro_account_id]
                 ?? ($comment->avatar_url ?: $this->defaultAvatarUrl()),
             'content' => (string) $comment->content,
@@ -927,6 +968,41 @@ class ForumController extends Controller
         } catch (\Throwable) {
             return $this->defaultAvatarUrl();
         }
+    }
+
+    private function displayNameForAccount(Account $account): string
+    {
+        $account->loadMissing('player');
+        $playerName = trim((string) ($account->player?->name ?? ''));
+
+        return $playerName !== '' ? $playerName : 'Chiến binh';
+    }
+
+    /**
+     * @param  array<int, int|string|null>  $accountIds
+     * @return array<int, string>
+     */
+    private function playerNamesForAccounts(array $accountIds): array
+    {
+        $ids = collect($accountIds)
+            ->map(fn (mixed $accountId) => (int) $accountId)
+            ->filter(fn (int $accountId) => $accountId > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        return Player::query()
+            ->whereIn('account_id', $ids)
+            ->get(['account_id', 'name'])
+            ->mapWithKeys(function (Player $player) {
+                $name = trim((string) $player->name);
+
+                return $name !== '' ? [(int) $player->account_id => $name] : [];
+            })
+            ->all();
     }
 
     private function defaultAvatarUrl(): string
