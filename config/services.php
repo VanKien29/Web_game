@@ -65,6 +65,7 @@ return [
         'webhook_api_key' => env('SEPAY_WEBHOOK_API_KEY', ''),
         'cron_secret' => env('SEPAY_CRON_SECRET', ''),
         'prefix' => env('SEPAY_PREFIX', 'naptien'),
+        'legacy_username_enabled' => env('SEPAY_LEGACY_USERNAME_ENABLED', true),
     ],
 
     'thesieutoc' => [

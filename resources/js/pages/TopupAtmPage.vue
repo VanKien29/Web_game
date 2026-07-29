@@ -179,7 +179,6 @@ interface AtmSettings {
     bank_name?: string;
     bank_account?: string;
     bank_owner?: string;
-    transfer_prefix?: string;
 }
 
 interface AtmTransaction {
@@ -195,7 +194,7 @@ const amount = ref(10000);
 const bankName = ref("");
 const bankAccount = ref("");
 const bankOwner = ref("");
-const transferPrefix = ref("naptien");
+const transferContent = ref("");
 const history = ref<AtmTransaction[]>([]);
 const loading = ref(true);
 const loadError = ref("");
@@ -203,27 +202,6 @@ const loginRequired = ref(false);
 const qrAttemptIndex = ref(0);
 const copied = ref(false);
 let copyTimer: ReturnType<typeof window.setTimeout> | null = null;
-
-const currentUsername = computed(() => {
-    try {
-        return String(
-            JSON.parse(localStorage.getItem("user") || "{}").username || "",
-        )
-            .trim()
-            .toLowerCase();
-    } catch {
-        return "";
-    }
-});
-
-const transferContent = computed(() => {
-    const prefix = transferPrefix.value.trim() || "naptien";
-    if (!currentUsername.value) return prefix;
-
-    return prefix.includes("{username}")
-        ? prefix.replaceAll("{username}", currentUsername.value)
-        : `${prefix} ${currentUsername.value}`.trim();
-});
 
 const normalizedBankName = computed(() =>
     bankName.value.toUpperCase().replace(/[^A-Z0-9]/g, ""),
@@ -322,19 +300,26 @@ async function loadData(): Promise<void> {
         bankName.value = settings.bank_name || "MB";
         bankAccount.value = settings.bank_account || "";
         bankOwner.value = settings.bank_owner || "";
-        transferPrefix.value = settings.transfer_prefix || "naptien";
 
         const token = localStorage.getItem("token");
-        if (!token || !currentUsername.value) {
+        if (!token) {
             history.value = [];
             loginRequired.value = true;
             return;
         }
 
-        const historyResponse = await axios.get(
-            "/api/topup/history",
-            authHeaders(),
-        );
+        const [paymentCodeResponse, historyResponse] = await Promise.all([
+            axios.get("/api/topup/atm-payment-code", authHeaders()),
+            axios.get("/api/topup/history", authHeaders()),
+        ]);
+        transferContent.value = String(
+            paymentCodeResponse.data?.transfer_content || "",
+        ).trim();
+
+        if (!transferContent.value) {
+            throw new Error("missing_payment_code");
+        }
+
         history.value = historyResponse.data?.ok
             ? historyResponse.data.data || []
             : [];

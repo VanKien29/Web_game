@@ -39,6 +39,7 @@ Route::prefix('api')->group(function () {
         Route::post('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/activate', [AuthController::class, 'activate']);
         Route::get('/profile', [ProfileController::class, 'profile']);
+        Route::get('/topup/atm-payment-code', [TopupController::class, 'atmPaymentCode']);
         Route::get('/topup/history', [TopupController::class, 'history']);
         Route::post('/topup/card', [TopupCardController::class, 'submit']);
         Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);

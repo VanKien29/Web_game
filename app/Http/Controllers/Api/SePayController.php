@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Game\Account;
 use App\Models\Game\TopupTransaction;
 use App\Models\Setting;
+use App\Services\TopupPaymentCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Log;
 
 class SePayController extends Controller
 {
+    public function __construct(
+        private readonly TopupPaymentCodeService $paymentCodes,
+    ) {}
+
     public function cron(Request $request): JsonResponse
     {
         $cfg = config('services.sepay');
@@ -24,7 +29,7 @@ class SePayController extends Controller
             return response()->json(['ok' => false, 'error' => 'cron_not_configured'], 503);
         }
 
-        if (!hash_equals($cronSecret, $secret)) {
+        if (! hash_equals($cronSecret, $secret)) {
             return response()->json(['ok' => false, 'error' => 'forbidden'], 403);
         }
 
@@ -37,13 +42,13 @@ class SePayController extends Controller
             ->timeout(20)
             ->get($cfg['api_url']);
 
-        if (!$response->ok()) {
+        if (! $response->ok()) {
             return response()->json(['ok' => false, 'error' => 'fetch_failed']);
         }
 
         $data = $response->json();
         $transactions = $data['transactions'] ?? $data['data'] ?? null;
-        if (!is_array($transactions)) {
+        if (! is_array($transactions)) {
             return response()->json(['ok' => false, 'error' => 'invalid_response']);
         }
 
@@ -66,7 +71,7 @@ class SePayController extends Controller
             return response()->json(['ok' => false, 'error' => 'missing_api_key'], 401);
         }
 
-        if (!$this->validWebhookApiKey($apiKey, $webhookKeys)) {
+        if (! $this->validWebhookApiKey($apiKey, $webhookKeys)) {
             Log::warning('SePay webhook invalid API key', [
                 'received_length' => strlen($apiKey),
                 'configured_key_count' => count($webhookKeys),
@@ -95,12 +100,11 @@ class SePayController extends Controller
     {
         $keys = [
             config('services.sepay.webhook_api_key'),
-            env('SEPAY_WEBHOOK_API_KEY'),
             Setting::getValue('sepay_webhook_api_key'),
         ];
 
         return array_values(array_unique(array_filter(array_map(
-            fn($key) => trim((string) $key),
+            fn ($key) => trim((string) $key),
             $keys,
         ))));
     }
@@ -145,29 +149,30 @@ class SePayController extends Controller
         $credited = 0;
 
         foreach ($transactions as $gd) {
-            $desc = strtolower(trim($gd['transaction_content'] ?? $gd['content'] ?? ''));
+            $desc = trim((string) ($gd['transaction_content'] ?? $gd['content'] ?? ''));
             $transferType = strtolower(trim((string) ($gd['transfer_type'] ?? $gd['transferType'] ?? '')));
             $amount = $this->parseAmount($gd['amount_in'] ?? $gd['transferAmount'] ?? 0);
             $transId = trim((string) ($gd['id'] ?? $gd['reference_number'] ?? $gd['referenceCode'] ?? ''));
 
-            if ($transferType !== '' && $transferType !== 'in') continue;
-            if ($amount <= 0 || !$transId) continue;
-            $processed++;
-
-            if (!preg_match('/\b' . preg_quote($prefix, '/') . '\s+(\S+)/i', $desc, $m)) {
+            if ($transferType !== '' && $transferType !== 'in') {
                 continue;
             }
+            if ($amount <= 0 || ! $transId) {
+                continue;
+            }
+            $processed++;
 
-            $username = strtolower(trim($m[1]));
+            $account = $this->resolvePaymentAccount($desc, $prefix);
+            if (! $account) {
+                continue;
+            }
+            $username = strtolower(trim((string) $account->username));
 
             // Credit directly to both cash and danap
             try {
                 if (TopupTransaction::where('trans_id', $transId)->exists()) {
                     continue;
                 }
-
-                $account = Account::where('username', $username)->first();
-                if (!$account) continue;
 
                 DB::connection('game')->transaction(function () use ($account, $transId, $username, $amount) {
                     TopupTransaction::create([
@@ -186,7 +191,7 @@ class SePayController extends Controller
 
                 $credited++;
             } catch (\Throwable $e) {
-                Log::error("SePay process error for trans {$transId}: " . $e->getMessage());
+                Log::error("SePay process error for trans {$transId}: ".$e->getMessage());
             }
         }
 
@@ -195,6 +200,40 @@ class SePayController extends Controller
             'processed' => $processed,
             'credited' => $credited,
         ];
+    }
+
+    private function resolvePaymentAccount(string $content, string $legacyPrefix): ?Account
+    {
+        $accountId = $this->paymentCodes->accountIdFromContent($content);
+
+        if ($accountId !== null) {
+            return Account::query()->find($accountId);
+        }
+
+        if (! config('services.sepay.legacy_username_enabled', true)) {
+            return null;
+        }
+
+        if (! preg_match('/\b'.preg_quote($legacyPrefix, '/').'\s+(\S+)/i', $content, $matches)) {
+            return null;
+        }
+
+        $username = strtolower(trim($matches[1]));
+        $accounts = Account::query()
+            ->where('username', $username)
+            ->limit(2)
+            ->get();
+
+        if ($accounts->count() !== 1) {
+            Log::warning('SePay legacy payment username is not unique', [
+                'username' => $username,
+                'match_count' => $accounts->count(),
+            ]);
+
+            return null;
+        }
+
+        return $accounts->first();
     }
 
     private function parseAmount($value): int
