@@ -344,20 +344,20 @@
                                 class="forum-post__content-wrap"
                                 :class="{
                                     collapsed: isPostCollapsed(post),
-                                    expandable: isPostCollapsed(post),
+                                    expandable: isLongPost(post),
                                 }"
                                 :role="
-                                    isPostCollapsed(post) ? 'button' : undefined
+                                    isLongPost(post) ? 'button' : undefined
                                 "
-                                :tabindex="isPostCollapsed(post) ? 0 : undefined"
+                                :tabindex="isLongPost(post) ? 0 : undefined"
                                 :aria-expanded="
                                     isLongPost(post)
                                         ? String(post.contentExpanded)
                                         : undefined
                                 "
-                                @click="expandPostContent(post)"
-                                @keydown.enter.prevent="expandPostContent(post)"
-                                @keydown.space.prevent="expandPostContent(post)"
+                                @click="togglePostContent(post)"
+                                @keydown.enter.prevent="togglePostContent(post)"
+                                @keydown.space.prevent="togglePostContent(post)"
                             >
                                 <div
                                     v-if="post.type === 'announcement'"
@@ -368,11 +368,19 @@
                                     {{ post.content }}
                                 </p>
                                 <span
-                                    v-if="isPostCollapsed(post)"
+                                    v-if="isLongPost(post)"
                                     class="forum-post__expand-hint"
+                                    :class="{
+                                        'forum-post__expand-hint--collapse':
+                                            post.contentExpanded,
+                                    }"
                                     aria-hidden="true"
                                 >
-                                    Xem thêm
+                                    {{
+                                        isPostCollapsed(post)
+                                            ? "Xem thêm"
+                                            : "Thu gọn"
+                                    }}
                                 </span>
                             </div>
                         </template>
@@ -1593,10 +1601,12 @@ export default {
         isPostCollapsed(post) {
             return this.isLongPost(post) && !post.contentExpanded;
         },
-        expandPostContent(post) {
-            if (!this.isPostCollapsed(post)) return;
-            post.contentExpanded = true;
-            this.markPostRead(post, { silent: true });
+        togglePostContent(post) {
+            if (!this.isLongPost(post)) return;
+            post.contentExpanded = !post.contentExpanded;
+            if (post.contentExpanded) {
+                this.markPostRead(post, { silent: true });
+            }
         },
         observePostCard(el, post) {
             if (!el || !post?.id || !this.isLoggedIn || !post.is_unread) return;
@@ -3593,6 +3603,15 @@ export default {
     font-size: 0.72rem;
     font-weight: 800;
     pointer-events: none;
+}
+
+.forum-post__expand-hint--collapse {
+    position: static;
+    display: block;
+    margin-top: 6px;
+    padding-left: 0;
+    text-align: right;
+    background: none;
 }
 
 .forum-post__content--rich {
