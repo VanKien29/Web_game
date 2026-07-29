@@ -75,8 +75,18 @@
         };
       }
 
+      function isIgnorableBrowserError(message) {
+        var text = String(message || '');
+        var firstLine = text.trim().split(/\r?\n/, 1)[0];
+        return mobileBrowser &&
+          /^(TypeError:\s*)?Permissions check failed\.?$/i.test(firstLine);
+      }
+
       function setRuntimeError(message) {
         var text = String(message || 'Lỗi không xác định');
+        if (isIgnorableBrowserError(text)) {
+          return;
+        }
         runtimeError.textContent = text.split('\n').slice(0, 20).join('\n');
         runtimeError.classList.remove('is-hidden');
       }
