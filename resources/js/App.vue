@@ -67,14 +67,22 @@
                             class="game-nav__btn game-nav__btn--login"
                             @click="menuOpen = false"
                         >
-                            Đăng nhập
+                            <i
+                                class="fa-solid fa-right-to-bracket"
+                                aria-hidden="true"
+                            ></i>
+                            <span>Đăng nhập</span>
                         </router-link>
                         <router-link
                             to="/register"
                             class="game-nav__btn game-nav__btn--register"
                             @click="menuOpen = false"
                         >
-                            Tạo tài khoản
+                            <i
+                                class="fa-solid fa-user-plus"
+                                aria-hidden="true"
+                            ></i>
+                            <span>Tạo tài khoản</span>
                         </router-link>
                     </template>
                 </nav>

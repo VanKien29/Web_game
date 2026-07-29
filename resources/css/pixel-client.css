@@ -2308,8 +2308,15 @@ html
 
 .game-nav__link > i,
 .game-nav__btn > i {
+    position: relative;
+    top: -1px;
+    display: inline-flex;
     width: 1.55em !important;
     height: 1.55em !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .game-nav__link:hover,
@@ -2615,7 +2622,8 @@ html
         font-size: 0.72rem !important;
     }
 
-    .game-nav__link i {
+    .game-nav__link i,
+    .game-nav__btn i {
         display: none;
     }
 
@@ -2737,8 +2745,9 @@ html
         justify-content: flex-start !important;
     }
 
-    .game-nav__link i {
-        display: inline-block;
+    .game-nav__link i,
+    .game-nav__btn i {
+        display: inline-flex;
     }
 
     .inner-page {
