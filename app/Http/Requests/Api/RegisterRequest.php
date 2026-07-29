@@ -35,7 +35,7 @@ class RegisterRequest extends FormRequest
                 'confirmed',
                 'max:18',
                 'regex:/\A[\x21-\x7E]+\z/',
-                Password::min(6)->letters()->numbers()->symbols(),
+                Password::min(6)->letters()->numbers(),
             ],
         ];
     }
@@ -64,7 +64,6 @@ class RegisterRequest extends FormRequest
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
             'password.letters' => 'Mật khẩu phải có ít nhất một chữ cái.',
             'password.numbers' => 'Mật khẩu phải có ít nhất một chữ số.',
-            'password.symbols' => 'Mật khẩu phải có ít nhất một ký tự đặc biệt.',
         ];
     }
 }

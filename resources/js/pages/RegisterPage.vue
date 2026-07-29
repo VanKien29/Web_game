@@ -38,7 +38,10 @@
                     class="client-auth-alert client-auth-alert--error"
                     role="alert"
                 >
-                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <i
+                        class="fa-solid fa-triangle-exclamation"
+                        aria-hidden="true"
+                    ></i>
                     <span>{{ error }}</span>
                 </div>
 
@@ -59,12 +62,6 @@
                                 required
                             />
                         </span>
-                        <small
-                            class="client-auth-field-hint"
-                            :class="{ valid: usernameValid }"
-                        >
-                            Chỉ chữ cái và chữ số, không có khoảng trắng.
-                        </small>
                     </label>
 
                     <label class="client-field">
@@ -83,20 +80,29 @@
                             <button
                                 type="button"
                                 class="client-auth-password-toggle"
-                                :aria-label="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                                :aria-label="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
+                                :aria-pressed="showPassword"
+                                :title="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
                                 @click="showPassword = !showPassword"
                             >
-                                {{ showPassword ? "Ẩn" : "Hiện" }}
+                                <i
+                                    class="fa-solid"
+                                    :class="
+                                        showPassword ? 'fa-eye-slash' : 'fa-eye'
+                                    "
+                                    aria-hidden="true"
+                                ></i>
                             </button>
                         </span>
                     </label>
-
-                    <ul class="client-auth-requirements" aria-label="Yêu cầu mật khẩu">
-                        <li :class="{ valid: passwordChecks.length }">6–18 ký tự</li>
-                        <li :class="{ valid: passwordChecks.letter }">Có chữ cái</li>
-                        <li :class="{ valid: passwordChecks.number }">Có chữ số</li>
-                        <li :class="{ valid: passwordChecks.symbol }">Có ký tự đặc biệt</li>
-                    </ul>
 
                     <label class="client-field">
                         <span>Nhập lại mật khẩu</span>
@@ -116,7 +122,11 @@
                             class="client-auth-field-hint"
                             :class="{ valid: passwordsMatch }"
                         >
-                            {{ passwordsMatch ? "Mật khẩu đã khớp." : "Mật khẩu chưa khớp." }}
+                            {{
+                                passwordsMatch
+                                    ? "Mật khẩu đã khớp."
+                                    : "Mật khẩu chưa khớp."
+                            }}
                         </small>
                     </label>
 
@@ -126,15 +136,16 @@
                         :disabled="loading"
                     >
                         <span v-if="loading" class="btn-loading-dot"></span>
-                        <i v-else class="fa-solid fa-user-plus" aria-hidden="true"></i>
-                        {{ loading ? "Đang tạo tài khoản..." : "Tạo tài khoản" }}
+                        <i
+                            v-else
+                            class="fa-solid fa-user-plus"
+                            aria-hidden="true"
+                        ></i>
+                        {{
+                            loading ? "Đang tạo tài khoản..." : "Tạo tài khoản"
+                        }}
                     </button>
                 </form>
-
-                <p class="client-auth-security-note">
-                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                    Không dùng lại mật khẩu từ email, mạng xã hội hoặc tài khoản quan trọng khác.
-                </p>
 
                 <p class="client-auth-note">
                     Đã có tài khoản?
@@ -177,7 +188,6 @@ const passwordChecks = computed(() => ({
     length: password.value.length >= 6 && password.value.length <= 18,
     letter: /[A-Za-z]/.test(password.value),
     number: /\d/.test(password.value),
-    symbol: /[^A-Za-z0-9]/.test(password.value),
     allowed: /^[\x21-\x7E]+$/.test(password.value),
 }));
 const passwordValid = computed(() =>
@@ -217,7 +227,7 @@ async function handleRegister(): Promise<void> {
 
     if (!passwordValid.value) {
         error.value =
-            "Mật khẩu cần 6–18 ký tự và phải có chữ, số, ký tự đặc biệt.";
+            "Mật khẩu cần 6–18 ký tự, có ít nhất một chữ và một số; ký tự đặc biệt không bắt buộc.";
         return;
     }
 

@@ -18,6 +18,7 @@ Thư mục này chứa các file `.md` ghi lại các quyết định đã đư�
 ## Quy tắc hiện tại:
 - [`rules/client-pixel-ui.md`](rules/client-pixel-ui.md) — Quy chuẩn giao diện pixel cho toàn bộ client công khai.
 - [`rules/fixed-topup-payment-code.md`](rules/fixed-topup-payment-code.md) — Mã nạp ATM cố định và không lộ danh tính tài khoản.
+- [`rules/client-password-validation.md`](rules/client-password-validation.md) — Quy tắc mật khẩu đăng ký client và nút hiện/ẩn mật khẩu.
 
 ---
 

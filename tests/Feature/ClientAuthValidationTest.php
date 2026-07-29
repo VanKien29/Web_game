@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Http\Requests\Api\RegisterRequest;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 class ClientAuthValidationTest extends TestCase
@@ -38,9 +40,9 @@ class ClientAuthValidationTest extends TestCase
         }
     }
 
-    public function test_registration_requires_letter_number_symbol_and_confirmation(): void
+    public function test_registration_requires_letter_number_and_confirmation(): void
     {
-        foreach (['abcdef', '123456', 'abc123', 'abc 123!'] as $password) {
+        foreach (['abcdef', '123456', 'abc 123!'] as $password) {
             $this->postJson('/api/auth/register', [
                 'username' => 'validuser123',
                 'password' => $password,
@@ -57,6 +59,24 @@ class ClientAuthValidationTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('password');
+    }
+
+    public function test_registration_accepts_passwords_with_or_without_a_symbol(): void
+    {
+        $request = new RegisterRequest;
+
+        foreach (['abc123', 'abc123!'] as $password) {
+            $validator = Validator::make([
+                'username' => 'validuser123',
+                'password' => $password,
+                'password_confirmation' => $password,
+            ], $request->rules());
+
+            $this->assertTrue(
+                $validator->passes(),
+                "Password [{$password}] should satisfy registration rules.",
+            );
+        }
     }
 
     public function test_public_identity_creation_routes_require_a_game_player(): void

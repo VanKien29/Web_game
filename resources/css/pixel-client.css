@@ -1732,14 +1732,17 @@ select:focus-visible {
 }
 
 .client-auth-password-toggle {
-    min-width: 46px;
-    min-height: 30px;
-    padding: 4px 8px;
+    display: inline-grid;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    place-items: center;
     color: var(--pixel-blue-dark);
     background: var(--pixel-paper);
     border: 1px solid var(--pixel-line-soft);
-    font-size: 0.68rem;
-    font-weight: 850;
+    font-size: 0.92rem;
+    line-height: 1;
     cursor: pointer;
 }
 

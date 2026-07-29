@@ -28,12 +28,17 @@
 
             <section class="client-panel client-auth-form">
                 <header class="client-auth-form__head">
-                    <span class="client-panel__eyebrow">Tài khoản người chơi</span>
+                    <span class="client-panel__eyebrow"
+                        >Tài khoản người chơi</span
+                    >
                     <h2>Đăng nhập</h2>
                     <p>Dùng tài khoản game Ngọc Rồng Horizon của bạn.</p>
                 </header>
 
-                <div v-if="notice" class="client-auth-alert client-auth-alert--success">
+                <div
+                    v-if="notice"
+                    class="client-auth-alert client-auth-alert--success"
+                >
                     <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
                     <span>{{ notice }}</span>
                 </div>
@@ -42,7 +47,10 @@
                     class="client-auth-alert client-auth-alert--error"
                     role="alert"
                 >
-                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <i
+                        class="fa-solid fa-triangle-exclamation"
+                        aria-hidden="true"
+                    ></i>
                     <span>{{ error }}</span>
                 </div>
 
@@ -79,10 +87,26 @@
                             <button
                                 type="button"
                                 class="client-auth-password-toggle"
-                                :aria-label="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                                :aria-label="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
+                                :aria-pressed="showPassword"
+                                :title="
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                "
                                 @click="showPassword = !showPassword"
                             >
-                                {{ showPassword ? "Ẩn" : "Hiện" }}
+                                <i
+                                    class="fa-solid"
+                                    :class="
+                                        showPassword ? 'fa-eye-slash' : 'fa-eye'
+                                    "
+                                    aria-hidden="true"
+                                ></i>
                             </button>
                         </span>
                     </label>
@@ -102,14 +126,11 @@
                     </button>
                 </form>
 
-                <p class="client-auth-security-note">
-                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                    Hệ thống giới hạn số lần thử và không hiển thị tài khoản có tồn tại hay không.
-                </p>
-
                 <p class="client-auth-note">
                     Chưa có tài khoản?
-                    <router-link :to="registerRoute">Tạo tài khoản mới</router-link>
+                    <router-link :to="registerRoute"
+                        >Tạo tài khoản mới</router-link
+                    >
                 </p>
             </section>
         </div>
