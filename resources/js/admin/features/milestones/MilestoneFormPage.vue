@@ -671,7 +671,10 @@ export default {
             });
         },
         openWelfare() {
-            this.$router.push({ name: "admin.welfare-configs" });
+            this.$router.push({
+                name: "admin.welfare-configs",
+                params: { type: "attendance_daily" },
+            });
         },
         closeResults(e) {
             if (!e.target.closest(".item-search-wrap")) {

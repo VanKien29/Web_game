@@ -210,18 +210,25 @@ const routes = [
     },
     {
         path: "/admin/welfare-configs",
+        redirect: {
+            name: "admin.welfare-configs",
+            params: { type: "attendance_daily" },
+        },
+    },
+    {
+        path: "/admin/welfare-configs/:type",
         name: "admin.welfare-configs",
         component: () => loadAdminPage("welfareConfigs"),
         meta: { auth: true },
     },
     {
-        path: "/admin/welfare-configs/create",
+        path: "/admin/welfare-configs/:type/create",
         name: "admin.welfare-configs.create",
         component: () => loadAdminPage("welfareConfigForm"),
         meta: { auth: true },
     },
     {
-        path: "/admin/welfare-configs/:id/edit",
+        path: "/admin/welfare-configs/:type/:id/edit",
         name: "admin.welfare-configs.edit",
         component: () => loadAdminPage("welfareConfigForm"),
         meta: { auth: true },

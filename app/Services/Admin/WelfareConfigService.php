@@ -261,6 +261,27 @@ final class WelfareConfigService extends AdminServiceSupport
             ];
         }
 
+        $optionIds = collect($input['rewards'] ?? [])
+            ->flatMap(fn ($reward) => collect($reward['options'] ?? [])->pluck('id'))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        if ($optionIds->isNotEmpty()) {
+            $existingOptionIds = DB::connection('game')
+                ->table('item_option_template')
+                ->whereIn('id', $optionIds->all())
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id);
+            $missingOptions = $optionIds->diff($existingOptionIds)->values();
+            if ($missingOptions->isNotEmpty()) {
+                return [
+                    'ok' => false,
+                    'status' => 422,
+                    'message' => 'Option không tồn tại: '.$missingOptions->implode(', '),
+                ];
+            }
+        }
+
         return null;
     }
 
@@ -273,6 +294,10 @@ final class WelfareConfigService extends AdminServiceSupport
             : collect($input['rewards'] ?? [])->map(fn ($reward) => [
                 'item_id' => (int) $reward['item_id'],
                 'amount' => (int) $reward['amount'],
+                'options' => collect($reward['options'] ?? [])->map(fn ($option) => [
+                    'id' => (int) $option['id'],
+                    'param' => (int) $option['param'],
+                ])->values()->all(),
             ])->values()->all();
 
         return [
@@ -298,6 +323,11 @@ final class WelfareConfigService extends AdminServiceSupport
                 ->map(fn ($reward) => [
                     'item_id' => (int) ($reward['item_id'] ?? 0),
                     'amount' => max(1, (int) ($reward['amount'] ?? 1)),
+                    'options' => collect($reward['options'] ?? [])->filter(fn ($option) => is_array($option))
+                        ->map(fn ($option) => [
+                            'id' => (int) ($option['id'] ?? 0),
+                            'param' => max(0, (int) ($option['param'] ?? 0)),
+                        ])->values()->all(),
                 ])->values()->all()
             : [];
 
