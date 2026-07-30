@@ -28,6 +28,7 @@
                     <option value="account">Tài khoản</option>
                     <option value="giftcode">Giftcode</option>
                     <option value="milestone">Mốc thưởng</option>
+                    <option value="welfare_config">Phúc lợi</option>
                     <option value="shop_tab">Tab shop</option>
                 </select>
                 <select v-model="filters.action" class="form-input">
@@ -283,6 +284,7 @@ export default {
                 account: "Tài khoản",
                 giftcode: "Giftcode",
                 milestone: "Mốc thưởng",
+                welfare_config: "Phúc lợi",
                 shop_tab: "Tab shop",
             };
             return map[type] || type;
@@ -460,4 +462,3 @@ export default {
     }
 }
 </style>
-

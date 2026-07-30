@@ -101,7 +101,7 @@
                             :class="{
                                 active: $route.name?.startsWith(
                                     'admin.milestones',
-                                ),
+                                ) || $route.name?.startsWith('admin.welfare-configs'),
                             }"
                             @click="closeMobile"
                         >
@@ -589,6 +589,7 @@ export default {
                 "backAccessories",
                 "shops",
                 "milestones",
+                "welfareConfigs",
                 "bosses",
                 "mapMobs",
                 "runtimeBuffs",

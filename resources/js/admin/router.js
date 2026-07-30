@@ -27,6 +27,10 @@ const pageLoaders = {
         import("./features/milestones/MilestonesPage.vue"),
     milestoneForm: () =>
         import("./features/milestones/MilestoneFormPage.vue"),
+    welfareConfigs: () =>
+        import("./features/milestones/WelfareConfigsPage.vue"),
+    welfareConfigForm: () =>
+        import("./features/milestones/WelfareConfigFormPage.vue"),
     shops: () => import("./features/shops/ShopsPage.vue"),
     shopTabForm: () => import("./features/shops/ShopTabFormPage.vue"),
     bosses: () => import("./features/runtime/BossesPage.vue"),
@@ -202,6 +206,24 @@ const routes = [
         path: "/admin/milestones/:type/:id/edit",
         name: "admin.milestones.edit",
         component: () => loadAdminPage("milestoneForm"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/welfare-configs",
+        name: "admin.welfare-configs",
+        component: () => loadAdminPage("welfareConfigs"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/welfare-configs/create",
+        name: "admin.welfare-configs.create",
+        component: () => loadAdminPage("welfareConfigForm"),
+        meta: { auth: true },
+    },
+    {
+        path: "/admin/welfare-configs/:id/edit",
+        name: "admin.welfare-configs.edit",
+        component: () => loadAdminPage("welfareConfigForm"),
         meta: { auth: true },
     },
     {
