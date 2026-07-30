@@ -46,6 +46,9 @@
             >
                 {{ t.label }}
             </button>
+            <button class="type-tab" @click="openWelfare">
+                Phúc lợi
+            </button>
         </div>
 
         <div v-if="error" class="alert alert-error">{{ error }}</div>
@@ -666,6 +669,9 @@ export default {
                 name: "admin.milestones.create",
                 params: { type },
             });
+        },
+        openWelfare() {
+            this.$router.push({ name: "admin.welfare-configs" });
         },
         closeResults(e) {
             if (!e.target.closest(".item-search-wrap")) {
@@ -1552,4 +1558,3 @@ export default {
     }
 }
 </style>
-

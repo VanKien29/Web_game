@@ -16,10 +16,11 @@ use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
 use App\Http\Controllers\Api\Admin\NpcTemplateController;
 use App\Http\Controllers\Api\Admin\PetController;
-use App\Http\Controllers\Api\Admin\PostController;
 use App\Http\Controllers\Api\Admin\PlayerController;
+use App\Http\Controllers\Api\Admin\PostController;
 use App\Http\Controllers\Api\Admin\ShopController;
 use App\Http\Controllers\Api\Admin\TitleItemController;
+use App\Http\Controllers\Api\Admin\WelfareConfigController;
 use App\Http\Controllers\Api\AdminRuntimeController;
 use Illuminate\Support\Facades\Route;
 
@@ -100,6 +101,13 @@ Route::prefix('admin')->group(function () {
         Route::post('/api/milestones/{type}', [MilestoneController::class, 'store']);
         Route::put('/api/milestones/{type}/{id}', [MilestoneController::class, 'update'])->whereNumber('id');
         Route::delete('/api/milestones/{type}/{id}', [MilestoneController::class, 'destroy'])->whereNumber('id');
+
+        Route::get('/api/welfare-configs', [WelfareConfigController::class, 'index']);
+        Route::get('/api/welfare-configs/{id}', [WelfareConfigController::class, 'show'])->whereNumber('id');
+        Route::post('/api/welfare-configs', [WelfareConfigController::class, 'store']);
+        Route::put('/api/welfare-configs/{id}', [WelfareConfigController::class, 'update'])->whereNumber('id');
+        Route::patch('/api/welfare-configs/{id}/toggle', [WelfareConfigController::class, 'toggle'])->whereNumber('id');
+        Route::delete('/api/welfare-configs/{id}', [WelfareConfigController::class, 'destroy'])->whereNumber('id');
 
         Route::get('/api/items', [ItemController::class, 'index']);
         Route::get('/api/items/batch', [ItemController::class, 'batch']);

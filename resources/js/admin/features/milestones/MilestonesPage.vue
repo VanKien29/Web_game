@@ -34,6 +34,9 @@
             >
                 {{ t.label }}
             </button>
+            <button class="type-tab" @click="openWelfare">
+                Phúc lợi
+            </button>
         </div>
 
         <div class="filter-bar">
@@ -254,6 +257,9 @@ export default {
                 name: "admin.milestones",
                 params: { type },
             });
+        },
+        openWelfare() {
+            this.$router.push({ name: "admin.welfare-configs" });
         },
         normalizePage(page) {
             const value = Number(page);
@@ -527,4 +533,3 @@ export default {
     padding: 6px 8px !important;
 }
 </style>
-
