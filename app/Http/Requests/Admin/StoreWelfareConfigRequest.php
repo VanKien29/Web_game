@@ -41,6 +41,9 @@ class StoreWelfareConfigRequest extends FormRequest
             ],
             'rewards.*.item_id' => ['required', 'integer', 'min:0'],
             'rewards.*.amount' => ['required', 'integer', 'min:1', 'max:2147483647'],
+            'rewards.*.options' => ['nullable', 'array', 'max:30'],
+            'rewards.*.options.*.id' => ['required', 'integer', 'min:0'],
+            'rewards.*.options.*.param' => ['required', 'integer', 'min:0', 'max:2147483647'],
             'msg_key' => [
                 Rule::requiredIf(fn () => ! $hasRewards),
                 'nullable',
@@ -68,6 +71,8 @@ class StoreWelfareConfigRequest extends FormRequest
             'rewards.min' => 'Cần thêm ít nhất một vật phẩm thưởng.',
             'rewards.*.item_id.required' => 'Vật phẩm thưởng chưa có ID.',
             'rewards.*.amount.min' => 'Số lượng vật phẩm phải lớn hơn 0.',
+            'rewards.*.options.*.id.required' => 'Option vật phẩm chưa có ID.',
+            'rewards.*.options.*.param.required' => 'Option vật phẩm chưa có chỉ số.',
             'msg_key.required' => 'Mã nội dung là bắt buộc.',
             'msg_key.regex' => 'Mã nội dung chỉ gồm chữ thường, số và dấu gạch dưới.',
             'msg_value.required' => 'Nội dung thông báo là bắt buộc.',

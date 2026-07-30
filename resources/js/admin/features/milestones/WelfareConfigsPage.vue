@@ -2,78 +2,56 @@
     <div>
         <div class="page-top">
             <div>
-                <h2 class="page-title">Mốc thưởng · Phúc lợi</h2>
+                <h2 class="page-title">{{ currentConfig.label }}</h2>
                 <nav class="breadcrumb">
                     <router-link :to="{ name: 'admin.dashboard' }">Trang chủ</router-link>
                     <span>/</span>
-                    <span class="current">Phúc lợi</span>
+                    <span>Mốc thưởng</span>
+                    <span>/</span>
+                    <span class="current">{{ currentConfig.label }}</span>
                 </nav>
             </div>
             <router-link
-                :to="{ name: 'admin.welfare-configs.create' }"
+                :to="{ name: 'admin.welfare-configs.create', params: { type: currentType } }"
                 class="btn btn-primary admin-fab"
             >
                 <span class="mi">add</span>
-                Thêm cấu hình
+                Thêm mốc
             </router-link>
         </div>
 
         <div class="type-tabs">
-            <button class="type-tab" @click="openMilestones('moc_nap')">Mốc nạp</button>
-            <button class="type-tab" @click="openMilestones('moc_nap_top')">Mốc nạp top</button>
-            <button class="type-tab" @click="openMilestones('moc_nhiem_vu_top')">Mốc nhiệm vụ top</button>
-            <button class="type-tab" @click="openMilestones('moc_suc_manh_top')">Mốc sức mạnh top</button>
-            <button class="type-tab active">Phúc lợi</button>
+            <button
+                v-for="option in WELFARE_TYPE_OPTIONS"
+                :key="option.value"
+                class="type-tab"
+                :class="{ active: option.value === currentType }"
+                @click="switchType(option.value)"
+            >
+                {{ option.label }}
+            </button>
         </div>
 
         <div v-if="error" class="alert alert-error">{{ error }}</div>
         <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-        <div class="filter-bar welfare-filters">
+        <div class="filter-bar">
             <form class="search-form" @submit.prevent="loadPage(1)">
                 <div class="search-input-wrap">
                     <span class="mi search-icon">search</span>
                     <input
                         v-model="filters.search"
                         class="form-input search-input"
-                        placeholder="Tìm ID, mốc, tên gói hoặc nội dung..."
+                        :placeholder="searchPlaceholder"
                     />
                 </div>
-                <select v-model="filters.type" class="form-input filter-select">
-                    <option value="">Tất cả loại</option>
-                    <option
-                        v-for="option in WELFARE_TYPE_OPTIONS"
-                        :key="option.value"
-                        :value="option.value"
-                    >
-                        {{ option.label }}
-                    </option>
-                </select>
-                <select v-model="filters.active" class="form-input filter-select">
+                <select v-model="filters.active" class="form-input status-filter">
                     <option value="">Tất cả trạng thái</option>
                     <option value="1">Đang bật</option>
                     <option value="0">Đang tắt</option>
                 </select>
-                <button class="btn btn-primary btn-sm" type="submit">Lọc</button>
-                <button class="btn btn-outline btn-sm" type="button" @click="resetFilters">
-                    Đặt lại
-                </button>
+                <button class="btn btn-primary btn-sm" type="submit">Tìm kiếm</button>
             </form>
-        </div>
-
-        <div class="summary-grid">
-            <div class="summary-card">
-                <span class="summary-label">Tổng cấu hình</span>
-                <strong>{{ total }}</strong>
-            </div>
-            <div class="summary-card">
-                <span class="summary-label">Loại đang xem</span>
-                <strong>{{ selectedTypeLabel }}</strong>
-            </div>
-            <div class="summary-card">
-                <span class="summary-label">Cập nhật game</span>
-                <strong>Tức thời</strong>
-            </div>
         </div>
 
         <div class="card">
@@ -82,10 +60,9 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Loại / mốc</th>
-                            <th>Thông tin</th>
-                            <th>Phần thưởng</th>
-                            <th>Giá cash</th>
+                            <th>{{ primaryColumnLabel }}</th>
+                            <th>{{ isMessage ? "Nội dung" : "Phần thưởng" }}</th>
+                            <th v-if="isPackage">Giá cash</th>
                             <th>Thứ tự</th>
                             <th>Trạng thái</th>
                             <th></th>
@@ -95,40 +72,37 @@
                         <tr v-for="row in rows" :key="row.id">
                             <td>#{{ row.id }}</td>
                             <td>
-                                <span class="type-badge">{{ row.type_label }}</span>
-                                <small v-if="usesReference(row.type)" class="sub-line">
-                                    Mốc: {{ formatNumber(row.ref_id) }}
-                                </small>
-                                <small v-else-if="row.type === 'message'" class="sub-line code-text">
-                                    {{ row.msg_key }}
+                                <strong>{{ primaryValue(row) }}</strong>
+                                <small v-if="secondaryValue(row)" class="sub-line">
+                                    {{ secondaryValue(row) }}
                                 </small>
                             </td>
                             <td>
-                                <strong>{{ rowTitle(row) }}</strong>
-                                <small class="sub-line">{{ rowDescription(row) }}</small>
-                            </td>
-                            <td>
-                                <div v-if="row.type !== 'message'" class="reward-preview">
+                                <span v-if="isMessage" class="message-value">
+                                    {{ row.msg_value }}
+                                </span>
+                                <div v-else class="reward-preview">
                                     <div
-                                        v-for="(reward, index) in row.rewards.slice(0, 5)"
+                                        v-for="(reward, index) in row.rewards.slice(0, 7)"
                                         :key="`${row.id}-${reward.item_id}-${index}`"
-                                        class="reward-icon"
+                                        class="reward-item"
                                         :title="rewardTitle(reward)"
                                     >
                                         <AdminIcon
                                             :icon-id="itemCatalog[reward.item_id]?.icon_id ?? null"
-                                            class="item-icon-sm"
+                                            class="reward-icon"
                                         />
-                                        <span>x{{ formatCompact(reward.amount) }}</span>
+                                        <span>x{{ compactNumber(reward.amount) }}</span>
+                                        <small v-if="reward.options.length">
+                                            {{ reward.options.length }} opt
+                                        </small>
                                     </div>
-                                    <span v-if="row.rewards.length > 5" class="more-items">
-                                        +{{ row.rewards.length - 5 }}
+                                    <span v-if="row.rewards.length > 7" class="more-items">
+                                        +{{ row.rewards.length - 7 }}
                                     </span>
-                                    <span v-if="!row.rewards.length" class="empty-mark">—</span>
                                 </div>
-                                <span v-else class="message-preview">{{ row.msg_value }}</span>
                             </td>
-                            <td>{{ isPackageType(row.type) ? formatNumber(row.cash) : "—" }}</td>
+                            <td v-if="isPackage">{{ formatNumber(row.cash) }}</td>
                             <td>{{ row.sort_order }}</td>
                             <td>
                                 <button
@@ -142,7 +116,10 @@
                             </td>
                             <td class="action-cell">
                                 <router-link
-                                    :to="{ name: 'admin.welfare-configs.edit', params: { id: row.id } }"
+                                    :to="{
+                                        name: 'admin.welfare-configs.edit',
+                                        params: { type: currentType, id: row.id },
+                                    }"
                                     class="btn btn-primary btn-sm"
                                 >
                                     <span class="mi">edit</span>
@@ -154,15 +131,16 @@
                                     @click="removeRow(row)"
                                 >
                                     <span class="mi">delete</span>
-                                    Xóa
                                 </button>
                             </td>
                         </tr>
-                        <tr v-if="!rows.length && !loading">
-                            <td colspan="8" class="empty-cell">Không có dữ liệu phúc lợi.</td>
-                        </tr>
                         <tr v-if="loading">
-                            <td colspan="8" class="empty-cell">Đang tải dữ liệu...</td>
+                            <td :colspan="columnCount" class="empty-cell">Đang tải dữ liệu...</td>
+                        </tr>
+                        <tr v-else-if="!rows.length">
+                            <td :colspan="columnCount" class="empty-cell">
+                                Chưa có dữ liệu {{ currentConfig.label.toLowerCase() }}.
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -183,40 +161,32 @@
                 </template>
                 <button :disabled="page >= totalPages" @click="loadPage(page + 1)">&raquo;</button>
                 <button :disabled="page >= totalPages" @click="loadPage(totalPages)">Cuối</button>
-                <span class="pagination-summary">Trang {{ page }} / {{ totalPages }}</span>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { readJsonResponse } from "../../shared/api";
 import { buildPaginationItems } from "../../shared/format";
 import {
     WELFARE_TYPES,
     WELFARE_TYPE_OPTIONS,
     isPackageType,
-    usesReference,
+    type WelfareReward,
     type WelfareType,
 } from "./welfareTypes";
-
-interface Reward {
-    item_id: number;
-    amount: number;
-}
 
 interface WelfareRow {
     id: number;
     type: WelfareType;
-    type_label: string;
     ref_id: number;
     label: string;
     description: string;
-    price: number;
     cash: number;
-    rewards: Reward[];
+    rewards: WelfareReward[];
     msg_key: string;
     msg_value: string;
     sort_order: number;
@@ -224,11 +194,11 @@ interface WelfareRow {
 }
 
 interface CatalogItem {
-    id: number;
     name: string;
     icon_id: number | null;
 }
 
+const route = useRoute();
 const router = useRouter();
 const rows = ref<WelfareRow[]>([]);
 const itemCatalog = ref<Record<number, CatalogItem>>({});
@@ -237,83 +207,111 @@ const busyId = ref<number | null>(null);
 const error = ref("");
 const success = ref("");
 const page = ref(1);
-const total = ref(0);
 const totalPages = ref(1);
-const filters = reactive({ search: "", type: "", active: "" });
+const filters = reactive({ search: "", active: "" });
 
+const currentType = computed(() => route.params.type as WelfareType);
+const currentConfig = computed(() => WELFARE_TYPES[currentType.value] || WELFARE_TYPES.attendance_daily);
+const isMessage = computed(() => currentType.value === "message");
+const isPackage = computed(() => isPackageType(currentType.value));
+const columnCount = computed(() => (isPackage.value ? 7 : 6));
 const paginationItems = computed(() => buildPaginationItems(page.value, totalPages.value));
-const selectedTypeLabel = computed(() =>
-    filters.type
-        ? WELFARE_TYPES[filters.type as WelfareType]?.label || filters.type
-        : "Tất cả",
+const primaryColumnLabel = computed(() => {
+    if (isMessage.value) return "Mã nội dung";
+    if (currentType.value === "attendance_daily") return "Nhóm quà";
+    if (isPackage.value) return "Tên gói / ID";
+    return currentConfig.value.refLabel || "Mốc";
+});
+const searchPlaceholder = computed(() =>
+    isMessage.value
+        ? "Tìm mã hoặc nội dung..."
+        : isPackage.value
+          ? "Tìm ID hoặc tên gói..."
+          : "Tìm ID hoặc giá trị mốc...",
 );
+
+watch(
+    () => route.params.type,
+    () => {
+        if (!ensureType()) return;
+        filters.search = "";
+        filters.active = "";
+        loadPage(1);
+    },
+);
+
+function ensureType(): boolean {
+    if (WELFARE_TYPES[currentType.value]) return true;
+    router.replace({
+        name: "admin.welfare-configs",
+        params: { type: "attendance_daily" },
+    });
+    return false;
+}
+
+function switchType(type: WelfareType): void {
+    if (type === currentType.value) return;
+    router.push({ name: "admin.welfare-configs", params: { type } });
+}
 
 function csrfToken(): string {
     return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || "";
 }
 
-function openMilestones(type: string): void {
-    router.push({ name: "admin.milestones", params: { type } });
+function primaryValue(row: WelfareRow): string {
+    if (isMessage.value) return row.msg_key;
+    if (currentType.value === "attendance_daily") return row.label || "Quà ngẫu nhiên mỗi ngày";
+    if (isPackage.value) return row.label || `Gói #${row.ref_id}`;
+    return formatNumber(row.ref_id);
+}
+
+function secondaryValue(row: WelfareRow): string {
+    if (isMessage.value) return "";
+    if (isPackage.value) return `ID gói: ${row.ref_id}${row.description ? ` · ${row.description}` : ""}`;
+    return row.label || row.description || "";
 }
 
 function formatNumber(value: number): string {
     return new Intl.NumberFormat("vi-VN").format(value || 0);
 }
 
-function formatCompact(value: number): string {
+function compactNumber(value: number): string {
     return value >= 1000
         ? new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(value)
         : String(value);
 }
 
-function rowTitle(row: WelfareRow): string {
-    if (row.type === "message") return row.msg_key;
-    return row.label || `${row.type_label} ${row.ref_id || ""}`.trim();
-}
-
-function rowDescription(row: WelfareRow): string {
-    if (row.type === "message") return row.msg_value;
-    return row.description || `${row.rewards.length} vật phẩm`;
-}
-
-function rewardTitle(reward: Reward): string {
+function rewardTitle(reward: WelfareReward): string {
     const item = itemCatalog.value[reward.item_id];
-    return `${item?.name || `Item #${reward.item_id}`} x${formatNumber(reward.amount)}`;
+    const optionText = reward.options.length ? ` · ${reward.options.length} option` : "";
+    return `${item?.name || `Item #${reward.item_id}`} x${formatNumber(reward.amount)}${optionText}`;
 }
 
 async function loadPage(target = 1): Promise<void> {
     loading.value = true;
     error.value = "";
-    page.value = Math.min(Math.max(1, Number(target) || 1), totalPages.value || 1);
+    page.value = Math.max(1, Number(target) || 1);
     try {
         const params = new URLSearchParams({
             page: String(page.value),
+            type: currentType.value,
             search: filters.search.trim(),
-            type: filters.type,
             active: filters.active,
         });
         const response = await fetch(`/admin/api/welfare-configs?${params}`, {
             headers: { "X-Requested-With": "XMLHttpRequest", Accept: "application/json" },
         });
-        const data = await readJsonResponse(response, "Không thể tải cấu hình phúc lợi");
+        const data = await readJsonResponse(response, "Không thể tải mốc phúc lợi");
         rows.value = data.data || [];
         itemCatalog.value = data.item_catalog || {};
-        total.value = Number(data.total || 0);
         totalPages.value = Math.max(1, Number(data.total_pages || 1));
         page.value = Math.min(Math.max(1, Number(data.page || 1)), totalPages.value);
     } catch (caught) {
         rows.value = [];
-        error.value = caught instanceof Error ? caught.message : "Không thể tải cấu hình phúc lợi";
+        error.value = caught instanceof Error ? caught.message : "Không thể tải mốc phúc lợi";
     } finally {
         loading.value = false;
     }
-}
-
-function resetFilters(): void {
-    filters.search = "";
-    filters.type = "";
-    filters.active = "";
-    loadPage(1);
 }
 
 async function toggleStatus(row: WelfareRow): Promise<void> {
@@ -339,11 +337,8 @@ async function toggleStatus(row: WelfareRow): Promise<void> {
 }
 
 async function removeRow(row: WelfareRow): Promise<void> {
-    if (!window.confirm(`Xóa cấu hình “${rowTitle(row)}”? Thao tác này ảnh hưởng trực tiếp tới game.`)) {
-        return;
-    }
+    if (!window.confirm(`Xóa cấu hình “${primaryValue(row)}”?`)) return;
     busyId.value = row.id;
-    error.value = "";
     try {
         const response = await fetch(`/admin/api/welfare-configs/${row.id}`, {
             method: "DELETE",
@@ -363,29 +358,28 @@ async function removeRow(row: WelfareRow): Promise<void> {
     }
 }
 
-onMounted(() => loadPage(1));
+onMounted(() => {
+    if (!ensureType()) return;
+    loadPage(1);
+});
 </script>
 
 <style scoped>
 .type-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 7px;
+    margin-bottom: 14px;
 }
 
 .type-tab {
-    padding: 7px 12px;
+    padding: 6px 10px;
     border: 1px solid var(--ds-border);
-    border-radius: 8px;
+    border-radius: 7px;
     background: var(--ds-surface);
     color: var(--ds-text);
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
-}
-
-.type-tab:hover {
-    border-color: rgba(var(--ds-primary-rgb), 0.45);
 }
 
 .type-tab.active {
@@ -395,19 +389,17 @@ onMounted(() => loadPage(1));
 }
 
 .filter-bar {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
-.welfare-filters .search-form {
+.search-form {
     display: flex;
-    width: 100%;
-    flex-wrap: wrap;
     gap: 8px;
 }
 
 .search-input-wrap {
     position: relative;
-    min-width: 260px;
+    max-width: 520px;
     flex: 1;
 }
 
@@ -424,110 +416,84 @@ onMounted(() => loadPage(1));
     color: var(--muted-foreground);
 }
 
-.filter-select {
-    width: 190px;
+.status-filter {
+    width: 170px;
 }
 
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.summary-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--card);
-}
-
-.summary-label,
 .sub-line {
     display: block;
+    max-width: 330px;
+    overflow: hidden;
     color: var(--muted-foreground);
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.type-badge {
-    display: inline-flex;
-    padding: 4px 8px;
-    border-radius: 999px;
-    background: rgba(99, 102, 241, 0.12);
-    color: var(--primary);
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.code-text {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .reward-preview {
     display: flex;
     align-items: center;
-    gap: 7px;
-    min-width: 190px;
+    gap: 6px;
+    min-width: 260px;
 }
 
-.reward-icon {
-    position: relative;
+.reward-item {
     width: 38px;
     text-align: center;
 }
 
-.item-icon-sm {
-    width: 34px;
-    height: 34px;
+.reward-icon {
+    width: 32px;
+    height: 32px;
 }
 
-.reward-icon span {
+.reward-item span,
+.reward-item small {
     display: block;
-    font-size: 10px;
     color: var(--muted-foreground);
+    font-size: 9px;
+    line-height: 1.1;
 }
 
-.message-preview {
+.message-value {
     display: block;
-    max-width: 280px;
+    max-width: 520px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .status-toggle {
+    padding: 5px 9px;
     border: 0;
     border-radius: 999px;
-    padding: 6px 10px;
-    background: #fee2e2;
-    color: #b91c1c;
-    font-size: 12px;
+    background: var(--muted);
+    color: var(--destructive);
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
 }
 
 .status-toggle.active {
-    background: #dcfce7;
-    color: #15803d;
+    background: var(--accent);
+    color: var(--accent-foreground);
 }
 
 .action-cell {
     display: flex;
-    gap: 6px;
+    gap: 5px;
     white-space: nowrap;
 }
 
-@media (max-width: 900px) {
-    .summary-grid {
-        grid-template-columns: 1fr;
+@media (max-width: 760px) {
+    .search-form {
+        flex-wrap: wrap;
     }
 
-    .filter-select {
+    .search-input-wrap,
+    .status-filter {
         width: 100%;
+        max-width: none;
     }
 }
 </style>

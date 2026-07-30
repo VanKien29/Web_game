@@ -43,6 +43,20 @@ export const WELFARE_TYPES = {
 
 export type WelfareType = keyof typeof WELFARE_TYPES;
 
+export interface WelfareItemOption {
+    id: number;
+    param: number;
+}
+
+export interface WelfareReward {
+    item_id: number;
+    amount: number;
+    options: WelfareItemOption[];
+    name?: string;
+    icon_id?: number | null;
+    key?: string;
+}
+
 export const WELFARE_TYPE_OPTIONS = Object.entries(WELFARE_TYPES).map(
     ([value, config]) => ({ value: value as WelfareType, label: config.label }),
 );

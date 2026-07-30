@@ -259,7 +259,10 @@ export default {
             });
         },
         openWelfare() {
-            this.$router.push({ name: "admin.welfare-configs" });
+            this.$router.push({
+                name: "admin.welfare-configs",
+                params: { type: "attendance_daily" },
+            });
         },
         normalizePage(page) {
             const value = Number(page);
