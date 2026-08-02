@@ -59,7 +59,7 @@
                         <i class="fa-brands fa-apple" aria-hidden="true"></i>
                     </span>
                     <strong>iOS</strong>
-                    <small>Tải cho iPhone</small>
+                    <small>Tải cho iPhone(ipa)</small>
                 </a>
                 <a
                     :href="settings.android_download_url || '#'"
@@ -88,13 +88,13 @@
                     <strong>Nạp thẻ</strong>
                     <small>Nạp nhanh vào game</small>
                 </router-link>
-                <router-link to="/giftcode" class="pixel-action-card">
+                <!-- <router-link to="/giftcode" class="pixel-action-card">
                     <span class="pixel-action-card__icon">
                         <i class="fa-solid fa-gift" aria-hidden="true"></i>
                     </span>
                     <strong>Giftcode</strong>
                     <small>Nhận quà sự kiện</small>
-                </router-link>
+                </router-link> -->
             </div>
         </section>
 
@@ -221,7 +221,7 @@
             </div>
             <div class="pixel-community-banner__actions">
                 <a
-                    href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
+                    href="https://zalo.me/g/mkbvtsed62u6avwyvgld"
                     class="client-btn client-btn--primary"
                 >
                     Nhóm Zalo

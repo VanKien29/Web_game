@@ -20,17 +20,7 @@
             </router-link>
         </div>
 
-        <div class="type-tabs">
-            <button
-                v-for="option in WELFARE_TYPE_OPTIONS"
-                :key="option.value"
-                class="type-tab"
-                :class="{ active: option.value === currentType }"
-                @click="switchType(option.value)"
-            >
-                {{ option.label }}
-            </button>
-        </div>
+        <MilestoneNavigation :welfare-type="currentType" />
 
         <div v-if="error" class="alert alert-error">{{ error }}</div>
         <div v-if="success" class="alert alert-success">{{ success }}</div>
@@ -62,9 +52,8 @@
                             <th>ID</th>
                             <th>{{ primaryColumnLabel }}</th>
                             <th>{{ isMessage ? "Nội dung" : "Phần thưởng" }}</th>
-                            <th v-if="isPackage">Giá cash</th>
-                            <th>Thứ tự</th>
-                            <th>Trạng thái</th>
+                            <th v-if="isPackage">Giá (price)</th>
+                            <th>Active</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -102,8 +91,7 @@
                                     </span>
                                 </div>
                             </td>
-                            <td v-if="isPackage">{{ formatNumber(row.cash) }}</td>
-                            <td>{{ row.sort_order }}</td>
+                            <td v-if="isPackage">{{ formatNumber(row.price) }}</td>
                             <td>
                                 <button
                                     class="status-toggle"
@@ -171,9 +159,9 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { readJsonResponse } from "../../shared/api";
 import { buildPaginationItems } from "../../shared/format";
+import MilestoneNavigation from "./MilestoneNavigation.vue";
 import {
     WELFARE_TYPES,
-    WELFARE_TYPE_OPTIONS,
     isPackageType,
     type WelfareReward,
     type WelfareType,
@@ -185,7 +173,7 @@ interface WelfareRow {
     ref_id: number;
     label: string;
     description: string;
-    cash: number;
+    price: number;
     rewards: WelfareReward[];
     msg_key: string;
     msg_value: string;
@@ -214,7 +202,7 @@ const currentType = computed(() => route.params.type as WelfareType);
 const currentConfig = computed(() => WELFARE_TYPES[currentType.value] || WELFARE_TYPES.attendance_daily);
 const isMessage = computed(() => currentType.value === "message");
 const isPackage = computed(() => isPackageType(currentType.value));
-const columnCount = computed(() => (isPackage.value ? 7 : 6));
+const columnCount = computed(() => (isPackage.value ? 6 : 5));
 const paginationItems = computed(() => buildPaginationItems(page.value, totalPages.value));
 const primaryColumnLabel = computed(() => {
     if (isMessage.value) return "Mã nội dung";
@@ -247,11 +235,6 @@ function ensureType(): boolean {
         params: { type: "attendance_daily" },
     });
     return false;
-}
-
-function switchType(type: WelfareType): void {
-    if (type === currentType.value) return;
-    router.push({ name: "admin.welfare-configs", params: { type } });
 }
 
 function csrfToken(): string {
@@ -365,27 +348,43 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.type-tabs {
+.page-top {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 14px;
 }
 
-.type-tab {
-    padding: 6px 10px;
-    border: 1px solid var(--ds-border);
-    border-radius: 7px;
-    background: var(--ds-surface);
-    color: var(--ds-text);
-    font-size: 12px;
-    cursor: pointer;
+.page-title {
+    margin-bottom: 4px;
+    color: var(--ds-text-emphasis);
+    font-size: 20px;
+    font-weight: 700;
 }
 
-.type-tab.active {
-    border-color: rgba(var(--ds-primary-rgb), 0.55);
-    background: rgba(var(--ds-primary-rgb), 0.15);
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.breadcrumb a {
+    color: var(--ds-text-muted);
+}
+
+.breadcrumb a:hover {
     color: var(--ds-primary);
+}
+
+.breadcrumb span {
+    color: var(--ds-gray-300);
+}
+
+.breadcrumb .current {
+    color: var(--ds-text);
 }
 
 .filter-bar {

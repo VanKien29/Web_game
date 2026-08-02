@@ -172,11 +172,11 @@
                         <router-link to="/forum">Diễn đàn</router-link>
                     </div>
                     <div class="game-footer__socials">
-                        <a href="https://zalo.me/g/8shvq0alkwjqkuherfvg">
+                        <a href="https://zalo.me/g/mkbvtsed62u6avwyvgld">
                             Nhóm Zalo
                         </a>
                         <a
-                            href="https://www.facebook.com/groups/1444219976744071/"
+                            href="https://zalo.me/g/mkbvtsed62u6avwyvgld"
                         >
                             Facebook
                         </a>
@@ -220,11 +220,11 @@
                     src="/assets/frontend/home/v1/images/sibarRight/qr.png"
                     alt="Mã QR cộng đồng"
                 />
-                <a href="https://zalo.me/g/8shvq0alkwjqkuherfvg">
+                <a href="https://zalo.me/g/mkbvtsed62u6avwyvgld">
                     <i class="fa-solid fa-comments" aria-hidden="true"></i>
                     Zalo
                 </a>
-                <a href="https://www.facebook.com/groups/1444219976744071/">
+                <a href="https://zalo.me/g/mkbvtsed62u6avwyvgld">
                     <i class="fa-brands fa-facebook" aria-hidden="true"></i>
                     Facebook
                 </a>

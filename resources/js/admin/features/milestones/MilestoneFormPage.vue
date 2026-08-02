@@ -29,27 +29,19 @@
                     name: 'admin.milestones',
                     params: { type: currentType },
                 }"
-                class="btn btn-outline"
+                class="btn btn-outline page-back-action"
             >
                 <span class="mi" style="font-size: 16px">arrow_back</span>
                 Quay lại
             </router-link>
         </div>
 
-        <div class="type-tabs">
-            <button
-                v-for="t in typeTabs"
-                :key="'tab-' + t.key"
-                class="type-tab"
-                :class="{ active: currentType === t.key }"
-                @click="switchType(t.key)"
-            >
-                {{ t.label }}
-            </button>
-            <button class="type-tab" @click="openWelfare">
-                Phúc lợi
-            </button>
-        </div>
+        <MilestoneNavigation
+            :milestone-type="currentType"
+            :milestone-route-name="
+                isEdit ? 'admin.milestones' : 'admin.milestones.create'
+            "
+        />
 
         <div v-if="error" class="alert alert-error">{{ error }}</div>
         <div v-if="success" class="alert alert-success">{{ success }}</div>
@@ -550,6 +542,7 @@
 <script>
 import { buildPaginationItems, fixJson } from "../../shared/format";
 import { readJsonResponse } from "../../shared/api";
+import MilestoneNavigation from "./MilestoneNavigation.vue";
 import {
     applyItemPickerResponse,
     itemPickerTypes,
@@ -565,6 +558,9 @@ const TYPE_MAP = {
 };
 
 export default {
+    components: {
+        MilestoneNavigation,
+    },
     data() {
         return {
             form: { id: "", info: "" },
@@ -602,12 +598,6 @@ export default {
         },
         currentTypeLabel() {
             return TYPE_MAP[this.currentType] || "Mốc thưởng";
-        },
-        typeTabs() {
-            return Object.keys(TYPE_MAP).map((key) => ({
-                key,
-                label: TYPE_MAP[key],
-            }));
         },
         itemPickerTypes() {
             return itemPickerTypes(this.itemPicker);
@@ -654,27 +644,6 @@ export default {
                     params: { type: "moc_nap" },
                 });
             }
-        },
-        switchType(type) {
-            if (!TYPE_MAP[type]) return;
-            if (type === this.currentType) return;
-            if (this.isEdit) {
-                this.$router.push({
-                    name: "admin.milestones",
-                    params: { type },
-                });
-                return;
-            }
-            this.$router.push({
-                name: "admin.milestones.create",
-                params: { type },
-            });
-        },
-        openWelfare() {
-            this.$router.push({
-                name: "admin.welfare-configs",
-                params: { type: "attendance_daily" },
-            });
         },
         closeResults(e) {
             if (!e.target.closest(".item-search-wrap")) {
@@ -1069,6 +1038,9 @@ export default {
     gap: 16px;
     flex-wrap: wrap;
 }
+.page-back-action {
+    margin-left: auto;
+}
 .page-title {
     font-size: 20px;
     font-weight: 700;
@@ -1092,26 +1064,6 @@ export default {
 }
 .breadcrumb .current {
     color: var(--ds-text);
-}
-.type-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-.type-tab {
-    border: 1px solid var(--ds-border);
-    background: var(--ds-surface);
-    color: var(--ds-text);
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-size: 13px;
-    cursor: pointer;
-}
-.type-tab.active {
-    background: rgba(var(--ds-primary-rgb), 0.15);
-    border-color: rgba(var(--ds-primary-rgb), 0.55);
-    color: var(--ds-primary);
 }
 .form-row-2 {
     display: grid;

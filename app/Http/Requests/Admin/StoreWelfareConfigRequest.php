@@ -33,7 +33,6 @@ class StoreWelfareConfigRequest extends FormRequest
             'label' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'integer', 'min:0', 'max:2147483647'],
-            'cash' => ['required', 'integer', 'min:0', 'max:2147483647'],
             'rewards' => [
                 Rule::requiredIf(fn () => $hasRewards),
                 'array',

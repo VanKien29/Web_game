@@ -19,25 +19,14 @@
             </div>
             <router-link
                 :to="{ name: 'admin.welfare-configs', params: { type: currentType } }"
-                class="btn btn-outline"
+                class="btn btn-outline page-back-action"
             >
                 <span class="mi">arrow_back</span>
                 Quay lại
             </router-link>
         </div>
 
-        <div class="type-tabs">
-            <button
-                v-for="option in WELFARE_TYPE_OPTIONS"
-                :key="option.value"
-                class="type-tab"
-                :class="{ active: option.value === currentType }"
-                type="button"
-                @click="openType(option.value)"
-            >
-                {{ option.label }}
-            </button>
-        </div>
+        <MilestoneNavigation :welfare-type="currentType" />
 
         <div v-if="error" class="alert alert-error">{{ error }}</div>
         <div v-if="success" class="alert alert-success">{{ success }}</div>
@@ -144,25 +133,14 @@
                         </template>
 
                         <template v-if="isPackage">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Giá gốc</label>
-                                    <input
-                                        v-model.number="form.price"
-                                        class="form-input"
-                                        type="number"
-                                        min="0"
-                                    />
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Cash</label>
-                                    <input
-                                        v-model.number="form.cash"
-                                        class="form-input"
-                                        type="number"
-                                        min="0"
-                                    />
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label">Giá (price)</label>
+                                <input
+                                    v-model.number="form.price"
+                                    class="form-input"
+                                    type="number"
+                                    min="0"
+                                />
                             </div>
                         </template>
 
@@ -214,10 +192,10 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { readJsonResponse } from "../../shared/api";
+import MilestoneNavigation from "./MilestoneNavigation.vue";
 import WelfareRewardEditor from "./WelfareRewardEditor.vue";
 import {
     WELFARE_TYPES,
-    WELFARE_TYPE_OPTIONS,
     isPackageType,
     usesReference,
     type WelfareReward,
@@ -229,7 +207,6 @@ interface ConfigForm {
     label: string;
     description: string;
     price: number;
-    cash: number;
     msg_key: string;
     msg_value: string;
     sort_order: number;
@@ -245,7 +222,6 @@ const form = reactive<ConfigForm>({
     label: "",
     description: "",
     price: 0,
-    cash: 0,
     msg_key: "",
     msg_value: "",
     sort_order: 0,
@@ -278,11 +254,6 @@ function ensureType(): boolean {
         params: { type: "attendance_daily" },
     });
     return false;
-}
-
-function openType(type: WelfareType): void {
-    if (type === currentType.value) return;
-    router.push({ name: "admin.welfare-configs", params: { type } });
 }
 
 function csrfToken(): string {
@@ -320,7 +291,6 @@ async function loadRecord(): Promise<void> {
             label: data.label || "",
             description: data.description || "",
             price: Number(data.price || 0),
-            cash: Number(data.cash || 0),
             msg_key: data.msg_key || "",
             msg_value: data.msg_value || "",
             sort_order: Number(data.sort_order || 0),
@@ -370,7 +340,6 @@ async function save(): Promise<void> {
             label: isMessage.value ? "" : form.label,
             description: isMessage.value ? "" : form.description,
             price: isPackage.value ? Number(form.price || 0) : 0,
-            cash: isPackage.value ? Number(form.cash || 0) : 0,
             rewards: isMessage.value
                 ? []
                 : rewards.value.map((reward) => ({
@@ -449,27 +418,47 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.type-tabs {
+.page-top {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 14px;
 }
 
-.type-tab {
-    padding: 6px 10px;
-    border: 1px solid var(--ds-border);
-    border-radius: 7px;
-    background: var(--ds-surface);
-    color: var(--ds-text);
-    font-size: 12px;
-    cursor: pointer;
+.page-back-action {
+    margin-left: auto;
 }
 
-.type-tab.active {
-    border-color: rgba(var(--ds-primary-rgb), 0.55);
-    background: rgba(var(--ds-primary-rgb), 0.15);
+.page-title {
+    margin-bottom: 4px;
+    color: var(--ds-text-emphasis);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.breadcrumb a {
+    color: var(--ds-text-muted);
+}
+
+.breadcrumb a:hover {
     color: var(--ds-primary);
+}
+
+.breadcrumb span {
+    color: var(--ds-gray-300);
+}
+
+.breadcrumb .current {
+    color: var(--ds-text);
 }
 
 .form-workspace {

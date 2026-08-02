@@ -24,20 +24,7 @@
             </router-link>
         </div>
 
-        <div class="type-tabs">
-            <button
-                v-for="t in typeTabs"
-                :key="'tab-' + t.key"
-                class="type-tab"
-                :class="{ active: currentType === t.key }"
-                @click="switchType(t.key)"
-            >
-                {{ t.label }}
-            </button>
-            <button class="type-tab" @click="openWelfare">
-                Phúc lợi
-            </button>
-        </div>
+        <MilestoneNavigation :milestone-type="currentType" />
 
         <div class="filter-bar">
             <form class="search-form" @submit.prevent="loadPage(1)">
@@ -196,6 +183,7 @@
 
 <script>
 import { buildPaginationItems, fixJson } from "../../shared/format";
+import MilestoneNavigation from "./MilestoneNavigation.vue";
 const TYPE_MAP = {
     moc_nap: "Mốc nạp",
     moc_nap_top: "Mốc nạp top",
@@ -204,6 +192,9 @@ const TYPE_MAP = {
 };
 
 export default {
+    components: {
+        MilestoneNavigation,
+    },
     data() {
         return {
             rows: [],
@@ -221,12 +212,6 @@ export default {
         },
         currentTypeLabel() {
             return TYPE_MAP[this.currentType] || "Mốc thưởng";
-        },
-        typeTabs() {
-            return Object.keys(TYPE_MAP).map((key) => ({
-                key,
-                label: TYPE_MAP[key],
-            }));
         },
         paginationItems() {
             return buildPaginationItems(this.page, this.totalPages);
@@ -250,19 +235,6 @@ export default {
                     params: { type: "moc_nap" },
                 });
             }
-        },
-        switchType(type) {
-            if (type === this.currentType) return;
-            this.$router.push({
-                name: "admin.milestones",
-                params: { type },
-            });
-        },
-        openWelfare() {
-            this.$router.push({
-                name: "admin.welfare-configs",
-                params: { type: "attendance_daily" },
-            });
         },
         normalizePage(page) {
             const value = Number(page);
@@ -428,30 +400,6 @@ export default {
 }
 .breadcrumb .current {
     color: var(--ds-text);
-}
-.type-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-.type-tab {
-    border: 1px solid var(--ds-border);
-    background: var(--ds-surface);
-    color: var(--ds-text);
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-.type-tab:hover {
-    border-color: rgba(var(--ds-primary-rgb), 0.45);
-}
-.type-tab.active {
-    background: rgba(var(--ds-primary-rgb), 0.15);
-    border-color: rgba(var(--ds-primary-rgb), 0.55);
-    color: var(--ds-primary);
 }
 .filter-bar {
     margin-bottom: 20px;

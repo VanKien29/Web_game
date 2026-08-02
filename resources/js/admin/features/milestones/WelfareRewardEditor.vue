@@ -1,7 +1,7 @@
 <template>
     <div class="reward-editor">
         <div class="reward-editor__toolbar">
-            <div class="search-input-wrap" @click.stop>
+            <div class="item-search-wrap" @click.stop>
                 <span class="mi search-icon">search</span>
                 <input
                     v-model="itemQuery"
@@ -11,7 +11,10 @@
                     @input="scheduleItemSearch"
                     @focus="showItemResults = true"
                 />
-                <div v-if="showItemResults && itemResults.length" class="item-results">
+                <div
+                    v-if="showItemResults && itemResults.length"
+                    class="item-search-results"
+                >
                     <button
                         v-for="item in itemResults"
                         :key="item.id"
@@ -28,10 +31,25 @@
                     </button>
                 </div>
             </div>
-            <span class="reward-editor__count">{{ localRewards.length }} vật phẩm</span>
+            <div class="reward-editor__actions">
+                <span class="reward-editor__count">
+                    {{ localRewards.length }} vật phẩm
+                </span>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-sm"
+                    @click="itemPickerOpen = true"
+                >
+                    <span class="mi">list</span>
+                    Chọn item
+                </button>
+            </div>
         </div>
 
-        <div v-if="localRewards.length" class="reward-table-wrap">
+        <div
+            v-if="localRewards.length"
+            class="reward-table-wrap items-table-wrap"
+        >
             <table class="reward-table">
                 <thead>
                     <tr>
@@ -107,7 +125,7 @@
                         <tr v-if="optionEditor.itemKey === reward.key" class="option-editor-row">
                             <td colspan="6">
                                 <div class="option-editor">
-                                    <div class="option-search">
+                                    <div class="option-select-wrap">
                                         <input
                                             v-model="optionEditor.query"
                                             class="form-input"
@@ -116,11 +134,15 @@
                                             @focus="optionEditor.open = true"
                                             @input="optionEditor.open = true"
                                         />
-                                        <div v-if="optionEditor.open" class="option-results">
+                                        <div
+                                            v-if="optionEditor.open"
+                                            class="option-dropdown"
+                                        >
                                             <button
                                                 v-for="option in filteredOptions"
                                                 :key="option.id"
                                                 type="button"
+                                                class="option-dropdown-item"
                                                 @click="selectOption(option)"
                                             >
                                                 <span>{{ option.name }}</span>
@@ -168,12 +190,19 @@
             <strong>Chưa có vật phẩm thưởng</strong>
             <small>Tìm vật phẩm phía trên để thêm vào mốc.</small>
         </div>
+
+        <ItemCatalogPicker
+            :open="itemPickerOpen"
+            @close="itemPickerOpen = false"
+            @select="addItem"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { readJsonResponse } from "../../shared/api";
+import ItemCatalogPicker from "./ItemCatalogPicker.vue";
 import type { WelfareReward } from "./welfareTypes";
 
 interface CatalogItem {
@@ -203,6 +232,7 @@ const localRewards = ref<WelfareReward[]>([]);
 const itemQuery = ref("");
 const itemResults = ref<CatalogItem[]>([]);
 const showItemResults = ref(false);
+const itemPickerOpen = ref(false);
 const allOptions = ref<OptionTemplate[]>([]);
 const optionEditor = reactive<OptionEditor>({
     itemKey: "",
@@ -379,8 +409,8 @@ async function loadOptions(): Promise<void> {
 
 function closeDropdowns(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest(".search-input-wrap")) showItemResults.value = false;
-    if (!target.closest(".option-search")) optionEditor.open = false;
+    if (!target.closest(".item-search-wrap")) showItemResults.value = false;
+    if (!target.closest(".option-select-wrap")) optionEditor.open = false;
 }
 
 onMounted(() => {
@@ -403,7 +433,7 @@ onBeforeUnmount(() => {
     border-bottom: 1px solid var(--ds-border);
 }
 
-.search-input-wrap {
+.item-search-wrap {
     position: relative;
     flex: 1;
 }
@@ -427,8 +457,14 @@ onBeforeUnmount(() => {
     white-space: nowrap;
 }
 
-.item-results,
-.option-results {
+.reward-editor__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.item-search-results,
+.option-dropdown {
     position: absolute;
     z-index: 40;
     top: calc(100% + 5px);
@@ -443,7 +479,7 @@ onBeforeUnmount(() => {
 }
 
 .item-result,
-.option-results button {
+.option-dropdown-item {
     display: flex;
     align-items: center;
     width: 100%;
@@ -458,7 +494,7 @@ onBeforeUnmount(() => {
 }
 
 .item-result:hover,
-.option-results button:hover {
+.option-dropdown-item:hover {
     background: rgba(var(--ds-primary-rgb), 0.08);
 }
 
@@ -468,7 +504,7 @@ onBeforeUnmount(() => {
 }
 
 .item-result__name,
-.option-results button span {
+.option-dropdown-item span {
     display: flex;
     min-width: 0;
     flex: 1;
@@ -476,7 +512,7 @@ onBeforeUnmount(() => {
 }
 
 .item-result__name small,
-.option-results small {
+.option-dropdown small {
     color: var(--muted-foreground);
 }
 
@@ -485,7 +521,7 @@ onBeforeUnmount(() => {
 }
 
 .reward-table-wrap {
-    overflow-x: auto;
+    overflow: visible;
 }
 
 .reward-table {
@@ -583,7 +619,7 @@ onBeforeUnmount(() => {
     gap: 8px;
 }
 
-.option-search {
+.option-select-wrap {
     position: relative;
 }
 
@@ -619,6 +655,12 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 760px) {
+    .reward-editor__toolbar,
+    .reward-editor__actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .option-editor {
         grid-template-columns: 1fr;
         align-items: stretch;

@@ -159,7 +159,7 @@
                         Kích hoạt tài khoản
                     </button>
                     <a
-                        href="https://zalo.me/g/8shvq0alkwjqkuherfvg"
+                        href="https://zalo.me/g/mkbvtsed62u6avwyvgld"
                         class="profile-button"
                         target="_blank"
                         rel="noopener noreferrer"
