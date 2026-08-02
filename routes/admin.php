@@ -39,47 +39,48 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/dashboard/monthRevenue', [DashboardController::class, 'monthlyRevenue']);
         Route::get('/api/dashboard/overview', [DashboardController::class, 'overview']);
 
-        Route::get('/api/accounts', [AccountController::class, 'index']);
-        Route::get('/api/accounts/{id}', [AccountController::class, 'show'])->whereNumber('id');
         Route::get('/api/accounts/{id}/player-full', [AccountController::class, 'playerFull'])->whereNumber('id');
         Route::get('/api/accounts/{id}/player-sections/{section}', [AccountController::class, 'playerSection'])->whereNumber('id');
         Route::get('/api/accounts/{id}/activity', [AccountController::class, 'activity'])->whereNumber('id');
         Route::put('/api/accounts/{id}/badges', [AccountController::class, 'updateBadges'])->whereNumber('id');
-        Route::post('/api/accounts', [AccountController::class, 'store']);
-        Route::put('/api/accounts/{id}', [AccountController::class, 'update'])->whereNumber('id');
-        Route::delete('/api/accounts/{id}', [AccountController::class, 'destroy'])->whereNumber('id');
+        Route::apiResource('api/accounts', AccountController::class)
+            ->parameters(['accounts' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.accounts');
 
-        Route::get('/api/players', [PlayerController::class, 'index']);
         Route::get('/api/players/inventory/search', [PlayerController::class, 'inventorySearch']);
-        Route::get('/api/players/{id}', [PlayerController::class, 'show'])->whereNumber('id');
+        Route::apiResource('api/players', PlayerController::class)
+            ->only(['index', 'show'])
+            ->parameters(['players' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.players');
         Route::put('/api/players/{id}/stats', [PlayerController::class, 'updateStats'])->whereNumber('id');
         Route::post('/api/players/{id}/inventory/buff', [PlayerController::class, 'buffInventory'])->whereNumber('id');
         Route::post('/api/players/{id}/inventory/revoke', [PlayerController::class, 'revokeInventory'])->whereNumber('id');
 
-        Route::get('/api/giftcodes', [GiftcodeController::class, 'index']);
-        Route::get('/api/giftcodes/{id}', [GiftcodeController::class, 'show'])->whereNumber('id');
         Route::get('/api/giftcodes/{id}/activity', [GiftcodeController::class, 'activity'])->whereNumber('id');
         Route::post('/api/giftcodes/{id}/clone', [GiftcodeController::class, 'clone'])->whereNumber('id');
-        Route::post('/api/giftcodes', [GiftcodeController::class, 'store']);
-        Route::put('/api/giftcodes/{id}', [GiftcodeController::class, 'update'])->whereNumber('id');
-        Route::delete('/api/giftcodes/{id}', [GiftcodeController::class, 'destroy'])->whereNumber('id');
+        Route::apiResource('api/giftcodes', GiftcodeController::class)
+            ->parameters(['giftcodes' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.giftcodes');
 
         Route::get('/api/posts/categories', [PostController::class, 'categories']);
-        Route::get('/api/posts', [PostController::class, 'index']);
-        Route::post('/api/posts', [PostController::class, 'store']);
-        Route::get('/api/posts/{id}', [PostController::class, 'show'])->whereNumber('id');
-        Route::put('/api/posts/{id}', [PostController::class, 'update'])->whereNumber('id');
-        Route::delete('/api/posts/{id}', [PostController::class, 'destroy'])->whereNumber('id');
         Route::get('/api/posts/{id}/comments', [PostController::class, 'comments'])->whereNumber('id');
         Route::put('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'updateComment'])->whereNumber('postId')->whereNumber('commentId');
         Route::delete('/api/posts/{postId}/comments/{commentId}', [PostController::class, 'destroyComment'])->whereNumber('postId')->whereNumber('commentId');
+        Route::apiResource('api/posts', PostController::class)
+            ->parameters(['posts' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.posts');
 
-        Route::get('/api/forum/posts', [ForumController::class, 'index']);
-        Route::post('/api/forum/posts', [ForumController::class, 'store']);
-        Route::put('/api/forum/posts/{id}', [ForumController::class, 'update'])->whereNumber('id');
-        Route::delete('/api/forum/posts/{id}', [ForumController::class, 'destroy'])->whereNumber('id');
         Route::get('/api/forum/posts/{id}/comments', [ForumController::class, 'comments'])->whereNumber('id');
         Route::delete('/api/forum/posts/{postId}/comments/{commentId}', [ForumController::class, 'destroyComment'])->whereNumber('postId')->whereNumber('commentId');
+        Route::apiResource('api/forum/posts', ForumController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['posts' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.forum.posts');
 
         Route::get('/api/admin-logs', [AdminLogController::class, 'index']);
 
@@ -102,12 +103,11 @@ Route::prefix('admin')->group(function () {
         Route::put('/api/milestones/{type}/{id}', [MilestoneController::class, 'update'])->whereNumber('id');
         Route::delete('/api/milestones/{type}/{id}', [MilestoneController::class, 'destroy'])->whereNumber('id');
 
-        Route::get('/api/welfare-configs', [WelfareConfigController::class, 'index']);
-        Route::get('/api/welfare-configs/{id}', [WelfareConfigController::class, 'show'])->whereNumber('id');
-        Route::post('/api/welfare-configs', [WelfareConfigController::class, 'store']);
-        Route::put('/api/welfare-configs/{id}', [WelfareConfigController::class, 'update'])->whereNumber('id');
         Route::patch('/api/welfare-configs/{id}/toggle', [WelfareConfigController::class, 'toggle'])->whereNumber('id');
-        Route::delete('/api/welfare-configs/{id}', [WelfareConfigController::class, 'destroy'])->whereNumber('id');
+        Route::apiResource('api/welfare-configs', WelfareConfigController::class)
+            ->parameters(['welfare-configs' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.welfare-configs');
 
         Route::get('/api/items', [ItemController::class, 'index']);
         Route::get('/api/items/batch', [ItemController::class, 'batch']);

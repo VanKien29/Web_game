@@ -252,9 +252,22 @@ interface NavigationItem {
 }
 
 interface StoredUser {
+    id?: number;
     username?: string;
     player_name?: string | null;
 }
+
+const GAME_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+const LAST_ACTIVITY_KEY = "game_last_activity_at";
+const ACTIVITY_THROTTLE_MS = 1000;
+const activityEvents = [
+    "pointerdown",
+    "keydown",
+    "mousemove",
+    "scroll",
+    "touchstart",
+    "wheel",
+] as const;
 
 const route = useRoute();
 const router = useRouter();
@@ -271,9 +284,12 @@ const menuOpen = ref(false);
 const sidebarOpen = ref(false);
 const scrolled = ref(false);
 const loggedIn = ref(!!localStorage.getItem("token"));
+const storedUser = ref<StoredUser>(readStoredUser());
 const bootLoading = ref(true);
 const routeLoading = ref(false);
 let routeLoadingTimer: ReturnType<typeof window.setTimeout> | null = null;
+let idleTimer: ReturnType<typeof window.setTimeout> | null = null;
+let lastActivityAt = 0;
 let scrollFrame: number | null = null;
 
 const isAppLoading = computed(() => bootLoading.value || routeLoading.value);
@@ -284,15 +300,90 @@ const isAuthPage = computed(
     () => route.path === "/login" || route.path === "/register",
 );
 const username = computed(() => {
-    try {
-        const user = JSON.parse(
-            localStorage.getItem("user") || "{}",
-        ) as StoredUser;
-        return user.player_name || user.username || "Tài khoản";
-    } catch {
-        return "Tài khoản";
-    }
+    return (
+        storedUser.value.username ||
+        storedUser.value.player_name ||
+        "Tài khoản"
+    );
 });
+
+function readStoredUser(): StoredUser {
+    try {
+        return JSON.parse(localStorage.getItem("user") || "{}") as StoredUser;
+    } catch {
+        return {};
+    }
+}
+
+function clearIdleTimer(): void {
+    if (idleTimer !== null) {
+        window.clearTimeout(idleTimer);
+        idleTimer = null;
+    }
+}
+
+function scheduleIdleLogout(): void {
+    clearIdleTimer();
+
+    if (!localStorage.getItem("token")) {
+        return;
+    }
+
+    const storedActivityAt = Number(
+        localStorage.getItem(LAST_ACTIVITY_KEY) || 0,
+    );
+    const activityAt = storedActivityAt > 0 ? storedActivityAt : Date.now();
+
+    if (!storedActivityAt) {
+        localStorage.setItem(LAST_ACTIVITY_KEY, String(activityAt));
+    }
+
+    const remaining = GAME_IDLE_TIMEOUT_MS - (Date.now() - activityAt);
+    if (remaining <= 0) {
+        clearGameSession("idle");
+        return;
+    }
+
+    idleTimer = window.setTimeout(() => {
+        const latestActivityAt = Number(
+            localStorage.getItem(LAST_ACTIVITY_KEY) || activityAt,
+        );
+
+        if (Date.now() - latestActivityAt >= GAME_IDLE_TIMEOUT_MS) {
+            clearGameSession("idle");
+            return;
+        }
+
+        scheduleIdleLogout();
+    }, remaining);
+}
+
+function recordActivity(): void {
+    if (!localStorage.getItem("token")) {
+        return;
+    }
+
+    const now = Date.now();
+    if (now - lastActivityAt < ACTIVITY_THROTTLE_MS) {
+        return;
+    }
+
+    lastActivityAt = now;
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+    scheduleIdleLogout();
+}
+
+function clearGameSession(reason: "manual" | "idle" | "expired"): void {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
+    loggedIn.value = false;
+    storedUser.value = {};
+    clearIdleTimer();
+    window.dispatchEvent(
+        new CustomEvent("auth-changed", { detail: { reason } }),
+    );
+}
 
 function handleScroll(): void {
     if (scrollFrame !== null) {
@@ -308,8 +399,46 @@ function handleScroll(): void {
     });
 }
 
-function handleAuthChanged(): void {
-    loggedIn.value = !!localStorage.getItem("token");
+function handleAuthChanged(event: Event): void {
+    const hasToken = !!localStorage.getItem("token");
+    const reason = (event as CustomEvent<{ reason?: string }>).detail?.reason;
+
+    loggedIn.value = hasToken;
+    storedUser.value = readStoredUser();
+
+    if (!hasToken) {
+        clearIdleTimer();
+        if (reason !== "manual" && route.meta.requiresAuth) {
+            void router.replace({
+                path: "/login",
+                query: { redirect: route.fullPath },
+            });
+        }
+        return;
+    }
+
+    scheduleIdleLogout();
+}
+
+function handleStorageChanged(event: StorageEvent): void {
+    if (event.key === LAST_ACTIVITY_KEY) {
+        scheduleIdleLogout();
+        return;
+    }
+
+    if (event.key === "token" || event.key === "user") {
+        handleAuthChanged(
+            new CustomEvent("auth-changed", {
+                detail: { reason: "external" },
+            }),
+        );
+    }
+}
+
+function handleVisibilityChange(): void {
+    if (!document.hidden) {
+        scheduleIdleLogout();
+    }
 }
 
 function handleRouteLoading(event: Event): void {
@@ -331,9 +460,7 @@ function handleRouteLoading(event: Event): void {
 }
 
 function logout(): void {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("auth-changed"));
+    clearGameSession("manual");
     menuOpen.value = false;
     void router.push("/");
 }
@@ -356,8 +483,14 @@ watch(
 onMounted(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("auth-changed", handleAuthChanged);
+    window.addEventListener("storage", handleStorageChanged);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    activityEvents.forEach((eventName) => {
+        window.addEventListener(eventName, recordActivity, { passive: true });
+    });
     window.addEventListener("route-loading", handleRouteLoading);
     handleScroll();
+    scheduleIdleLogout();
 
     window.requestAnimationFrame(() => {
         bootLoading.value = false;
@@ -367,6 +500,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener("scroll", handleScroll);
     window.removeEventListener("auth-changed", handleAuthChanged);
+    window.removeEventListener("storage", handleStorageChanged);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, recordActivity);
+    });
     window.removeEventListener("route-loading", handleRouteLoading);
     if (routeLoadingTimer) {
         window.clearTimeout(routeLoadingTimer);
@@ -374,5 +512,6 @@ onBeforeUnmount(() => {
     if (scrollFrame !== null) {
         window.cancelAnimationFrame(scrollFrame);
     }
+    clearIdleTimer();
 });
 </script>
