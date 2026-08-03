@@ -18,6 +18,15 @@ const buildDirectory = path.resolve(
   process.env.WEBGL_BUILD_DIR || path.join(__dirname, '..', '..', 'public', 'play')
 );
 
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Content-Security-Policy': "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' ws: wss:; manifest-src 'self'"
+};
+
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
   '.data': 'application/octet-stream',
@@ -215,7 +224,7 @@ function buildHeaders(filePath) {
   const extension = path.extname(contentPath).toLowerCase();
   const headers = {
     'Content-Type': mimeTypes[extension] || 'application/octet-stream',
-    'X-Content-Type-Options': 'nosniff'
+    ...securityHeaders
   };
 
   if (contentEncoding) {

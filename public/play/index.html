@@ -43,6 +43,28 @@
     <div id="webgl-input-layer"></div>
 
     <script>
+      // These handlers only deter casual copying. They are not a security boundary:
+      // anything delivered to a browser can still be inspected by a determined user.
+      (function installCopyDeterrents() {
+        document.addEventListener('contextmenu', function (event) {
+          event.preventDefault();
+        }, true);
+        document.addEventListener('dragstart', function (event) {
+          event.preventDefault();
+        }, true);
+        document.addEventListener('keydown', function (event) {
+          var key = String(event.key || '').toLowerCase();
+          var inspectShortcut = event.ctrlKey && event.shiftKey &&
+            ['i', 'j', 'c'].indexOf(key) !== -1;
+          var blocked = event.key === 'F12' || inspectShortcut ||
+            (event.ctrlKey && key === 'u');
+          if (blocked) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }, true);
+      }());
+
       var shell = document.querySelector('#game-shell');
       var canvas = document.querySelector('#unity-canvas');
       var loading = document.querySelector('#loading');

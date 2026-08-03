@@ -85,4 +85,18 @@ Content-Type: application/wasm
 ```
 
 Sau đó mở `https://domain-cua-ban/play/` và kiểm tra kết nối
+
+## Lớp bảo vệ trình duyệt
+
+WebGL đã có lớp ngăn sao chép phổ thông (menu chuột phải, kéo thả và một số
+phím tắt mở DevTools/View Source), cùng các HTTP security headers trong
+`nginx-locations.conf` và gateway Node. Đây chỉ là biện pháp hạn chế người
+dùng thông thường; không thể bảo vệ tuyệt đối HTML/CSS/WASM đã gửi xuống
+trình duyệt khỏi người có kỹ thuật.
+
+Sau khi cập nhật cấu hình Nginx, kiểm tra và reload:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
 `wss://domain-cua-ban/game?port=14445` trong DevTools.
