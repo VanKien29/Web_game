@@ -26,6 +26,9 @@
 
         <MilestoneNavigation :milestone-type="currentType" />
 
+        <div v-if="error" class="alert alert-error">{{ error }}</div>
+        <div v-if="success" class="alert alert-success">{{ success }}</div>
+
         <div class="filter-bar">
             <form class="search-form" @submit.prevent="loadPage(1)">
                 <div class="search-input-wrap">
@@ -112,6 +115,18 @@
                                     >
                                     Sửa
                                 </router-link>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline btn-sm"
+                                    :disabled="copyingId === row.id"
+                                    title="Sao chép mốc quà"
+                                    @click="copyMilestone(row)"
+                                >
+                                    <span class="mi" style="font-size: 14px"
+                                        >content_copy</span
+                                    >
+                                    {{ copyingId === row.id ? "Đang sao chép..." : "Sao chép" }}
+                                </button>
                             </td>
                         </tr>
                         <!-- <tr v-if="loading" class="admin-loading-row">
@@ -204,6 +219,9 @@ export default {
             totalPages: 1,
             loading: false,
             itemIconMap: {},
+            copyingId: null,
+            error: "",
+            success: "",
         };
     },
     computed: {
@@ -324,6 +342,7 @@ export default {
             }
         },
         async loadPage(p) {
+            this.error = "";
             this.loading = true;
             this.page = this.normalizePage(p);
             this.pageInput = String(this.page);
@@ -362,6 +381,44 @@ export default {
                 this.totalPages = 1;
             } finally {
                 this.loading = false;
+            }
+        },
+        async copyMilestone(row) {
+            const ok = await window.adminConfirm({
+                title: "Sao chép mốc quà",
+                message: `Sao chép mốc #${row.id}?`,
+                tone: "primary",
+                confirmText: "Sao chép",
+            });
+            if (!ok) return;
+            this.error = "";
+            this.success = "";
+            this.copyingId = row.id;
+            try {
+                const token = document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content");
+                const res = await fetch(
+                    `/admin/api/milestones/${this.currentType}/${row.id}/copy`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            Accept: "application/json",
+                            "X-CSRF-TOKEN": token,
+                        },
+                    },
+                );
+                const data = await res.json();
+                if (!res.ok || !data.ok) {
+                    throw new Error(data.message || "Không thể sao chép mốc quà");
+                }
+                this.success = data.message || "Đã sao chép mốc quà";
+                await this.loadPage(this.page);
+            } catch (e) {
+                this.error = e?.message || "Không thể sao chép mốc quà";
+            } finally {
+                this.copyingId = null;
             }
         },
     },
@@ -482,5 +539,11 @@ export default {
     width: 72px;
     min-width: 72px;
     padding: 6px 8px !important;
+}
+.action-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 170px;
 }
 </style>

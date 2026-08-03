@@ -897,6 +897,10 @@
                                 ><input v-model="rule.active" type="checkbox" />
                                 Đang bật</label
                             >
+                            <ItemOptionsClipboard
+                                :options="rule.options"
+                                @paste="pasteDropRuleOptions(rule, $event)"
+                            />
                         </div>
                     </div>
                 </div>
@@ -1038,7 +1042,11 @@
 
 <script>
 import { csrfToken } from "../../shared/format";
+import ItemOptionsClipboard from "../../components/ItemOptionsClipboard.vue";
 export default {
+    components: {
+        ItemOptionsClipboard,
+    },
     data() {
         return {
             maps: [],
@@ -1809,6 +1817,13 @@ export default {
             row.item_name = item.name || "";
             row.icon_id = item.icon_id ?? null;
             this.closeItemPicker();
+        },
+        pasteDropRuleOptions(rule, options) {
+            this.pushMapUndo("Dán option item drop");
+            rule.options = options.map((option) => ({
+                id: Number(option.id),
+                param: Number(option.param) || 0,
+            }));
         },
         addMob() {
             this.pushMapUndo("Thêm mob");
@@ -2620,6 +2635,9 @@ select.form-input option {
     align-items: center;
     gap: 6px;
 }
+.editor-flags .item-options-clipboard {
+    margin-left: auto;
+}
 .npc-card-meta {
     display: flex;
     align-items: center;
@@ -2714,5 +2732,4 @@ select.form-input option {
     }
 }
 </style>
-
 

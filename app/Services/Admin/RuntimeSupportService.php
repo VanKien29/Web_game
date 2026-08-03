@@ -215,7 +215,27 @@ class RuntimeSupportService
     private function logRuntimeAction(string $action, array $result, ?\Throwable $error = null): void
     {
         try {
+            $readActions = [
+                'runtime.health',
+                'boss.list',
+                'boss.config.list',
+                'map_mob.list',
+            ];
+            if (!$error && !config('admin_logs.log_runtime_read_success', false) && in_array($action, $readActions, true)) {
+                return;
+            }
+
             $admin = Auth::guard('admin')->user();
+            $meta = [
+                'ok' => !empty($result['ok']),
+                'code' => $result['code'] ?? null,
+                'http_status' => $result['http_status'] ?? null,
+                'error' => $error?->getMessage(),
+            ];
+            if (config('admin_logs.runtime_include_result', false)) {
+                $meta['result'] = $result;
+            }
+
             AdminActionLog::create([
                 'admin_user_id' => $admin?->id,
                 'admin_username' => $admin?->username ?? $admin?->name ?? 'admin',
@@ -232,10 +252,7 @@ class RuntimeSupportService
                     : "Runtime {$action} thất bại",
                 'before_state' => null,
                 'after_state' => null,
-                'meta' => [
-                    'result' => $result,
-                    'error' => $error?->getMessage(),
-                ],
+                'meta' => $meta,
             ]);
         } catch (\Throwable) {
             //

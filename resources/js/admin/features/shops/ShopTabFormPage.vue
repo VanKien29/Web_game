@@ -367,9 +367,13 @@
                                                     <span
                                                         class="mi"
                                                         style="font-size: 14px"
-                                                        >add</span
+                                                >add</span
                                                     >
                                                 </button>
+                                                <ItemOptionsClipboard
+                                                    :options="item.options"
+                                                    @paste="pasteItemOptions(item, $event)"
+                                                />
                                             </div>
                                             <!-- Inline option editor for pending -->
                                             <div
@@ -651,6 +655,10 @@
                                             >
                                             Thêm
                                         </button>
+                                        <ItemOptionsClipboard
+                                            :options="item.options"
+                                            @paste="pasteItemOptions(item, $event)"
+                                        />
                                     </div>
                                     <div
                                         v-for="(opt, oi) in item.options"
@@ -1021,6 +1029,7 @@
 <script>
 import { buildPaginationItems, fixJson } from "../../shared/format";
 import { readJsonResponse } from "../../shared/api";
+import ItemOptionsClipboard from "../../components/ItemOptionsClipboard.vue";
 import {
     applyItemPickerResponse,
     itemPickerTypes,
@@ -1029,6 +1038,9 @@ import {
     resetItemPickerResults,
 } from "../../shared/itemCatalog";
 export default {
+    components: {
+        ItemOptionsClipboard,
+    },
     data() {
         return {
             form: { tab_name: "", tab_index: 0 },
@@ -1614,6 +1626,19 @@ export default {
                 search: "",
                 showDrop: false,
                 _pending: true,
+            });
+        },
+        pasteItemOptions(item, options) {
+            item.options = options.map((option) => {
+                const name = this.optionName(option.id);
+                return {
+                    id: Number(option.id),
+                    param: Number(option.param) || 0,
+                    search: name
+                        ? `${name} (ID: ${option.id})`
+                        : `ID: ${option.id}`,
+                    showDrop: false,
+                };
             });
         },
         editOption(item, opt) {
@@ -2725,5 +2750,4 @@ export default {
     }
 }
 </style>
-
 

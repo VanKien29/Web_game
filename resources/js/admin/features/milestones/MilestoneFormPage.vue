@@ -237,6 +237,10 @@
                                                 >add</span
                                             >
                                         </button>
+                                        <ItemOptionsClipboard
+                                            :options="item.options"
+                                            @paste="pasteItemOptions(item, $event)"
+                                        />
                                     </div>
 
                                     <div
@@ -542,6 +546,7 @@
 <script>
 import { buildPaginationItems, fixJson } from "../../shared/format";
 import { readJsonResponse } from "../../shared/api";
+import ItemOptionsClipboard from "../../components/ItemOptionsClipboard.vue";
 import MilestoneNavigation from "./MilestoneNavigation.vue";
 import {
     applyItemPickerResponse,
@@ -560,6 +565,7 @@ const TYPE_MAP = {
 export default {
     components: {
         MilestoneNavigation,
+        ItemOptionsClipboard,
     },
     data() {
         return {
@@ -809,6 +815,19 @@ export default {
                 search: "",
                 showDrop: false,
                 _pending: true,
+            });
+        },
+        pasteItemOptions(item, options) {
+            item.options = options.map((option) => {
+                const name = this.optionName(option.id);
+                return {
+                    id: Number(option.id),
+                    param: Number(option.param) || 0,
+                    search: name
+                        ? `${name} (ID: ${option.id})`
+                        : `ID: ${option.id}`,
+                    showDrop: false,
+                };
             });
         },
         editOption(item, opt) {

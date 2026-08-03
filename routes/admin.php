@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\FlyingBoardController;
 use App\Http\Controllers\Api\Admin\ForumController;
 use App\Http\Controllers\Api\Admin\GiftBoxController;
 use App\Http\Controllers\Api\Admin\GiftcodeController;
+use App\Http\Controllers\Api\Admin\HiddenOptionGroupController;
 use App\Http\Controllers\Api\Admin\ItemController;
 use App\Http\Controllers\Api\Admin\MilestoneController;
 use App\Http\Controllers\Api\Admin\NpcTemplateController;
@@ -100,10 +101,12 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/milestones/{type}', [MilestoneController::class, 'index']);
         Route::get('/api/milestones/{type}/{id}', [MilestoneController::class, 'show'])->whereNumber('id');
         Route::post('/api/milestones/{type}', [MilestoneController::class, 'store']);
+        Route::post('/api/milestones/{type}/{id}/copy', [MilestoneController::class, 'copy'])->whereNumber('id');
         Route::put('/api/milestones/{type}/{id}', [MilestoneController::class, 'update'])->whereNumber('id');
         Route::delete('/api/milestones/{type}/{id}', [MilestoneController::class, 'destroy'])->whereNumber('id');
 
         Route::patch('/api/welfare-configs/{id}/toggle', [WelfareConfigController::class, 'toggle'])->whereNumber('id');
+        Route::post('/api/welfare-configs/{id}/copy', [WelfareConfigController::class, 'copy'])->whereNumber('id');
         Route::apiResource('api/welfare-configs', WelfareConfigController::class)
             ->parameters(['welfare-configs' => 'id'])
             ->whereNumber('id')
@@ -125,6 +128,13 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/gift-boxes/{id}', [GiftBoxController::class, 'show'])->whereNumber('id');
         Route::post('/api/gift-boxes/{id}', [GiftBoxController::class, 'update'])->whereNumber('id');
         Route::delete('/api/gift-boxes/{id}', [GiftBoxController::class, 'destroy'])->whereNumber('id');
+
+        Route::apiResource('api/hidden-option-groups', HiddenOptionGroupController::class)
+            ->parameters(['hidden-option-groups' => 'id'])
+            ->whereNumber('id')
+            ->names('admin.api.hidden-option-groups');
+        Route::post('/api/hidden-option-groups/{id}/copy', [HiddenOptionGroupController::class, 'copy'])
+            ->whereNumber('id');
 
         Route::get('/api/badges', [BadgeController::class, 'index']);
         Route::get('/api/badges/{id}', [BadgeController::class, 'show'])->whereNumber('id');

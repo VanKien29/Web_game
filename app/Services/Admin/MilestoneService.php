@@ -111,6 +111,44 @@ class MilestoneService extends AdminServiceSupport
         return ['ok' => true, 'message' => 'Tạo mốc quà thành công', 'id' => $id];
     }
 
+    public function copy(string $type, int $id): array
+    {
+        $resolved = $this->resolveMilestoneType($type);
+        if (!$resolved) {
+            return ['ok' => false, 'status' => 404, 'message' => 'Loại bảng không hợp lệ'];
+        }
+
+        $source = DB::connection('game')->table($resolved['table'])->where('id', $id)->first();
+        if (!$source) {
+            return ['ok' => false, 'status' => 404, 'message' => 'Không tìm thấy mốc quà'];
+        }
+
+        $newId = ((int) DB::connection('game')->table($resolved['table'])->max('id')) + 1;
+        $info = trim((string) ($source->info ?? ''));
+        $copyInfo = $info !== '' ? $info . ' (bản sao)' : 'Bản sao mốc #' . $id;
+        $row = [
+            'id' => $newId,
+            'info' => $copyInfo,
+            'detail' => $this->normalizeMilestoneDetail($source->detail ?? '[]'),
+        ];
+
+        DB::connection('game')->table($resolved['table'])->insert($row);
+        $this->logAdminAction(
+            'milestone.copy',
+            $resolved['table'],
+            $newId,
+            "Sao chép mốc quà #{$id} thành #{$newId}",
+            (array) $source,
+            $row,
+        );
+
+        return [
+            'ok' => true,
+            'message' => "Đã sao chép mốc quà thành #{$newId}",
+            'id' => $newId,
+        ];
+    }
+
     public function update(Request $request, string $type, int $id): array
     {
         $resolved = $this->resolveMilestoneType($type);
