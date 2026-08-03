@@ -129,6 +129,73 @@ final class WelfareConfigService extends AdminServiceSupport
         return ['ok' => true, 'message' => 'Tạo cấu hình phúc lợi thành công', 'id' => $id];
     }
 
+    public function copy(int $id): array
+    {
+        if (! $this->tableExists()) {
+            return $this->missingTable();
+        }
+
+        $game = DB::connection('game');
+        $source = $game->table('phuc_loi_config')->where('id', $id)->first();
+        if (! $source) {
+            return ['ok' => false, 'status' => 404, 'message' => 'Không tìm thấy cấu hình phúc lợi'];
+        }
+
+        $type = (string) $source->type;
+        $sourceState = (array) $source;
+
+        try {
+            $newId = $game->transaction(function () use ($game, $source, $id, $type, $sourceState): int {
+                $isMessage = $type === 'message';
+                $nextRefId = $isMessage
+                    ? 0
+                    : ((int) $game->table('phuc_loi_config')->where('type', $type)->max('ref_id') + 1);
+                $nextMsgKey = $isMessage
+                    ? $this->nextMessageKey($game, (string) ($source->msg_key ?? ''))
+                    : '';
+                $nextSortOrder = (int) $game->table('phuc_loi_config')->where('type', $type)->max('sort_order') + 1;
+                $label = $isMessage
+                    ? ''
+                    : $this->copyLabel((string) ($source->label ?? ''), $id);
+
+                $row = [
+                    'type' => $type,
+                    'ref_id' => $nextRefId,
+                    'label' => $label,
+                    'description' => $source->description,
+                    'price' => (int) $source->price,
+                    'rewards_json' => (string) $source->rewards_json,
+                    'sort_order' => $nextSortOrder,
+                    'active' => (int) $source->active,
+                    'msg_key' => $nextMsgKey,
+                    'msg_value' => $source->msg_value,
+                ];
+                $newId = (int) $game->table('phuc_loi_config')->insertGetId($row);
+                $after = $game->table('phuc_loi_config')->where('id', $newId)->first();
+
+                $this->logAdminAction(
+                    'welfare_config.copy',
+                    'welfare_config',
+                    $newId,
+                    "Sao chép phúc lợi #{$id} thành #{$newId}",
+                    $sourceState,
+                    (array) $after,
+                    ['source_id' => $id],
+                );
+
+                return $newId;
+            });
+        } catch (QueryException $exception) {
+            return $this->writeError($exception);
+        }
+
+        return [
+            'ok' => true,
+            'message' => "Đã sao chép mốc phúc lợi #{$id} thành #{$newId}",
+            'id' => $newId,
+        ];
+    }
+
     public function update(int $id, array $input): array
     {
         if (! $this->tableExists()) {
@@ -367,6 +434,32 @@ final class WelfareConfigService extends AdminServiceSupport
         }
 
         return trim((string) ($row['label'] ?? '')) ?: (string) ($row['ref_id'] ?? $row['id'] ?? '');
+    }
+
+    private function nextMessageKey($game, string $sourceKey): string
+    {
+        $base = trim($sourceKey) !== '' ? trim($sourceKey).'_copy' : 'message_copy';
+        $candidate = substr($base, 0, 64);
+        $suffix = 2;
+
+        while ($game->table('phuc_loi_config')->where('type', 'message')->where('msg_key', $candidate)->exists()) {
+            $suffixText = '_'.$suffix;
+            $candidate = substr(substr($base, 0, 64 - strlen($suffixText)).$suffixText, 0, 64);
+            $suffix++;
+        }
+
+        return $candidate;
+    }
+
+    private function copyLabel(string $label, int $sourceId): string
+    {
+        $suffix = ' (bản sao)';
+        $label = trim($label);
+        if ($label === '') {
+            return "Bản sao #{$sourceId}";
+        }
+
+        return mb_substr($label, 0, 255 - mb_strlen($suffix)).$suffix;
     }
 
     private function tableExists(): bool

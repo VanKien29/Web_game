@@ -213,6 +213,17 @@
                     </div>
                     <div class="nav-item">
                         <router-link
+                            to="/admin/hidden-option-groups"
+                            class="nav-link"
+                            :class="{ active: $route.name === 'admin.hidden_option_groups' }"
+                            @click="closeMobile"
+                        >
+                            <span class="nav-icon mi">auto_awesome</span>
+                            <span class="text">Nhóm option</span>
+                        </router-link>
+                    </div>
+                    <div class="nav-item">
+                        <router-link
                             to="/admin/badges"
                             class="nav-link"
                             :class="{ active: $route.name === 'admin.badges' }"
@@ -583,6 +594,7 @@ export default {
                 "postComments",
                 "items",
                 "giftBoxes",
+                "hiddenOptionGroups",
                 "badges",
                 "costumes",
                 "pets",
@@ -657,7 +669,7 @@ export default {
         },
         updateScrollLock() {
             const hasFloatingMenu = !!document.querySelector(
-                ".admin-app .modal-overlay, .admin-app .picker-overlay, .admin-app .admin-confirm-overlay",
+                ".admin-app .modal-overlay, .admin-app .editor-overlay, .admin-app .picker-overlay, .admin-app .admin-confirm-overlay",
             );
             if (hasFloatingMenu) {
                 this.lockBodyScroll();

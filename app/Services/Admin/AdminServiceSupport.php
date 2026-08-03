@@ -36,13 +36,41 @@ abstract class AdminServiceSupport
             $state['remember_token']
         );
 
-        foreach ($state as $key => $value) {
-            if (is_string($value) && mb_strlen($value) > 2000) {
-                $state[$key] = mb_substr($value, 0, 2000) . ' ...';
-            }
-        }
+        $maxStringLength = max(100, (int) config('admin_logs.state_string_max_length', 1000));
+        $state = $this->compactLogValue($state, $maxStringLength);
 
         return $state;
+    }
+
+    private function compactLogValue(mixed $value, int $maxStringLength, int $depth = 0): mixed
+    {
+        if (is_string($value)) {
+            return mb_strlen($value) > $maxStringLength
+                ? mb_substr($value, 0, $maxStringLength) . ' ...'
+                : $value;
+        }
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        // Log state is for audit context, not for storing full game payloads.
+        if ($depth >= 5) {
+            return '[truncated]';
+        }
+
+        $result = [];
+        $maxItems = 100;
+        foreach ($value as $key => $entry) {
+            if (count($result) >= $maxItems) {
+                $result['__truncated_items'] = true;
+                break;
+            }
+
+            $result[$key] = $this->compactLogValue($entry, $maxStringLength, $depth + 1);
+        }
+
+        return $result;
     }
 
     protected function logAdminAction(

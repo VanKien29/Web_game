@@ -332,6 +332,7 @@ async function loadData(): Promise<void> {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
+            localStorage.removeItem("game_last_activity_at");
             window.dispatchEvent(new Event("auth-changed"));
             history.value = [];
             loginRequired.value = true;

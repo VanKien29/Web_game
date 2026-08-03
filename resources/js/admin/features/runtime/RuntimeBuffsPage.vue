@@ -335,6 +335,10 @@
                                             >
                                                 <span class="mi">add</span>
                                             </button>
+                                            <ItemOptionsClipboard
+                                                :options="item.options"
+                                                @paste="pasteItemOptions(item, $event)"
+                                            />
                                         </div>
                                     </td>
                                     <td>
@@ -641,6 +645,7 @@
 <script>
 import { buildPaginationItems } from "../../shared/format";
 import { readJsonResponse } from "../../shared/api";
+import ItemOptionsClipboard from "../../components/ItemOptionsClipboard.vue";
 import {
     applyItemPickerResponse,
     itemGenderLabel,
@@ -650,6 +655,9 @@ import {
     resetItemPickerResults,
 } from "../../shared/itemCatalog";
 export default {
+    components: {
+        ItemOptionsClipboard,
+    },
     data() {
         return {
             mail: {
@@ -941,6 +949,19 @@ export default {
                         option.confirmed !== false && this.hasOptionId(option),
                 })),
             });
+        },
+        pasteItemOptions(item, options) {
+            item.expanded = true;
+            item.options = options.map((option) => ({
+                local_id: this.localId++,
+                id: Number(option.id),
+                param: Number(option.param) || 0,
+                search: this.optionName(option.id)
+                    ? `${this.optionName(option.id)} (ID: ${option.id})`
+                    : `ID: ${option.id}`,
+                open: false,
+                confirmed: true,
+            }));
         },
         removeItem(index) {
             this.mail.items.splice(index, 1);
@@ -1894,5 +1915,4 @@ export default {
     }
 }
 </style>
-
 

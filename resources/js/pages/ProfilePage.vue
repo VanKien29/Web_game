@@ -585,6 +585,7 @@ function closeModal(): void {
 function clearSession(): void {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("game_last_activity_at");
 }
 
 async function logout(): Promise<void> {

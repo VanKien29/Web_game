@@ -27,21 +27,48 @@
                         @input="debouncedLoadPage"
                     />
                 </div>
-                <select
-                    v-model="typeFilter"
-                    class="form-input"
-                    style="width: 180px"
-                    @change="loadPage(1)"
-                >
-                    <option value="">Tất cả type</option>
-                    <option
-                        v-for="t in displayTypeOptions"
-                        :key="'type-opt-' + t.id"
-                        :value="String(t.id)"
+                <div ref="typeFilterControl" class="type-filter-control">
+                    <button
+                        type="button"
+                        class="form-input type-filter-trigger"
+                        :aria-expanded="typeFilterOpen"
+                        aria-haspopup="listbox"
+                        @click="typeFilterOpen = !typeFilterOpen"
                     >
-                        {{ t.name }} ({{ t.id }})
-                    </option>
-                </select>
+                        <span>{{ typeFilterSummary }}</span>
+                        <span class="mi">expand_more</span>
+                    </button>
+                    <div
+                        v-if="typeFilterOpen"
+                        class="type-filter-menu"
+                        role="listbox"
+                        aria-label="Lọc theo type"
+                        aria-multiselectable="true"
+                        @click.stop
+                    >
+                        <label class="type-filter-option type-filter-option--all">
+                            <input
+                                type="checkbox"
+                                :checked="typeFilter.length === 0"
+                                @change="clearTypeFilter"
+                            />
+                            <span>Tất cả type</span>
+                        </label>
+                        <label
+                            v-for="t in displayTypeOptions"
+                            :key="'type-opt-' + t.id"
+                            class="type-filter-option"
+                        >
+                            <input
+                                v-model="typeFilter"
+                                type="checkbox"
+                                :value="String(t.id)"
+                                @change="loadPage(1)"
+                            />
+                            <span>{{ t.name }} ({{ t.id }})</span>
+                        </label>
+                    </div>
+                </div>
                 <select
                     v-model="genderFilter"
                     class="form-input"
@@ -594,7 +621,8 @@ export default {
             types: [],
             typeOptions: [],
             search: "",
-            typeFilter: "",
+            typeFilter: [],
+            typeFilterOpen: false,
             genderFilter: "",
             loading: false,
             page: 1,
@@ -631,11 +659,27 @@ export default {
                 name: `Type ${id}`,
             }));
         },
+        typeFilterSummary() {
+            if (!this.typeFilter.length) return "Tất cả type";
+            if (this.typeFilter.length === 1) {
+                const selected = this.displayTypeOptions.find(
+                    (option) => String(option.id) === String(this.typeFilter[0]),
+                );
+                return selected
+                    ? `${selected.name} (${selected.id})`
+                    : "1 type đã chọn";
+            }
+            return `${this.typeFilter.length} type đã chọn`;
+        },
     },
     created() {
         this.loadPage(1);
     },
+    mounted() {
+        document.addEventListener("click", this.handleTypeFilterOutside);
+    },
     unmounted() {
+        document.removeEventListener("click", this.handleTypeFilterOutside);
         window.clearTimeout(this.searchTimer);
         this.revokeIconPreview();
     },
@@ -645,6 +689,15 @@ export default {
             this.searchTimer = window.setTimeout(() => {
                 this.loadPage(1);
             }, 300);
+        },
+        clearTypeFilter() {
+            this.typeFilter = [];
+            this.loadPage(1);
+        },
+        handleTypeFilterOutside(event) {
+            if (!this.$refs.typeFilterControl?.contains(event.target)) {
+                this.typeFilterOpen = false;
+            }
         },
         normalizePage(page) {
             const value = Number(page);
@@ -912,7 +965,7 @@ export default {
             try {
                 const params = new URLSearchParams({ page: String(this.page) });
                 if (this.search) params.set("search", this.search);
-                if (this.typeFilter) params.set("type", this.typeFilter);
+                this.typeFilter.forEach((type) => params.append("type[]", type));
                 if (this.genderFilter) params.set("gender", this.genderFilter);
 
                 const res = await fetch(
@@ -995,6 +1048,70 @@ export default {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+}
+.type-filter-control {
+    position: relative;
+    width: 220px;
+}
+.type-filter-trigger {
+    width: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    overflow: hidden;
+    text-align: left;
+    cursor: pointer;
+}
+.type-filter-trigger > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.type-filter-trigger .mi {
+    flex: 0 0 auto;
+    font-size: 18px;
+}
+.type-filter-menu {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 6px);
+    left: 0;
+    width: min(320px, calc(100vw - 32px));
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid var(--ds-border);
+    border-radius: 10px;
+    background: var(--ds-surface);
+    box-shadow: 0 12px 28px rgba(28, 34, 40, 0.18);
+}
+.type-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 34px;
+    padding: 6px 8px;
+    border-radius: 7px;
+    color: var(--ds-text);
+    font-size: 13px;
+    cursor: pointer;
+}
+.type-filter-option:hover {
+    background: var(--ds-gray-100);
+}
+.type-filter-option--all {
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--ds-border);
+    border-radius: 7px 7px 4px 4px;
+    font-weight: 700;
+}
+.type-filter-option input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--ds-primary, #2f8132);
 }
 .search-input-wrap {
     position: relative;

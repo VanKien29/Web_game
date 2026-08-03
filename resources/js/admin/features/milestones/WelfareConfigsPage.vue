@@ -103,6 +103,15 @@
                                 </button>
                             </td>
                             <td class="action-cell">
+                                <button
+                                    v-if="currentType !== 'attendance_daily'"
+                                    class="btn btn-outline btn-sm"
+                                    :disabled="busyId === row.id"
+                                    title="Sao chép mốc"
+                                    @click="copyRow(row)"
+                                >
+                                    <span class="mi">content_copy</span>
+                                </button>
                                 <router-link
                                     :to="{
                                         name: 'admin.welfare-configs.edit',
@@ -314,6 +323,29 @@ async function toggleStatus(row: WelfareRow): Promise<void> {
         success.value = data.message || "Đã cập nhật trạng thái";
     } catch (caught) {
         error.value = caught instanceof Error ? caught.message : "Không thể đổi trạng thái";
+    } finally {
+        busyId.value = null;
+    }
+}
+
+async function copyRow(row: WelfareRow): Promise<void> {
+    if (!window.confirm(`Sao chép toàn bộ cấu hình mốc “${primaryValue(row)}”, gồm phần thưởng và option?`)) return;
+    busyId.value = row.id;
+    error.value = "";
+    try {
+        const response = await fetch(`/admin/api/welfare-configs/${row.id}/copy`, {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": csrfToken(),
+                Accept: "application/json",
+            },
+        });
+        const data = await readJsonResponse(response, "Không thể sao chép mốc phúc lợi");
+        success.value = data.message || "Đã sao chép mốc phúc lợi";
+        await loadPage(page.value);
+    } catch (caught) {
+        error.value = caught instanceof Error ? caught.message : "Không thể sao chép mốc phúc lợi";
     } finally {
         busyId.value = null;
     }

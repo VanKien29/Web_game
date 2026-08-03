@@ -19,7 +19,7 @@ class GameCatalogService extends AdminServiceSupport
     public function listItems(Request $request): array
     {
         $search = $request->query('search', '');
-        $type = $this->normalizeFilterValue($request->query('type'));
+        $types = $this->normalizeFilterValues($request->query('type'));
         $gender = $this->normalizeFilterValue($request->query('gender'));
         $lite = $request->boolean('lite');
         $perPage = max(1, min((int) $request->query('per_page', 50), 200));
@@ -66,8 +66,8 @@ class GameCatalogService extends AdminServiceSupport
             });
         }
 
-        if ($type !== null) {
-            $query->where('type', $type);
+        if ($types !== []) {
+            $query->whereIn('type', $types);
         }
         if ($gender !== null) {
             $query->where('gender', $gender);
@@ -534,6 +534,23 @@ class GameCatalogService extends AdminServiceSupport
         }
 
         return is_numeric($normalized) ? (int) $normalized : $normalized;
+    }
+
+    private function normalizeFilterValues(mixed $value): array
+    {
+        $values = is_array($value)
+            ? $value
+            : preg_split('/\s*,\s*/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+
+        $normalized = [];
+        foreach ($values ?: [] as $item) {
+            $item = $this->normalizeFilterValue($item);
+            if ($item !== null) {
+                $normalized[] = $item;
+            }
+        }
+
+        return array_values(array_unique($normalized, SORT_REGULAR));
     }
 
     private function partMapForItems(iterable $items): array

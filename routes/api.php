@@ -20,8 +20,11 @@ Route::prefix('api')->group(function () {
     Route::get('/home', [HomeController::class, 'index']);
     Route::get('/bxh', [BxhController::class, 'index']);
     Route::get('/giftcodes', [GiftcodeController::class, 'index']);
-    Route::get('/forum/posts', [ForumController::class, 'index']);
-    Route::get('/forum/posts/{post}', [ForumController::class, 'show'])->whereNumber('post');
+    Route::apiResource('forum/posts', ForumController::class)
+        ->only(['index', 'show'])
+        ->parameters(['posts' => 'post'])
+        ->whereNumber('post')
+        ->names('forum.posts');
     Route::get('/forum/posts/{post}/comments', [ForumController::class, 'comments'])->whereNumber('post');
     Route::post('/forum/posts/{post}/share', [ForumController::class, 'share'])->whereNumber('post');
     Route::post('/auth/login', [AuthController::class, 'login'])
@@ -40,8 +43,11 @@ Route::prefix('api')->group(function () {
         Route::get('/topup/history', [TopupController::class, 'history']);
         Route::post('/topup/card', [TopupCardController::class, 'submit']);
         Route::get('/topup/card/history', [TopupCardController::class, 'userHistory']);
-        Route::put('/forum/posts/{post}', [ForumController::class, 'update'])->whereNumber('post');
-        Route::delete('/forum/posts/{post}', [ForumController::class, 'destroy'])->whereNumber('post');
+        Route::apiResource('forum/posts', ForumController::class)
+            ->only(['update', 'destroy'])
+            ->parameters(['posts' => 'post'])
+            ->whereNumber('post')
+            ->names('forum.posts');
         Route::post('/forum/posts/read-all', [ForumController::class, 'markAllRead']);
         Route::post('/forum/posts/{post}/read', [ForumController::class, 'markRead'])->whereNumber('post');
         Route::post('/forum/posts/{post}/reaction', [ForumController::class, 'toggleReaction'])->whereNumber('post');
@@ -51,7 +57,10 @@ Route::prefix('api')->group(function () {
         Route::post('/forum/comments/{comment}/reaction', [ForumController::class, 'toggleCommentReaction'])->whereNumber('comment');
 
         Route::middleware('game.player')->group(function () {
-            Route::post('/forum/posts', [ForumController::class, 'store']);
+            Route::apiResource('forum/posts', ForumController::class)
+                ->only(['store'])
+                ->parameters(['posts' => 'post'])
+                ->names('forum.posts');
             Route::post('/forum/posts/{post}/comments', [ForumController::class, 'storeComment'])->whereNumber('post');
         });
     });
@@ -76,17 +85,15 @@ Route::prefix('api')->group(function () {
         Route::get('/topUsers', [AdminDashboardController::class, 'topUsers']);
         Route::get('/monthlyRevenue', [AdminDashboardController::class, 'monthlyRevenue']);
 
-        Route::get('/accounts', [AdminAccountController::class, 'index']);
-        Route::get('/accounts/{id}', [AdminAccountController::class, 'show'])->whereNumber('id');
-        Route::post('/accounts', [AdminAccountController::class, 'store']);
-        Route::put('/accounts/{id}', [AdminAccountController::class, 'update'])->whereNumber('id');
-        Route::delete('/accounts/{id}', [AdminAccountController::class, 'destroy'])->whereNumber('id');
+        Route::apiResource('accounts', AdminAccountController::class)
+            ->parameters(['accounts' => 'id'])
+            ->whereNumber('id')
+            ->names('topup.admin.accounts');
 
-        Route::get('/giftcodes', [AdminGiftcodeController::class, 'index']);
-        Route::get('/giftcodes/{id}', [AdminGiftcodeController::class, 'show'])->whereNumber('id');
-        Route::post('/giftcodes', [AdminGiftcodeController::class, 'store']);
-        Route::put('/giftcodes/{id}', [AdminGiftcodeController::class, 'update'])->whereNumber('id');
-        Route::delete('/giftcodes/{id}', [AdminGiftcodeController::class, 'destroy'])->whereNumber('id');
+        Route::apiResource('giftcodes', AdminGiftcodeController::class)
+            ->parameters(['giftcodes' => 'id'])
+            ->whereNumber('id')
+            ->names('topup.admin.giftcodes');
 
         Route::get('/items', [AdminItemController::class, 'index']);
         Route::get('/items/{id}/options', [AdminItemController::class, 'options'])->whereNumber('id');

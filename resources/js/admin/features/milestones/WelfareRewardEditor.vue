@@ -109,6 +109,10 @@
                                     >
                                         <span class="mi">add</span>
                                     </button>
+                                    <ItemOptionsClipboard
+                                        :options="reward.options"
+                                        @paste="pasteOptions(reward, $event)"
+                                    />
                                 </div>
                             </td>
                             <td>
@@ -202,6 +206,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { readJsonResponse } from "../../shared/api";
+import ItemOptionsClipboard from "../../components/ItemOptionsClipboard.vue";
 import ItemCatalogPicker from "./ItemCatalogPicker.vue";
 import type { WelfareReward } from "./welfareTypes";
 
@@ -377,6 +382,14 @@ function saveOption(reward: WelfareReward): void {
 function removeOption(reward: WelfareReward, optionIndex: number): void {
     reward.options.splice(optionIndex, 1);
     closeOptionEditor();
+    emitRewards();
+}
+
+function pasteOptions(reward: WelfareReward, options: Array<{ id: number; param: number }>): void {
+    reward.options = options.map((option) => ({
+        id: Number(option.id),
+        param: Number(option.param) || 0,
+    }));
     emitRewards();
 }
 

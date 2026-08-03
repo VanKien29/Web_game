@@ -28,6 +28,11 @@ final class MilestoneController extends Controller
         return $this->jsonResult($this->milestones->create($request, $type));
     }
 
+    public function copy(string $type, int $id): JsonResponse
+    {
+        return $this->jsonResult($this->milestones->copy($type, $id));
+    }
+
     public function update(Request $request, string $type, int $id): JsonResponse
     {
         return $this->jsonResult($this->milestones->update($request, $type, $id));

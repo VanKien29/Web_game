@@ -28,6 +28,11 @@ final class WelfareConfigController extends Controller
         return $this->jsonResult($this->configs->create($request->validated()));
     }
 
+    public function copy(int $id): JsonResponse
+    {
+        return $this->jsonResult($this->configs->copy($id));
+    }
+
     public function update(UpdateWelfareConfigRequest $request, int $id): JsonResponse
     {
         return $this->jsonResult($this->configs->update($id, $request->validated()));
