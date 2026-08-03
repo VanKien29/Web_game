@@ -115,6 +115,14 @@ html.mobile #game-shell {
   transition: width 180ms ease;
 }
 
+#loading-label {
+  margin-top: 12px;
+  color: #cfcfcf;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 #unity-warning {
   position: absolute;
   z-index: 40;
