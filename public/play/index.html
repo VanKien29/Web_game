@@ -294,7 +294,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260803-mobile-loading-center';
+      var assetVersion = '20260803-mobile-quality-30fps';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -310,7 +310,7 @@
         autoSyncPersistentDataPath: true,
         matchWebGLToCanvasSize: true,
         devicePixelRatio: mobileBrowser
-          ? Math.min(window.devicePixelRatio || 1, 2)
+          ? Math.min(window.devicePixelRatio || 1, 2.5)
           : Math.min(window.devicePixelRatio || 1, 1.5),
         cacheControl: function () {
           return 'no-store';
