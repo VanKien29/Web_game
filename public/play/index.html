@@ -15,7 +15,7 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
   </head>
   <body>
     <main id="game-shell">
@@ -24,11 +24,10 @@
       <section id="loading" aria-live="polite">
         <div class="loading-glow"></div>
         <div class="loading-content">
-          <div class="loading-title">NRO HORIZON</div>
+          <img class="loading-media" src="loading.gif" alt="" aria-hidden="true">
           <div class="progress-track">
             <div id="progress-value"></div>
           </div>
-          <div id="loading-label">Đang tải dữ liệu…</div>
         </div>
       </section>
 
@@ -47,7 +46,6 @@
       var canvas = document.querySelector('#unity-canvas');
       var loading = document.querySelector('#loading');
       var progressValue = document.querySelector('#progress-value');
-      var loadingLabel = document.querySelector('#loading-label');
       var warningBanner = document.querySelector('#unity-warning');
       var runtimeError = document.querySelector('#runtime-error');
       var mobileBrowser =
@@ -272,7 +270,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260730-22a42d7e';
+      var assetVersion = '20260803-websocket-loading';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -289,7 +287,7 @@
         matchWebGLToCanvasSize: true,
         devicePixelRatio: mobileBrowser
           ? Math.min(window.devicePixelRatio || 1, 2)
-          : 1,
+          : Math.min(window.devicePixelRatio || 1, 1.5),
         cacheControl: function () {
           return 'no-store';
         },
@@ -303,7 +301,6 @@
         createUnityInstance(canvas, config, function (progress) {
           var percent = Math.round(progress * 100);
           progressValue.style.width = percent + '%';
-          loadingLabel.textContent = 'Đang tải dữ liệu… ' + percent + '%';
         }).then(function (instance) {
           unityInstance = instance;
           window.unityInstance = instance;
@@ -313,12 +310,11 @@
           lockLandscape();
           focusGame();
         }).catch(function (message) {
-          loadingLabel.textContent = 'Không thể tải game';
           setRuntimeError('Không thể khởi động game:\n' + String(message));
         });
       };
       loader.onerror = function () {
-        loadingLabel.textContent = 'Không thể tải trình khởi động game';
+        setRuntimeError('Không thể tải trình khởi động game');
       };
       document.body.appendChild(loader);
 
