@@ -13,6 +13,7 @@ Environment=LISTEN_HOST=127.0.0.1
 Environment=LISTEN_PORT=8080
 Environment=TARGET_HOST=127.0.0.1
 Environment=TARGET_PORTS=14445
+Environment=WEBGL_ALLOWED_ORIGINS=https://nrohorizon.online,https://www.nrohorizon.online,http://127.0.0.1:8080,http://localhost:8080
 Environment=WEBGL_BUILD_DIR=/var/www/nro-laravel/public/play
 ExecStart=/usr/bin/node server.js
 Restart=always

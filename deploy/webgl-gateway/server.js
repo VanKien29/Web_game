@@ -14,6 +14,7 @@ const allowedTargetPorts = new Set(
     .split(',')
     .map((value) => parsePort(value.trim(), 'TARGET_PORTS'))
 );
+const allowedOrigins = parseAllowedOrigins(process.env.WEBGL_ALLOWED_ORIGINS || '');
 const buildDirectory = path.resolve(
   process.env.WEBGL_BUILD_DIR || path.join(__dirname, '..', '..', 'public', 'play')
 );
@@ -74,6 +75,12 @@ server.on('upgrade', (request, socket, head) => {
 
   if (requestUrl.pathname !== '/game') {
     rejectUpgrade(socket, 404, 'Not Found');
+    return;
+  }
+
+  const requestOrigin = normalizeOrigin(request.headers.origin || '');
+  if (allowedOrigins.size > 0 && !allowedOrigins.has(requestOrigin)) {
+    rejectUpgrade(socket, 403, 'Origin is not allowed');
     return;
   }
 
@@ -255,6 +262,19 @@ function parsePort(value, settingName) {
     throw new Error(`${settingName} must be between 1 and 65535.`);
   }
   return port;
+}
+
+function parseAllowedOrigins(value) {
+  return new Set(
+    String(value)
+      .split(',')
+      .map((origin) => normalizeOrigin(origin))
+      .filter(Boolean)
+  );
+}
+
+function normalizeOrigin(value) {
+  return String(value || '').trim().replace(/\/+$/, '');
 }
 
 function sendJson(response, statusCode, value) {
