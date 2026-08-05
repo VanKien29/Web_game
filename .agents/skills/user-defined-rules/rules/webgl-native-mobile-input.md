@@ -7,7 +7,8 @@ Unity WebGL trên điện thoại dùng hộp thoại nhập native do trình du
 - Android, iPhone và iPad phải mở hộp thoại nhập native của trình duyệt cho mọi trường nhập trong game WebGL.
 - Không tạo `input`, `textarea`, modal hoặc dải nhập HTML tùy chỉnh phủ lên canvas.
 - Kết quả nhập, thao tác xác nhận và hủy phải được chuyển lại đúng `TField` đang focus.
-- Sau khi hộp thoại đóng, phải khôi phục chế độ ngang, kích thước viewport và focus của canvas.
+- Game và hộp thoại native phải duy trì landscape trước, trong và sau khi nhập; không được chuyển sang portrait ở bất kỳ bước nào.
+- Trước khi mở hộp thoại phải khóa landscape; sau khi đóng chỉ đồng bộ viewport, âm thanh và focus canvas trong khi tiếp tục giữ landscape.
 - Client PC vẫn nhập trực tiếp bằng bàn phím như hiện tại.
 
 ## Ví dụ

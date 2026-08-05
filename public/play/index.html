@@ -15,7 +15,7 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
   </head>
   <body>
     <main id="game-shell">
@@ -79,6 +79,7 @@
       var viewportSyncFrame = 0;
       var lastViewportWidth = 0;
       var lastViewportHeight = 0;
+      var nativeInputActive = false;
       var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
 
@@ -314,6 +315,34 @@
         resumeWebAudio();
         lockLandscape();
       }
+
+      function beginNativeInput() {
+        if (!mobileBrowser) {
+          return;
+        }
+
+        nativeInputActive = true;
+        document.documentElement.classList.add('native-input-active');
+        window.scrollTo(0, 0);
+        syncMobileViewport();
+        lockLandscape();
+      }
+
+      function endNativeInput() {
+        if (!mobileBrowser) {
+          return;
+        }
+
+        window.scrollTo(0, 0);
+        syncMobileViewport();
+        resumeWebAudio();
+        lockLandscape();
+        nativeInputActive = false;
+        document.documentElement.classList.remove('native-input-active');
+      }
+
+      window.nroBeginNativeInput = beginNativeInput;
+      window.nroEndNativeInput = endNativeInput;
       window.nroRestoreMobileMode = restoreMobileMode;
 
       if (mobileBrowser) {
@@ -342,7 +371,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260805-native-input-fixed-pc-frame';
+      var assetVersion = '20260805-landscape-native-input';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }

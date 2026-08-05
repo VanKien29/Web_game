@@ -218,7 +218,7 @@ html.mobile #game-shell {
 }
 
 @media (orientation: portrait) {
-  html.mobile #portrait-lock {
+  html.mobile:not(.native-input-active) #portrait-lock {
     display: flex;
   }
 }
