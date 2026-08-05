@@ -78,6 +78,10 @@
       var unityInstance = null;
       var backgroundAudioContext = null;
       var backgroundAudioOscillator = null;
+      var viewportSyncFrame = 0;
+      var lastViewportWidth = 0;
+      var lastViewportHeight = 0;
+      var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
 
       if (typeof window.caches === 'undefined') {
@@ -229,7 +233,7 @@
         }
       }
 
-      function syncMobileViewport() {
+      function applyMobileViewport() {
         if (!mobileBrowser) {
           return;
         }
@@ -237,8 +241,45 @@
         var viewport = window.visualViewport;
         var width = Math.max(1, Math.floor(viewport ? viewport.width : window.innerWidth));
         var height = Math.max(1, Math.floor(viewport ? viewport.height : window.innerHeight));
+        if (width === lastViewportWidth && height === lastViewportHeight) {
+          return;
+        }
+        lastViewportWidth = width;
+        lastViewportHeight = height;
         shell.style.width = width + 'px';
         shell.style.height = height + 'px';
+      }
+
+      function syncMobileViewport() {
+        if (!mobileBrowser || viewportSyncFrame) {
+          return;
+        }
+        viewportSyncFrame = window.requestAnimationFrame(function () {
+          viewportSyncFrame = 0;
+          applyMobileViewport();
+        });
+      }
+
+      function calculateSafeDevicePixelRatio() {
+        var viewport = window.visualViewport;
+        var width = mobileBrowser
+          ? (viewport ? viewport.width : window.innerWidth)
+          : 1024;
+        var height = mobileBrowser
+          ? (viewport ? viewport.height : window.innerHeight)
+          : 600;
+        width = Math.max(1, width);
+        height = Math.max(1, height);
+
+        // Bound the drawing buffer for older mobile and integrated GPUs.
+        var requested = Math.max(1, window.devicePixelRatio || 1);
+        var ratioCap = gpuSafeMode ? 1 : (mobileBrowser ? 2.25 : 1.25);
+        var pixelBudget = gpuSafeMode ? 700000 : (mobileBrowser ? 1600000 : 1000000);
+        var dimensionBudget = gpuSafeMode ? 1280 : 2048;
+        var pixelRatio = Math.sqrt(pixelBudget / (width * height));
+        var dimensionRatio = Math.min(dimensionBudget / width, dimensionBudget / height);
+        var safeRatio = Math.min(requested, ratioCap, pixelRatio, dimensionRatio);
+        return Math.max(1, Math.floor(safeRatio * 100) / 100);
       }
 
       function isMobileInputTarget(target) {
@@ -288,13 +329,12 @@
       });
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncMobileViewport);
-        window.visualViewport.addEventListener('scroll', syncMobileViewport);
       }
 
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260803-mobile-quality-30fps';
+      var assetVersion = '20260805-gpu-stability';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -309,14 +349,42 @@
         productVersion: "1.0",
         autoSyncPersistentDataPath: true,
         matchWebGLToCanvasSize: true,
-        devicePixelRatio: mobileBrowser
-          ? Math.min(window.devicePixelRatio || 1, 2.5)
-          : Math.min(window.devicePixelRatio || 1, 1.5),
+        devicePixelRatio: calculateSafeDevicePixelRatio(),
+        webglContextAttributes: {
+          premultipliedAlpha: false,
+          preserveDrawingBuffer: false,
+          // Let the browser select the stable GPU instead of forcing one.
+          powerPreference: 0
+        },
         cacheControl: function () {
           return 'no-store';
         },
         showBanner: unityShowBanner
       };
+
+      var contextWasLost = false;
+      canvas.addEventListener('webglcontextlost', function (event) {
+        event.preventDefault();
+        if (contextWasLost) {
+          return;
+        }
+        contextWasLost = true;
+        setRuntimeError('GPU đã tạm dừng WebGL. Game đang khởi động lại ở chế độ tương thích…');
+
+        if (!gpuSafeMode) {
+          window.setTimeout(function () {
+            var recoveryUrl = new URL(window.location.href);
+            recoveryUrl.searchParams.set('gpuSafe', '1');
+            window.location.replace(recoveryUrl.toString());
+          }, 700);
+        }
+      }, false);
+
+      canvas.addEventListener('webglcontextrestored', function () {
+        if (contextWasLost) {
+          window.location.reload();
+        }
+      }, false);
 
 
       var loader = document.createElement('script');
@@ -387,7 +455,7 @@
         }
       }, { passive: false });
 
-      syncMobileViewport();
+      applyMobileViewport();
 
       if ('serviceWorker' in navigator &&
           (location.protocol === 'https:' || location.hostname === 'localhost' ||
