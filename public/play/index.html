@@ -15,11 +15,11 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
   </head>
   <body>
     <main id="game-shell">
-      <canvas id="unity-canvas" tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width="1024" height="600" tabindex="-1"></canvas>
 
       <section id="loading" aria-live="polite">
         <div class="loading-glow"></div>
@@ -40,8 +40,6 @@
         <div>Hãy xoay ngang điện thoại để chơi</div>
       </section>
     </main>
-    <div id="webgl-input-layer"></div>
-
     <script>
       // These handlers only deter casual copying. They are not a security boundary:
       // anything delivered to a browser can still be inspected by a determined user.
@@ -260,6 +258,24 @@
         });
       }
 
+      function applyDesktopViewport() {
+        if (mobileBrowser) {
+          return;
+        }
+        var availableWidth = Math.max(1, window.innerWidth);
+        var availableHeight = Math.max(1, window.innerHeight);
+        var scale = Math.min(1, availableWidth / 1024, availableHeight / 600);
+        shell.style.setProperty('--desktop-scale', scale.toFixed(4));
+      }
+
+      function syncGameViewport() {
+        if (mobileBrowser) {
+          syncMobileViewport();
+        } else {
+          applyDesktopViewport();
+        }
+      }
+
       function calculateSafeDevicePixelRatio() {
         var viewport = window.visualViewport;
         var width = mobileBrowser
@@ -282,16 +298,7 @@
         return Math.max(1, Math.floor(safeRatio * 100) / 100);
       }
 
-      function isMobileInputTarget(target) {
-        var inputLayer = document.querySelector('#webgl-input-layer');
-        return !!(inputLayer && target && inputLayer.contains(target));
-      }
-
-      function handleMobileGesture(event) {
-        if (isMobileInputTarget(event.target)) {
-          return;
-        }
-
+      function handleMobileGesture() {
         enableMobileBackgroundAudio();
         enterMobileImmersiveMode();
         focusGame();
@@ -307,6 +314,7 @@
         resumeWebAudio();
         lockLandscape();
       }
+      window.nroRestoreMobileMode = restoreMobileMode;
 
       if (mobileBrowser) {
         window.addEventListener('pointerup', handleMobileGesture, { passive: true });
@@ -320,7 +328,7 @@
           restoreMobileMode();
         }, 150);
       });
-      window.addEventListener('resize', syncMobileViewport);
+      window.addEventListener('resize', syncGameViewport);
       window.addEventListener('focus', resumeWebAudio);
       document.addEventListener('visibilitychange', function () {
         if (!document.hidden) {
@@ -334,7 +342,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260805-gpu-stability';
+      var assetVersion = '20260805-native-input-fixed-pc-frame';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -348,8 +356,10 @@
         productName: "NRO HORIZON",
         productVersion: "1.0",
         autoSyncPersistentDataPath: true,
-        matchWebGLToCanvasSize: true,
-        devicePixelRatio: calculateSafeDevicePixelRatio(),
+        // PC always renders in the same 1024x600 coordinate space. Only the
+        // CSS shell scales to fit smaller browser viewports.
+        matchWebGLToCanvasSize: mobileBrowser,
+        devicePixelRatio: mobileBrowser ? calculateSafeDevicePixelRatio() : 1,
         webglContextAttributes: {
           premultipliedAlpha: false,
           preserveDrawingBuffer: false,
@@ -398,7 +408,7 @@
           unityInstance = instance;
           window.unityInstance = instance;
           loading.remove();
-          syncMobileViewport();
+          syncGameViewport();
           enterMobileImmersiveMode();
           lockLandscape();
           focusGame();
@@ -456,6 +466,7 @@
       }, { passive: false });
 
       applyMobileViewport();
+      applyDesktopViewport();
 
       if ('serviceWorker' in navigator &&
           (location.protocol === 'https:' || location.hostname === 'localhost' ||

@@ -18,6 +18,7 @@ Thư mục này chứa các file `.md` ghi lại các quyết định đã đư�
 ## Quy tắc hiện tại:
 - [`rules/client-pixel-ui.md`](rules/client-pixel-ui.md) — Quy chuẩn giao diện pixel cho toàn bộ client công khai.
 - [`rules/webgl-websocket-transport.md`](rules/webgl-websocket-transport.md) — Kiến trúc kết nối cho Unity WebGL và client native.
+- [`rules/webgl-native-mobile-input.md`](rules/webgl-native-mobile-input.md) — WebGL mobile dùng hộp thoại nhập native của trình duyệt.
 
 ---
 

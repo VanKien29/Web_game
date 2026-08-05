@@ -37,7 +37,8 @@ body {
   width: 1024px;
   height: 600px;
   overflow: hidden;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--desktop-scale, 1));
+  transform-origin: center center;
   background: #000;
 }
 
@@ -180,116 +181,6 @@ html.mobile #game-shell {
 
 #runtime-error.is-hidden {
   display: none;
-}
-
-#webgl-input-layer {
-  position: fixed;
-  z-index: 9999;
-  inset: 0;
-  overflow: visible;
-  pointer-events: none;
-}
-
-#webgl-input-layer input,
-#webgl-input-layer textarea,
-input.webgl-input,
-textarea.webgl-input {
-  z-index: 10000 !important;
-  pointer-events: auto;
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-#nro-mobile-input {
-  position: fixed;
-  display: none;
-  box-sizing: border-box;
-  min-width: 36px;
-  min-height: 28px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  outline: 0;
-  color: transparent;
-  caret-color: transparent;
-  background: transparent;
-  opacity: 0;
-  font-size: 16px;
-  transform: none;
-}
-
-#nro-mobile-input-dialog {
-  position: fixed;
-  z-index: 10001;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: max(14px, env(safe-area-inset-top))
-    max(14px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom))
-    max(14px, env(safe-area-inset-left));
-  background: rgb(0 0 0 / 62%);
-  pointer-events: auto;
-}
-
-.nro-mobile-input-card {
-  width: min(460px, 100%);
-  padding: 18px;
-  border: 1px solid #d9974b;
-  border-radius: 12px;
-  background: #241811;
-  box-shadow: 0 10px 36px rgb(0 0 0 / 55%);
-}
-
-.nro-mobile-input-title {
-  margin-bottom: 12px;
-  color: #ffe7b2;
-  font-size: 17px;
-  font-weight: 700;
-  text-align: left;
-}
-
-#nro-mobile-input-dialog #nro-mobile-input {
-  position: relative;
-  left: auto !important;
-  top: auto !important;
-  width: 100% !important;
-  height: 46px !important;
-  min-height: 46px;
-  padding: 8px 10px;
-  border: 1px solid #a96e30;
-  border-radius: 7px;
-  color: #241811;
-  caret-color: #241811;
-  background: #fffaf0;
-  opacity: 1;
-  font-size: 16px;
-}
-
-.nro-mobile-input-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.nro-mobile-input-actions button {
-  min-width: 74px;
-  min-height: 38px;
-  padding: 6px 14px;
-  border: 1px solid #c8863d;
-  border-radius: 7px;
-  color: #fff3d2;
-  background: #684020;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.nro-mobile-input-actions .nro-mobile-input-accept {
-  color: #241811;
-  background: #ffb341;
 }
 
 #portrait-lock {
