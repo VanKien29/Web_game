@@ -183,6 +183,108 @@ html.mobile #game-shell {
   display: none;
 }
 
+#webgl-input-layer {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#nro-mobile-input-dialog {
+  position: fixed;
+  z-index: 10001;
+  left: 0;
+  top: 0;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(8px, 4vh, 24px) max(12px, env(safe-area-inset-right)) 8px
+    max(12px, env(safe-area-inset-left));
+  background: rgb(0 0 0 / 28%);
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.nro-mobile-input-card {
+  width: min(520px, 100%);
+  max-height: 100%;
+  margin: 0;
+  padding: 12px 14px 10px;
+  overflow: auto;
+  border: 1px solid rgb(0 0 0 / 16%);
+  border-radius: 14px;
+  color: #151515;
+  background: rgb(248 248 250 / 98%);
+  box-shadow: 0 10px 34px rgb(0 0 0 / 38%);
+  pointer-events: auto;
+}
+
+.nro-mobile-input-title {
+  margin: 0 2px 8px;
+  overflow: hidden;
+  color: #181818;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nro-mobile-input {
+  display: block;
+  width: 100%;
+  height: 43px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 1px solid #c8c8cc;
+  border-radius: 8px;
+  outline: 0;
+  color: #111;
+  caret-color: #0a6cff;
+  background: #fff;
+  font: 400 16px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#nro-mobile-input:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 2px rgb(10 132 255 / 18%);
+}
+
+.nro-mobile-input-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.nro-mobile-input-actions button {
+  min-width: 68px;
+  min-height: 34px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #087cff;
+  background: transparent;
+  font: 650 16px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.nro-mobile-input-actions button:active {
+  background: rgb(10 132 255 / 12%);
+}
+
+.nro-mobile-input-actions .nro-mobile-input-accept {
+  font-weight: 750;
+}
+
 #portrait-lock {
   position: absolute;
   z-index: 30;
@@ -220,6 +322,36 @@ html.mobile #game-shell {
 @media (orientation: portrait) {
   html.mobile:not(.native-input-active) #portrait-lock {
     display: flex;
+  }
+}
+
+@media (max-height: 360px) and (orientation: landscape) {
+  #nro-mobile-input-dialog {
+    padding-top: 6px;
+    padding-bottom: 4px;
+  }
+
+  .nro-mobile-input-card {
+    padding: 8px 10px 6px;
+    border-radius: 10px;
+  }
+
+  .nro-mobile-input-title {
+    margin-bottom: 5px;
+    font-size: 15px;
+  }
+
+  #nro-mobile-input {
+    height: 38px;
+  }
+
+  .nro-mobile-input-actions {
+    margin-top: 4px;
+  }
+
+  .nro-mobile-input-actions button {
+    min-height: 29px;
+    font-size: 14px;
   }
 }
 

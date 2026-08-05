@@ -15,7 +15,7 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
   </head>
   <body>
     <main id="game-shell">
@@ -40,6 +40,7 @@
         <div>Hãy xoay ngang điện thoại để chơi</div>
       </section>
     </main>
+    <div id="webgl-input-layer" aria-hidden="true"></div>
     <script>
       // These handlers only deter casual copying. They are not a security boundary:
       // anything delivered to a browser can still be inspected by a determined user.
@@ -80,6 +81,7 @@
       var lastViewportWidth = 0;
       var lastViewportHeight = 0;
       var nativeInputActive = false;
+      var nativeInputSession = 0;
       var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
 
@@ -233,7 +235,7 @@
       }
 
       function applyMobileViewport() {
-        if (!mobileBrowser) {
+        if (!mobileBrowser || nativeInputActive) {
           return;
         }
 
@@ -299,7 +301,15 @@
         return Math.max(1, Math.floor(safeRatio * 100) / 100);
       }
 
-      function handleMobileGesture() {
+      function isMobileInputTarget(target) {
+        var inputLayer = document.querySelector('#webgl-input-layer');
+        return !!(inputLayer && target && inputLayer.contains(target));
+      }
+
+      function handleMobileGesture(event) {
+        if (isMobileInputTarget(event.target)) {
+          return;
+        }
         enableMobileBackgroundAudio();
         enterMobileImmersiveMode();
         focusGame();
@@ -321,6 +331,7 @@
           return;
         }
 
+        nativeInputSession++;
         nativeInputActive = true;
         document.documentElement.classList.add('native-input-active');
         window.scrollTo(0, 0);
@@ -333,12 +344,22 @@
           return;
         }
 
+        var session = nativeInputSession;
         window.scrollTo(0, 0);
-        syncMobileViewport();
         resumeWebAudio();
         lockLandscape();
-        nativeInputActive = false;
-        document.documentElement.classList.remove('native-input-active');
+        window.setTimeout(function () {
+          if (session !== nativeInputSession) {
+            return;
+          }
+          nativeInputActive = false;
+          document.documentElement.classList.remove('native-input-active');
+          lastViewportWidth = 0;
+          lastViewportHeight = 0;
+          syncMobileViewport();
+          lockLandscape();
+          focusGame();
+        }, 180);
       }
 
       window.nroBeginNativeInput = beginNativeInput;
@@ -371,7 +392,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260805-landscape-native-input';
+      var assetVersion = '20260805-landscape-keyboard-dialog';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
