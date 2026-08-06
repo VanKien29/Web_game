@@ -52,6 +52,15 @@ html.mobile #game-shell {
   padding: 0;
 }
 
+html.mobile #unity-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  transform: none;
+}
+
 #unity-canvas {
   display: block;
   width: 100%;
