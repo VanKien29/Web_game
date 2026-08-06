@@ -15,7 +15,7 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=15">
   </head>
   <body>
     <main id="game-shell">
@@ -71,9 +71,11 @@
       var loadingLabel = document.querySelector('#loading-label');
       var warningBanner = document.querySelector('#unity-warning');
       var runtimeError = document.querySelector('#runtime-error');
+      var forceMobile = new URLSearchParams(window.location.search).get('forceMobile') === '1';
       var touchCapable = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
       var coarsePointer = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
       var mobileBrowser =
+        forceMobile ||
         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
         (touchCapable && coarsePointer);
@@ -86,11 +88,6 @@
       var nativeInputActive = false;
       var nativeInputSession = 0;
       var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
-      var logicalGameWidth = 1024;
-      var logicalGameHeight = 600;
-      var logicalGameAspect = logicalGameWidth / logicalGameHeight;
-      var mobileRenderWidth = 1024 * 2;
-      var mobileRenderHeight = 600 * 2;
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
 
       if (typeof window.caches === 'undefined') {
@@ -234,6 +231,9 @@
       }
 
       function focusGame() {
+        if (mobileBrowser && nativeInputActive) {
+          return;
+        }
         try {
           window.focus();
           canvas.focus({ preventScroll: true });
@@ -252,24 +252,11 @@
         };
       }
 
-      function configureMobileRenderTarget() {
-        if (!mobileBrowser) {
-          return;
-        }
-        // Keep the same 1024x600 logical frame as the legacy mobile client.
-        // The CSS shell below is fitted to the viewport without changing UI scale.
-        mobileRenderWidth = logicalGameWidth * 2;
-        mobileRenderHeight = logicalGameHeight * 2;
-        canvas.width = mobileRenderWidth;
-        canvas.height = mobileRenderHeight;
-      }
-
       function applyMobileViewport() {
-        if (!mobileBrowser) {
+        if (!mobileBrowser || nativeInputActive) {
           return;
         }
 
-        configureMobileRenderTarget();
         var viewport = readVisibleViewport();
         var width = viewport.width;
         var height = viewport.height;
@@ -279,21 +266,13 @@
         lastViewportWidth = width;
         lastViewportHeight = height;
 
-        var availableAspect = width / height;
-        var fittedWidth;
-        var fittedHeight;
-        if (availableAspect > logicalGameAspect) {
-          fittedHeight = height;
-          fittedWidth = Math.max(1, Math.round(fittedHeight * logicalGameAspect));
-        } else {
-          fittedWidth = width;
-          fittedHeight = Math.max(1, Math.round(fittedWidth / logicalGameAspect));
-        }
-
-        shell.style.left = viewport.left + Math.floor((width - fittedWidth) / 2) + 'px';
-        shell.style.top = viewport.top + Math.floor((height - fittedHeight) / 2) + 'px';
-        shell.style.width = fittedWidth + 'px';
-        shell.style.height = fittedHeight + 'px';
+        // Mobile Unity owns the logical frame and matches the canvas to the
+        // visible viewport. Do not aspect-fit a 1024x600 shell here: that
+        // creates the two black side bars and makes the game look zoomed out.
+        shell.style.left = viewport.left + 'px';
+        shell.style.top = viewport.top + 'px';
+        shell.style.width = width + 'px';
+        shell.style.height = height + 'px';
       }
 
       function syncMobileViewport() {
@@ -352,7 +331,7 @@
       }
 
       function handleMobileGesture(event) {
-        if (isMobileInputTarget(event.target)) {
+        if (nativeInputActive || isMobileInputTarget(event.target)) {
           return;
         }
         enableMobileBackgroundAudio();
@@ -389,33 +368,22 @@
           return;
         }
 
-        var session = ++nativeInputSession;
-        nativeInputActive = false;
-        document.documentElement.classList.remove('native-input-active');
+        var session = nativeInputSession;
         window.scrollTo(0, 0);
         resumeWebAudio();
         lockLandscape();
-        lastViewportWidth = 0;
-        lastViewportHeight = 0;
-        syncMobileViewport();
         window.setTimeout(function () {
           if (session !== nativeInputSession) {
             return;
           }
+          nativeInputActive = false;
+          document.documentElement.classList.remove('native-input-active');
           lastViewportWidth = 0;
           lastViewportHeight = 0;
           syncMobileViewport();
           lockLandscape();
-        }, 180);
-        window.setTimeout(function () {
-          if (session !== nativeInputSession) {
-            return;
-          }
-          lastViewportWidth = 0;
-          lastViewportHeight = 0;
-          syncMobileViewport();
           focusGame();
-        }, 420);
+        }, 180);
       }
 
       window.nroBeginNativeInput = beginNativeInput;
@@ -449,7 +417,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260806-mobile-viewport-chat-v4';
+      var assetVersion = '20260806-mobile-viewport-chat-v5';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -464,12 +432,10 @@
         productVersion: "1.0",
         autoSyncPersistentDataPath: true,
         // PC always renders in the same 1024x600 coordinate space. Only the
-        // CSS shell scales to fit smaller browser viewports.
-        // Mobile canvas dimensions are managed from visualViewport above so
-        // iOS/Android keyboard and rotation changes cannot leave Unity with a
-        // stale drawing buffer.
-        matchWebGLToCanvasSize: false,
-        devicePixelRatio: 1,
+        // CSS shell scales to fit smaller desktop browser viewports. Mobile
+        // follows the full viewport so Unity touch coordinates stay aligned.
+        matchWebGLToCanvasSize: mobileBrowser,
+        devicePixelRatio: mobileBrowser ? calculateSafeDevicePixelRatio() : 1,
         webglContextAttributes: {
           premultipliedAlpha: false,
           preserveDrawingBuffer: false,

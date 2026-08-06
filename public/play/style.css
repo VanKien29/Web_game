@@ -44,9 +44,10 @@ body {
 
 html.mobile #game-shell {
   position: fixed;
-  inset: auto;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   transform: none;
   padding: 0;
 }
