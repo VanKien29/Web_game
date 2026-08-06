@@ -234,21 +234,48 @@
         }
       }
 
+      function readVisibleViewport() {
+        var viewport = window.visualViewport;
+        return {
+          width: Math.max(1, Math.floor(viewport ? viewport.width : window.innerWidth)),
+          height: Math.max(1, Math.floor(viewport ? viewport.height : window.innerHeight)),
+          left: Math.max(0, Math.floor(viewport ? viewport.offsetLeft : 0)),
+          top: Math.max(0, Math.floor(viewport ? viewport.offsetTop : 0))
+        };
+      }
+
       function applyMobileViewport() {
-        if (!mobileBrowser || nativeInputActive) {
+        if (!mobileBrowser) {
           return;
         }
 
-        var viewport = window.visualViewport;
-        var width = Math.max(1, Math.floor(viewport ? viewport.width : window.innerWidth));
-        var height = Math.max(1, Math.floor(viewport ? viewport.height : window.innerHeight));
+        var viewport = readVisibleViewport();
+        var width = viewport.width;
+        var height = viewport.height;
         if (width === lastViewportWidth && height === lastViewportHeight) {
           return;
         }
         lastViewportWidth = width;
         lastViewportHeight = height;
+        shell.style.left = viewport.left + 'px';
+        shell.style.top = viewport.top + 'px';
         shell.style.width = width + 'px';
         shell.style.height = height + 'px';
+
+        // Keep CSS and the WebGL drawing buffer on the same visible viewport.
+        // This avoids stale coordinates after iOS/Android collapses the
+        // keyboard or changes orientation.
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        var dpr = calculateSafeDevicePixelRatio();
+        var renderWidth = Math.max(1, Math.floor(width * dpr));
+        var renderHeight = Math.max(1, Math.floor(height * dpr));
+        if (canvas.width !== renderWidth) {
+          canvas.width = renderWidth;
+        }
+        if (canvas.height !== renderHeight) {
+          canvas.height = renderHeight;
+        }
       }
 
       function syncMobileViewport() {
@@ -344,22 +371,33 @@
           return;
         }
 
-        var session = nativeInputSession;
+        var session = ++nativeInputSession;
+        nativeInputActive = false;
+        document.documentElement.classList.remove('native-input-active');
         window.scrollTo(0, 0);
         resumeWebAudio();
         lockLandscape();
+        lastViewportWidth = 0;
+        lastViewportHeight = 0;
+        syncMobileViewport();
         window.setTimeout(function () {
           if (session !== nativeInputSession) {
             return;
           }
-          nativeInputActive = false;
-          document.documentElement.classList.remove('native-input-active');
           lastViewportWidth = 0;
           lastViewportHeight = 0;
           syncMobileViewport();
           lockLandscape();
-          focusGame();
         }, 180);
+        window.setTimeout(function () {
+          if (session !== nativeInputSession) {
+            return;
+          }
+          lastViewportWidth = 0;
+          lastViewportHeight = 0;
+          syncMobileViewport();
+          focusGame();
+        }, 420);
       }
 
       window.nroBeginNativeInput = beginNativeInput;
@@ -387,12 +425,13 @@
       });
       if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncMobileViewport);
+        window.visualViewport.addEventListener('scroll', syncMobileViewport);
       }
 
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260806-mobile-input-sync';
+      var assetVersion = '20260806-mobile-viewport-chat';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
@@ -408,8 +447,11 @@
         autoSyncPersistentDataPath: true,
         // PC always renders in the same 1024x600 coordinate space. Only the
         // CSS shell scales to fit smaller browser viewports.
-        matchWebGLToCanvasSize: mobileBrowser,
-        devicePixelRatio: mobileBrowser ? calculateSafeDevicePixelRatio() : 1,
+        // Mobile canvas dimensions are managed from visualViewport above so
+        // iOS/Android keyboard and rotation changes cannot leave Unity with a
+        // stale drawing buffer.
+        matchWebGLToCanvasSize: false,
+        devicePixelRatio: 1,
         webglContextAttributes: {
           premultipliedAlpha: false,
           preserveDrawingBuffer: false,
