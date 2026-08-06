@@ -71,9 +71,12 @@
       var loadingLabel = document.querySelector('#loading-label');
       var warningBanner = document.querySelector('#unity-warning');
       var runtimeError = document.querySelector('#runtime-error');
+      var touchCapable = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
+      var coarsePointer = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
       var mobileBrowser =
         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+        (touchCapable && coarsePointer);
       var unityInstance = null;
       var backgroundAudioContext = null;
       var backgroundAudioOscillator = null;
@@ -436,7 +439,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260806-mobile-viewport-chat-v2';
+      var assetVersion = '20260806-mobile-viewport-chat-v3';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
