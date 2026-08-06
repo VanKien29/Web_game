@@ -83,6 +83,8 @@
       var nativeInputActive = false;
       var nativeInputSession = 0;
       var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
+      var mobileRenderWidth = 1024 * 2;
+      var mobileRenderHeight = 600 * 2;
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
 
       if (typeof window.caches === 'undefined') {
@@ -242,6 +244,18 @@
           left: Math.max(0, Math.floor(viewport ? viewport.offsetLeft : 0)),
           top: Math.max(0, Math.floor(viewport ? viewport.offsetTop : 0))
         };
+      }
+
+      function configureMobileRenderTarget() {
+        if (!mobileBrowser) {
+          return;
+        }
+        if (canvas.width !== mobileRenderWidth) {
+          canvas.width = mobileRenderWidth;
+        }
+        if (canvas.height !== mobileRenderHeight) {
+          canvas.height = mobileRenderHeight;
+        }
       }
 
       function applyMobileViewport() {
