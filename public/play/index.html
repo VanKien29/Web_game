@@ -15,7 +15,7 @@
     <title>NRO HORIZON</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
   </head>
   <body>
     <main id="game-shell">
@@ -249,6 +249,7 @@
           return;
         }
 
+        configureMobileRenderTarget();
         var viewport = readVisibleViewport();
         var width = viewport.width;
         var height = viewport.height;
@@ -262,20 +263,10 @@
         shell.style.width = width + 'px';
         shell.style.height = height + 'px';
 
-        // Keep CSS and the WebGL drawing buffer on the same visible viewport.
-        // This avoids stale coordinates after iOS/Android collapses the
-        // keyboard or changes orientation.
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
-        var dpr = calculateSafeDevicePixelRatio();
-        var renderWidth = Math.max(1, Math.floor(width * dpr));
-        var renderHeight = Math.max(1, Math.floor(height * dpr));
-        if (canvas.width !== renderWidth) {
-          canvas.width = renderWidth;
-        }
-        if (canvas.height !== renderHeight) {
-          canvas.height = renderHeight;
-        }
+        // MotherCanvas uses zoomLevel=2 on WebGL mobile. Keep the fixed 2x
+        // backing buffer and only resize the CSS shell to the visible viewport;
+        // changing the drawing buffer to the phone viewport makes the game UI
+        // appear zoomed too far out.
       }
 
       function syncMobileViewport() {
@@ -431,7 +422,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260806-mobile-viewport-chat';
+      var assetVersion = '20260806-mobile-viewport-chat-v2';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
