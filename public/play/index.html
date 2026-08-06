@@ -86,6 +86,9 @@
       var nativeInputActive = false;
       var nativeInputSession = 0;
       var gpuSafeMode = new URLSearchParams(window.location.search).get('gpuSafe') === '1';
+      var logicalGameWidth = 1024;
+      var logicalGameHeight = 600;
+      var logicalGameAspect = logicalGameWidth / logicalGameHeight;
       var mobileRenderWidth = 1024 * 2;
       var mobileRenderHeight = 600 * 2;
       document.documentElement.classList.add(mobileBrowser ? 'mobile' : 'desktop');
@@ -253,12 +256,12 @@
         if (!mobileBrowser) {
           return;
         }
-        if (canvas.width !== mobileRenderWidth) {
-          canvas.width = mobileRenderWidth;
-        }
-        if (canvas.height !== mobileRenderHeight) {
-          canvas.height = mobileRenderHeight;
-        }
+        // Keep the same 1024x600 logical frame as the legacy mobile client.
+        // The CSS shell below is fitted to the viewport without changing UI scale.
+        mobileRenderWidth = logicalGameWidth * 2;
+        mobileRenderHeight = logicalGameHeight * 2;
+        canvas.width = mobileRenderWidth;
+        canvas.height = mobileRenderHeight;
       }
 
       function applyMobileViewport() {
@@ -275,15 +278,22 @@
         }
         lastViewportWidth = width;
         lastViewportHeight = height;
-        shell.style.left = viewport.left + 'px';
-        shell.style.top = viewport.top + 'px';
-        shell.style.width = width + 'px';
-        shell.style.height = height + 'px';
 
-        // MotherCanvas uses zoomLevel=2 on WebGL mobile. Keep the fixed 2x
-        // backing buffer and only resize the CSS shell to the visible viewport;
-        // changing the drawing buffer to the phone viewport makes the game UI
-        // appear zoomed too far out.
+        var availableAspect = width / height;
+        var fittedWidth;
+        var fittedHeight;
+        if (availableAspect > logicalGameAspect) {
+          fittedHeight = height;
+          fittedWidth = Math.max(1, Math.round(fittedHeight * logicalGameAspect));
+        } else {
+          fittedWidth = width;
+          fittedHeight = Math.max(1, Math.round(fittedWidth / logicalGameAspect));
+        }
+
+        shell.style.left = viewport.left + Math.floor((width - fittedWidth) / 2) + 'px';
+        shell.style.top = viewport.top + Math.floor((height - fittedHeight) / 2) + 'px';
+        shell.style.width = fittedWidth + 'px';
+        shell.style.height = fittedHeight + 'px';
       }
 
       function syncMobileViewport() {
@@ -439,7 +449,7 @@
       var buildUrl = 'Build';
       // Keep every Unity artifact on the same deployment version. This also
       // bypasses stale CDN entries left behind by older WebGL builds.
-      var assetVersion = '20260806-mobile-viewport-chat-v3';
+      var assetVersion = '20260806-mobile-viewport-chat-v4';
       function versionedAsset(url) {
         return url + '?v=' + encodeURIComponent(assetVersion);
       }
